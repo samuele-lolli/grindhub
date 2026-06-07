@@ -63,8 +63,9 @@ export default function BankrollPage() {
   const [accForm, setAccForm] = useState({ platform: 'pokerstars' as Platform, name: '', balance: '', category: 'poker_room' as BankrollCategory });
   const [transferForm, setTransferForm] = useState({ fromId: '', toId: '', amount: '', notes: '' });
 
-  const totalBankroll = useMemo(() => getTotalBankroll(true), [getTotalBankroll]);
-  const health = useMemo(() => getBankrollHealth(totalBankroll, stats.avgBuyIn, 'mtt'), [totalBankroll, stats.avgBuyIn]);
+  const playableBankroll = useMemo(() => getTotalBankroll(true), [getTotalBankroll]);
+  const totalPortfolio = useMemo(() => getTotalBankroll(false), [getTotalBankroll]);
+  const health = useMemo(() => getBankrollHealth(playableBankroll, stats.avgBuyIn, 'mtt'), [playableBankroll, stats.avgBuyIn]);
 
   const healthColors: Record<string, string> = { healthy: 'var(--accent-green)', caution: 'var(--accent-gold)', danger: 'var(--accent-red)' };
   const healthLabels: Record<string, string> = { healthy: 'Healthy', caution: 'Caution', danger: 'Under-rolled' };
@@ -115,7 +116,7 @@ export default function BankrollPage() {
         if (allDays.length > 3650) break; // Safety limit
       }
       
-      let runningBankroll = totalBankroll;
+      let runningBankroll = playableBankroll;
       
       for (let i = allDays.length - 1; i >= 0; i--) {
         const key = allDays[i];
@@ -126,10 +127,10 @@ export default function BankrollPage() {
         }
       }
       if (!byDay.has(format(new Date(), 'yyyy-MM-dd'))) {
-        byDay.set(format(new Date(), 'yyyy-MM-dd'), totalBankroll);
+        byDay.set(format(new Date(), 'yyyy-MM-dd'), playableBankroll);
       }
     } else {
-       byDay.set(format(new Date(), 'yyyy-MM-dd'), totalBankroll);
+       byDay.set(format(new Date(), 'yyyy-MM-dd'), playableBankroll);
     }
 
     const chronologicalDays = Array.from(byDay.keys()).sort();
@@ -152,7 +153,7 @@ export default function BankrollPage() {
         fill: true, cubicInterpolationMode: 'monotone' as const, pointRadius: 0, pointHoverRadius: 5, borderWidth: 2,
       }],
     };
-  }, [sessions, transactions, totalBankroll, accounts]);
+  }, [sessions, transactions, playableBankroll, accounts]);
 
   const donutData = useMemo(() => {
     const data = accounts.filter(a => a.balance > 0);
@@ -229,8 +230,11 @@ export default function BankrollPage() {
                 <Shield size={14} /> {healthLabels[health]}
               </span>
             </div>
-            <div className={styles.heroValueWrap}>
-              <span className={styles.heroValue}>{formatCurrency(totalBankroll, 'EUR')}</span>
+            <div className={styles.heroValueWrap} style={{ display: 'flex', flexDirection: 'column' }}>
+              <span className={styles.heroValue}>{formatCurrency(playableBankroll, 'EUR')}</span>
+              <span style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                Total Portfolio (including wallets/banks): {formatCurrency(totalPortfolio, 'EUR')}
+              </span>
             </div>
             <p className={styles.healthDesc}>{healthDesc[health]}</p>
           </div>
@@ -289,7 +293,7 @@ export default function BankrollPage() {
           <div className={styles.chartsCol}>
             <div className={styles.card}>
               <div className={styles.cardHeader}>
-                <h3 className={styles.cardTitle}>Bankroll History</h3>
+                <h3 className={styles.cardTitle}>Playable Bankroll History</h3>
               </div>
               <div className={styles.chartWrap}>
                 {chartData.datasets[0].data.length > 0 ? (
@@ -305,7 +309,7 @@ export default function BankrollPage() {
 
           <div className={styles.sideCol}>
             <div className={styles.card}>
-              <h3 className={styles.cardTitle}>Portfolio Allocation</h3>
+              <h3 className={styles.cardTitle}>Total Portfolio Allocation</h3>
               <div className={styles.donutWrap}>
                 {accounts.filter(a => a.balance > 0).length > 0 ? (
                   <Doughnut data={donutData} options={{ maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'right', labels: { color: '#94a3b8', usePointStyle: true, padding: 20 } } } }} />

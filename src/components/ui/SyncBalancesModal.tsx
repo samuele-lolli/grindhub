@@ -24,7 +24,7 @@ export function SyncBalancesModal({ isOpen, onClose }: SyncBalancesModalProps) {
 
   // Only show poker_room accounts for quick sync
   const platformAccounts = accounts.filter(
-    (a) => a.category === 'poker_room' || a.category === 'crypto' || a.category === 'e_wallet'
+    (a) => a.category === 'poker_room'
   );
 
   // Initialize input state when modal opens

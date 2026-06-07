@@ -132,7 +132,7 @@ export default function DashboardPage() {
               <div className={styles.bankrollTop}>
                 <Wallet size={22} className={styles.bankrollIcon} />
                 <div>
-                  <span className={styles.bankrollLabel}>{t.bankroll.totalBankroll}</span>
+                  <span className={styles.bankrollLabel}>Playable Bankroll</span>
                   <span className={styles.bankrollValue}>{formatCurrency(totalBankroll, 'EUR')}</span>
                 </div>
                 <span className={styles.healthBadge} style={{ color: healthColors[health], borderColor: healthColors[health] }}>
