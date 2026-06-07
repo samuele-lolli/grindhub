@@ -1,0 +1,53 @@
+/* ============================================================
+   Card Component Styles
+   ============================================================ */
+
+.card {
+  background: var(--bg-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  transition:
+    background var(--transition-base),
+    border-color var(--transition-base),
+    box-shadow var(--transition-base),
+    transform var(--transition-base);
+  animation: cardFadeIn 0.4s ease forwards;
+}
+
+.hoverable:hover {
+  background: var(--bg-glass-hover);
+  border-color: var(--border-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg), var(--shadow-glow-blue);
+}
+
+/* --- Padding Variants --- */
+
+.padding_sm {
+  padding: var(--space-3);
+}
+
+.padding_md {
+  padding: var(--space-5);
+}
+
+.padding_lg {
+  padding: var(--space-8);
+}
+
+/* --- Animation --- */
+
+@keyframes cardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }

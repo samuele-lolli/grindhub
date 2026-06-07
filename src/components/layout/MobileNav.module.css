@@ -1,0 +1,62 @@
+.mobileNav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--mobile-nav-height);
+  background: rgba(10, 14, 23, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: var(--z-sticky);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: var(--space-2) var(--space-3);
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  position: relative;
+  min-width: 56px;
+}
+
+.tab:hover {
+  color: var(--text-secondary);
+}
+
+.tab.active {
+  color: var(--accent-blue);
+}
+
+.indicator {
+  position: absolute;
+  top: -1px;
+  width: 20px;
+  height: 3px;
+  background: var(--accent-blue);
+  border-radius: 0 0 var(--radius-full) var(--radius-full);
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+}
+
+.label {
+  font-size: 10px;
+  font-weight: var(--font-medium);
+  letter-spacing: 0.02em;
+}
+
+@media (min-width: 769px) {
+  .mobileNav {
+    display: none;
+  }
+}
+
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
