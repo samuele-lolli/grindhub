@@ -145,7 +145,7 @@ export const useBankrollStore = create<BankrollStore>()((set, get) => ({
 
   getTotalBankroll: (excludeRealLife = true) => {
     return get().accounts
-      .filter(a => excludeRealLife ? a.category !== 'bank_account' && a.category !== 'cash' : true)
+      .filter(a => excludeRealLife ? a.category === 'poker_room' : true)
       .reduce((sum, a) => sum + a.balance, 0);
   },
 

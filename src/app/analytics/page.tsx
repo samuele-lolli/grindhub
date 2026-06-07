@@ -64,10 +64,10 @@ export default function AnalyticsPage() {
   const profitChart = useMemo(() => {
     // 1. Get total bankroll
     const totalBankroll = accounts
-      .filter(a => a.category !== 'bank_account' && a.category !== 'cash')
+      .filter(a => a.category === 'poker_room')
       .reduce((sum, a) => sum + a.balance, 0);
 
-    const playableAccountIds = new Set(accounts.filter(a => a.category !== 'bank_account' && a.category !== 'cash').map(a => a.id));
+    const playableAccountIds = new Set(accounts.filter(a => a.category === 'poker_room').map(a => a.id));
     const events: { date: Date; amount: number }[] = [];
     // We strictly use transactions to trace Bankroll backwards. Sessions alone don't mutate DB bankroll.
     transactions.forEach(tx => {

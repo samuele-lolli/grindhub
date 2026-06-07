@@ -76,7 +76,7 @@ export default function BankrollPage() {
 
   // Chart data
   const chartData = useMemo(() => {
-    const playableAccountIds = new Set(accounts.filter(a => a.category !== 'bank_account' && a.category !== 'cash').map(a => a.id));
+    const playableAccountIds = new Set(accounts.filter(a => a.category === 'poker_room').map(a => a.id));
     const events: { date: Date; amount: number }[] = [];
     // We only use transactions to trace bankroll backwards. Sessions don't mutate DB bankroll.
     transactions.forEach(tx => {
