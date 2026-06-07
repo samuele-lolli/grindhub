@@ -7,7 +7,8 @@ import { useProfileStore } from '@/stores/profile-store';
 import { useSessionStore } from '@/stores/session-store';
 import { useI18n } from '@/i18n';
 import { formatRelativeTime, getInitials, formatCurrency, getSessionProfit, formatDate, formatDuration, platformLabels } from '@/lib/utils';
-import type { PostType, AggregatedMTTSession } from '@/types';
+import type { PostType, AggregatedMTTSession, PlayerProfile, PlayerStats } from '@/types';
+import { profileService } from '@/lib/services/profile-service';
 import styles from './page.module.css';
 
 // ── Constants ──
@@ -104,6 +105,10 @@ export default function SocialPage() {
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
 
+  // ── Public Profile Modal State ──
+  const [selectedProfile, setSelectedProfile] = useState<{ profile: PlayerProfile, stats: PlayerStats | null } | null>(null);
+  const [isProfileLoading, setIsProfileLoading] = useState(false);
+
   // ── Player lookup ──
   const getPlayer = useCallback(
     (id: string) => {
@@ -147,6 +152,21 @@ export default function SocialPage() {
     setAttachedSession(null);
     setComposerFocused(false);
   }, [newPost, attachedSession, addPost, profile?.id]);
+
+  // ── View Public Profile ──
+  const handleViewProfile = useCallback(async (userId: string) => {
+    setIsProfileLoading(true);
+    try {
+      const data = await profileService.fetchPublicProfile(userId);
+      if (data && data.profile) {
+        setSelectedProfile(data);
+      }
+    } catch (err) {
+      console.error('Error fetching public profile:', err);
+    } finally {
+      setIsProfileLoading(false);
+    }
+  }, []);
 
   // ── Comment ──
   const handleComment = useCallback(
@@ -290,10 +310,14 @@ export default function SocialPage() {
                   <article key={post.id} className={styles.postCard} style={{ animationDelay: `${i * 50}ms` }}>
                     {/* Header */}
                     <div className={styles.postHeader}>
-                      <Avatar name={author?.displayName || 'Unknown'} avatarColor={avatarBg} size="md" />
+                      <div style={{ cursor: 'pointer' }} onClick={() => handleViewProfile(post.authorId)}>
+                        <Avatar name={author?.displayName || 'Unknown'} avatarColor={avatarBg} size="md" />
+                      </div>
                       <div className={styles.postMeta}>
                         <div className={styles.postMetaTop}>
-                          <span className={styles.authorName}>{author?.displayName || 'Unknown'}</span>
+                          <span className={styles.authorName} style={{ cursor: 'pointer' }} onClick={() => handleViewProfile(post.authorId)}>
+                            {author?.displayName || 'Unknown'}
+                          </span>
                           <span className={styles.authorUsername}>@{author?.username || 'user'}</span>
                           <PostTypeBadge type={post.type} />
                         </div>
@@ -501,6 +525,82 @@ export default function SocialPage() {
         </div>
       )}
 
+      {/* ── Public Profile Modal ── */}
+      {selectedProfile && (
+        <div className={styles.profileModalOverlay} onClick={() => setSelectedProfile(null)}>
+          <div className={styles.profileModal} onClick={e => e.stopPropagation()}>
+            <button className={styles.modalClose} onClick={() => setSelectedProfile(null)}>
+              <X size={16} />
+            </button>
+            <div className={styles.profileModalHeader}>
+              <Avatar 
+                name={selectedProfile.profile.displayName} 
+                avatarColor={typeof selectedProfile.profile.avatar === 'string' && selectedProfile.profile.avatar.startsWith('#') ? selectedProfile.profile.avatar : getAvatarColor(selectedProfile.profile.id)} 
+                size="lg" 
+              />
+              <div>
+                <span className={styles.profileModalName}>{selectedProfile.profile.displayName}</span>
+                <span className={styles.profileModalUser}>@{selectedProfile.profile.username} • {selectedProfile.profile.country || 'Global'}</span>
+              </div>
+            </div>
+            
+            {selectedProfile.profile.bio && (
+              <div className={styles.profileModalBio}>
+                {selectedProfile.profile.bio}
+              </div>
+            )}
+
+            <h4 style={{ marginBottom: '12px', fontSize: '14px', color: 'var(--text-secondary)' }}>Public Statistics</h4>
+            
+            <div className={styles.publicStatsGrid}>
+              {selectedProfile.stats?.totalSessions != null && (
+                <div className={styles.publicStatCard}>
+                  <span className={styles.embedMetricLabel}>Volume</span>
+                  <span className={styles.embedMetricValue}>{selectedProfile.stats.totalSessions} MTTs</span>
+                </div>
+              )}
+              {selectedProfile.stats?.totalProfit != null && (
+                <div className={styles.publicStatCard}>
+                  <span className={styles.embedMetricLabel}>Profit</span>
+                  <span className={`${styles.embedMetricValue} ${selectedProfile.stats.totalProfit >= 0 ? styles.profitPos : styles.profitNeg}`}>
+                    {formatCurrency(selectedProfile.stats.totalProfit, 'EUR', true)}
+                  </span>
+                </div>
+              )}
+              {selectedProfile.stats?.roi != null && (
+                <div className={styles.publicStatCard}>
+                  <span className={styles.embedMetricLabel}>ROI</span>
+                  <span className={styles.embedMetricValue}>{selectedProfile.stats.roi.toFixed(1)}%</span>
+                </div>
+              )}
+              {selectedProfile.stats?.itm != null && (
+                <div className={styles.publicStatCard}>
+                  <span className={styles.embedMetricLabel}>ITM</span>
+                  <span className={styles.embedMetricValue}>{selectedProfile.stats.itm.toFixed(1)}%</span>
+                </div>
+              )}
+              {selectedProfile.stats?.avgBuyIn != null && (
+                <div className={styles.publicStatCard}>
+                  <span className={styles.embedMetricLabel}>Avg Buy-in</span>
+                  <span className={styles.embedMetricValue}>{formatCurrency(selectedProfile.stats.avgBuyIn, 'EUR')}</span>
+                </div>
+              )}
+              {selectedProfile.stats?.biggestWin != null && (
+                <div className={styles.publicStatCard}>
+                  <span className={styles.embedMetricLabel}>Biggest Win</span>
+                  <span className={`${styles.embedMetricValue} ${styles.profitPos}`}>{formatCurrency(selectedProfile.stats.biggestWin, 'EUR')}</span>
+                </div>
+              )}
+            </div>
+            
+            {(!selectedProfile.stats || Object.values(selectedProfile.stats).every(v => v === null)) && (
+              <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '14px', padding: '20px 0' }}>
+                This user has chosen to keep their statistics private.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

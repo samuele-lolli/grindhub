@@ -248,6 +248,74 @@ export default function SettingsPage() {
                     <span className={styles.slider}></span>
                   </label>
                 </div>
+
+                <div className={styles.divider} />
+
+                <div className={styles.toggleRow}>
+                  <div>
+                    <span className={styles.toggleLabel}>Show ITM</span>
+                    <span className={styles.toggleDesc}>Display your In-The-Money percentage.</span>
+                  </div>
+                  <label className={styles.switch}>
+                    <input 
+                      type="checkbox" 
+                      checked={localProfile.privacy.showITM ?? false} 
+                      onChange={e => setLocalProfile(p => p ? {...p, privacy: {...p.privacy, showITM: e.target.checked}} : p)} 
+                    />
+                    <span className={styles.slider}></span>
+                  </label>
+                </div>
+
+                <div className={styles.divider} />
+
+                <div className={styles.toggleRow}>
+                  <div>
+                    <span className={styles.toggleLabel}>Show Volume</span>
+                    <span className={styles.toggleDesc}>Display your total tournaments played.</span>
+                  </div>
+                  <label className={styles.switch}>
+                    <input 
+                      type="checkbox" 
+                      checked={localProfile.privacy.showVolume ?? false} 
+                      onChange={e => setLocalProfile(p => p ? {...p, privacy: {...p.privacy, showVolume: e.target.checked}} : p)} 
+                    />
+                    <span className={styles.slider}></span>
+                  </label>
+                </div>
+
+                <div className={styles.divider} />
+
+                <div className={styles.toggleRow}>
+                  <div>
+                    <span className={styles.toggleLabel}>Show Avg Buy-In</span>
+                    <span className={styles.toggleDesc}>Display your average tournament buy-in.</span>
+                  </div>
+                  <label className={styles.switch}>
+                    <input 
+                      type="checkbox" 
+                      checked={localProfile.privacy.showAvgBuyIn ?? false} 
+                      onChange={e => setLocalProfile(p => p ? {...p, privacy: {...p.privacy, showAvgBuyIn: e.target.checked}} : p)} 
+                    />
+                    <span className={styles.slider}></span>
+                  </label>
+                </div>
+
+                <div className={styles.divider} />
+
+                <div className={styles.toggleRow}>
+                  <div>
+                    <span className={styles.toggleLabel}>Show Biggest Win</span>
+                    <span className={styles.toggleDesc}>Display your largest single-session profit.</span>
+                  </div>
+                  <label className={styles.switch}>
+                    <input 
+                      type="checkbox" 
+                      checked={localProfile.privacy.showBiggestWin ?? false} 
+                      onChange={e => setLocalProfile(p => p ? {...p, privacy: {...p.privacy, showBiggestWin: e.target.checked}} : p)} 
+                    />
+                    <span className={styles.slider}></span>
+                  </label>
+                </div>
               </div>
 
               <h2 className={styles.sectionTitle} style={{ marginTop: '2rem', color: 'var(--accent-red)' }}>Danger Zone</h2>

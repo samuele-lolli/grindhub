@@ -1,5 +1,5 @@
 import { supabase } from '../supabase';
-import type { PlayerProfile } from '@/types';
+import type { PlayerProfile, PlayerStats } from '@/types';
 
 /**
  * Service for managing user profiles and settings via Supabase.
@@ -91,5 +91,42 @@ export const profileService = {
       privacy: d.privacy,
       isCurrentUser: false,
     }));
+  },
+
+  /**
+   * Retrieves a public profile and their public stats.
+   * Calls the get_player_public_stats RPC to respect privacy toggles on the DB side.
+   * @param id - The UUID of the target user.
+   */
+  async fetchPublicProfile(id: string): Promise<{ profile: PlayerProfile; stats: PlayerStats | null } | null> {
+    const profile = await this.getProfile(id);
+    if (!profile) return null;
+
+    try {
+      const { data, error } = await supabase.rpc('get_player_public_stats', { target_user_id: id });
+      
+      if (error) {
+        console.error('Error fetching public stats:', error);
+        return { profile, stats: null };
+      }
+
+      // Map the DB response (camelCase as built by our RPC JSON object) to our PlayerStats interface
+      const stats: PlayerStats | null = data ? {
+        totalProfit: data.totalProfit ?? 0,
+        totalSessions: data.totalSessions ?? 0,
+        totalTournaments: data.totalTournaments ?? 0,
+        roi: data.roi ?? 0,
+        itm: data.itm ?? 0,
+        avgBuyIn: data.avgBuyIn ?? 0,
+        hourlyRate: data.hourlyRate ?? 0,
+        biggestWin: data.biggestWin ?? 0,
+        currentStreak: data.currentStreak ?? 0,
+      } as PlayerStats : null;
+
+      return { profile, stats };
+    } catch (err) {
+      console.error('Unexpected error fetching public stats:', err);
+      return { profile, stats: null };
+    }
   }
 };
