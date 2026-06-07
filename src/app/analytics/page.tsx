@@ -18,6 +18,7 @@ import {
   formatCurrency, formatPercent, formatNumber, getSessionProfit, getSessionBuyIn,
   filterSessionsByTime, platformLabels, isSessionProfitable
 } from '@/lib/utils';
+import { format } from 'date-fns';
 import type { TimeFilter } from '@/types';
 import styles from './page.module.css';
 
@@ -83,12 +84,12 @@ export default function AnalyticsPage() {
     if (sortedEvents.length > 0) {
       const dayChanges = new Map<string, number>();
       sortedEvents.forEach(e => {
-        const key = e.date.toISOString().split('T')[0];
+        const key = format(e.date, 'yyyy-MM-dd');
         dayChanges.set(key, (dayChanges.get(key) || 0) + e.amount);
       });
 
-      const startDateStr = sortedEvents[0].date.toISOString().split('T')[0];
-      const todayStr = new Date().toISOString().split('T')[0];
+      const startDateStr = format(sortedEvents[0].date, 'yyyy-MM-dd');
+      const todayStr = format(new Date(), 'yyyy-MM-dd');
       
       const allDays: string[] = [];
       const currentD = new Date(startDateStr + 'T12:00:00Z');
@@ -110,8 +111,11 @@ export default function AnalyticsPage() {
           runningBankroll -= dayChanges.get(key)!;
         }
       }
+      if (!byDay.has(format(new Date(), 'yyyy-MM-dd'))) {
+        byDay.set(format(new Date(), 'yyyy-MM-dd'), totalBankroll);
+      }
     } else {
-       byDay.set(new Date().toISOString().split('T')[0], totalBankroll);
+       byDay.set(format(new Date(), 'yyyy-MM-dd'), totalBankroll);
     }
 
     // Now filter the chart for the current view!
@@ -119,13 +123,13 @@ export default function AnalyticsPage() {
     
     const now = new Date().getTime();
     if (filter === '30d') {
-      const cutoff = new Date(now - 30 * 86400000).toISOString().split('T')[0];
+      const cutoff = format(new Date(now - 30 * 86400000), 'yyyy-MM-dd');
       chronologicalDays = chronologicalDays.filter(d => d >= cutoff);
     } else if (filter === '90d') {
-      const cutoff = new Date(now - 90 * 86400000).toISOString().split('T')[0];
+      const cutoff = format(new Date(now - 90 * 86400000), 'yyyy-MM-dd');
       chronologicalDays = chronologicalDays.filter(d => d >= cutoff);
     } else if (filter === '1y') {
-      const cutoff = new Date(now - 365 * 86400000).toISOString().split('T')[0];
+      const cutoff = format(new Date(now - 365 * 86400000), 'yyyy-MM-dd');
       chronologicalDays = chronologicalDays.filter(d => d >= cutoff);
     }
 

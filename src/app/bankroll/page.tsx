@@ -14,6 +14,7 @@ import { useBankrollStore } from '@/stores/bankroll-store';
 import { useSessionStore } from '@/stores/session-store';
 import { SyncBalancesModal } from '@/components/ui/SyncBalancesModal';
 import { useI18n } from '@/i18n';
+import { format } from 'date-fns';
 import {
   formatCurrency, formatDate, getBankrollHealth, cn, getSessionProfit
 } from '@/lib/utils';
@@ -91,12 +92,12 @@ export default function BankrollPage() {
     if (sortedEvents.length > 0) {
       const dayChanges = new Map<string, number>();
       sortedEvents.forEach(e => {
-        const key = e.date.toISOString().split('T')[0];
+        const key = format(e.date, 'yyyy-MM-dd');
         dayChanges.set(key, (dayChanges.get(key) || 0) + e.amount);
       });
 
-      const startDateStr = sortedEvents[0].date.toISOString().split('T')[0];
-      const todayStr = new Date().toISOString().split('T')[0];
+      const startDateStr = format(sortedEvents[0].date, 'yyyy-MM-dd');
+      const todayStr = format(new Date(), 'yyyy-MM-dd');
       
       const allDays: string[] = [];
       const currentD = new Date(startDateStr + 'T12:00:00Z');
@@ -118,8 +119,11 @@ export default function BankrollPage() {
           runningBankroll -= dayChanges.get(key)!;
         }
       }
+      if (!byDay.has(format(new Date(), 'yyyy-MM-dd'))) {
+        byDay.set(format(new Date(), 'yyyy-MM-dd'), totalBankroll);
+      }
     } else {
-       byDay.set(new Date().toISOString().split('T')[0], totalBankroll);
+       byDay.set(format(new Date(), 'yyyy-MM-dd'), totalBankroll);
     }
 
     const chronologicalDays = Array.from(byDay.keys()).sort();

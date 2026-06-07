@@ -8,6 +8,7 @@ import {
 import { useSessionStore } from '@/stores/session-store';
 import { useSettingsStore } from '@/stores/settings-store';
 import { useI18n } from '@/i18n';
+import { format } from 'date-fns';
 import {
   formatCurrency, formatDate, formatDuration, getSessionProfit, getSessionBuyIn,
   getProfitClass, platformLabels, formatPercent, cn,
@@ -49,7 +50,7 @@ interface FormState {
 
 function getDefaultForm(platform: Platform): FormState {
   return {
-    date: new Date().toISOString().split('T')[0],
+    date: format(new Date(), 'yyyy-MM-dd'),
     hours: '4',
     minutes: '0',
     eventCount: '',
