@@ -244,6 +244,14 @@
     "platforms": "Le tue piattaforme più profittevoli.",
     "activeGoals": "Gli obiettivi progrediscono automaticamente quando registri nuove sessioni.",
     "quickSync": "Correggi istantaneamente le discrepanze tra GrindHub e il saldo reale della tua poker room.",
-    "socialFeed": "I post sono visibili a chiunque ti segua. Il tuo bankroll esatto è SEMPRE privato."
+    "socialFeed": "I post sono visibili a chiunque ti segua. Il tuo bankroll esatto è SEMPRE privato.",
+    "cumulativeProfit": "Profitto Cumulativo. Traccia ESCLUSIVAMENTE l'andamento dei tavoli. Parte da zero.",
+    "bankrollHistory": "Storico Bankroll. Traccia il saldo totale del tuo portfolio, influenzato da Depositi e Prelievi manuali.",
+    "totalProfit": "Profitto netto, sottratti tutti i buy-in e le fee.",
+    "volume": "Numero totale di sessioni o tornei giocati.",
+    "avgBuyIn": "Costo medio per iscriversi a un torneo o sessione.",
+    "hourlyRate": "Profitto medio per ora di gioco.",
+    "winRate": "Percentuale di sessioni chiuse in positivo.",
+    "biggestWin": "La tua singola vincita più grande."
   }
 }

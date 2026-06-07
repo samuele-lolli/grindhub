@@ -159,6 +159,54 @@ export default function AnalyticsPage() {
     };
   }, [sessions, transactions, filter, accounts]);
 
+  // --- Cumulative Profit over time ---
+  const cumulativeChart = useMemo(() => {
+    // Sort ascending by date
+    const sorted = [...filtered].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    
+    let runningProfit = 0;
+    const labels: string[] = [];
+    const data: number[] = [];
+    
+    // Aggregate by day to make the chart cleaner
+    const profitByDay = new Map<string, number>();
+    sorted.forEach(s => {
+      const key = format(new Date(s.date), 'yyyy-MM-dd');
+      profitByDay.set(key, (profitByDay.get(key) || 0) + getSessionProfit(s));
+    });
+
+    Array.from(profitByDay.entries()).sort((a, b) => a[0].localeCompare(b[0])).forEach(([dateStr, dailyProfit]) => {
+      runningProfit += dailyProfit;
+      const parts = dateStr.split('-');
+      labels.push(`${parts[1]}/${parts[2]}`);
+      data.push(runningProfit);
+    });
+
+    const isPositive = runningProfit >= 0;
+    const color = isPositive ? '#10b981' : '#ef4444';
+    const rgbColor = isPositive ? '16,185,129' : '239,68,68';
+
+    return {
+      labels,
+      datasets: [{
+        data,
+        fill: true, borderColor: color,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        backgroundColor: (ctx: any) => {
+          const chart = ctx.chart;
+          const { ctx: c, chartArea } = chart;
+          if (!chartArea) return `rgba(${rgbColor},0.1)`;
+          const gradient = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+          gradient.addColorStop(0, `rgba(${rgbColor},0.25)`);
+          gradient.addColorStop(1, `rgba(${rgbColor},0)`);
+          return gradient;
+        },
+        cubicInterpolationMode: 'monotone' as const, pointRadius: 0, pointHoverRadius: 5, borderWidth: 2,
+        pointHoverBackgroundColor: color, pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2,
+      }],
+    };
+  }, [filtered]);
+
   // --- ROI by buy-in level ---
   const roiByLevel = useMemo(() => {
     const buckets: Record<string, { profit: number; cost: number; count: number }> = {
@@ -347,20 +395,42 @@ export default function AnalyticsPage() {
             <div className={styles.miniIcon}>{card.icon}</div>
             <span className={styles.miniLabel} style={{ display: 'flex', alignItems: 'center' }}>
               {card.label}
+              {card.label === t.analytics.totalProfit && <UITooltip content={t.tooltips?.totalProfit || 'Net profit minus all buy-ins and fees.'} />}
               {card.label === t.analytics.roi && <UITooltip content={t.tooltips?.roi || 'Return on Investment.'} />}
               {card.label === t.analytics.itm && <UITooltip content={t.tooltips?.itm || 'In-The-Money percentage.'} />}
+              {card.label === t.analytics.volume && <UITooltip content={t.tooltips?.volume || 'Total number of sessions played.'} />}
+              {card.label === t.analytics.avgBuyIn && <UITooltip content={t.tooltips?.avgBuyIn || 'Average cost to enter a session.'} />}
+              {card.label === t.analytics.hourlyRate && <UITooltip content={t.tooltips?.hourlyRate || 'Average profit per hour of play.'} />}
+              {card.label === t.analytics.winRate && <UITooltip content={t.tooltips?.winRate || 'Percentage of sessions ended in profit.'} />}
+              {card.label === t.analytics.biggestWin && <UITooltip content={t.tooltips?.biggestWin || 'Your single largest cash out.'} />}
             </span>
             <span className={styles.miniValue}>{card.value}</span>
           </div>
         ))}
       </div>
 
-        {/* Chart: Profit Over Time */}
-        <div className={`${styles.chartCard} ${styles.fullWidth}`} style={{ animationDelay: '100ms' }}>
-          <h2 className={styles.chartTitle}>Bankroll Over Time</h2>
-          <div className={styles.chartWrapper}>
+      <div className={styles.chartsGrid}>
+        {/* Chart: Cumulative Profit Over Time */}
+        <div className={styles.chartCard} style={{ animationDelay: '100ms' }}>
+          <h2 className={styles.chartTitle} style={{ display: 'flex', alignItems: 'center' }}>
+            Cumulative Profit 
+            <UITooltip content={t.tooltips?.cumulativeProfit || "Tracks only the net profit/loss from your sessions. Starts at zero."} position="right" />
+          </h2>
+          <div className={styles.chartWrap}>
+            <Line data={cumulativeChart} options={lineOptions} />
+          </div>
+        </div>
+
+        {/* Chart: Bankroll Over Time */}
+        <div className={styles.chartCard} style={{ animationDelay: '150ms' }}>
+          <h2 className={styles.chartTitle} style={{ display: 'flex', alignItems: 'center' }}>
+            Bankroll Over Time
+            <UITooltip content={t.tooltips?.bankrollHistory || "Tracks your total portfolio balance based on manual deposits and withdrawals."} position="left" />
+          </h2>
+          <div className={styles.chartWrap}>
             <Line data={profitChart} options={lineOptions} />
           </div>
+        </div>
       </div>
 
       {/* Charts Row 2: ROI by Level + Game Type */}
