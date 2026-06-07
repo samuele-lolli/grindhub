@@ -17,6 +17,7 @@ import type {
   Session,
   Platform,
 } from '@/types';
+import { UITooltip } from '@/components/ui/Tooltip';
 import styles from './page.module.css';
 
 // ── Constants ──────────────────────────────────────────────────
@@ -261,7 +262,10 @@ export default function SessionsPage() {
               <BarChart3 size={18} />
             </div>
             <div className={styles.summaryContent}>
-              <span className={styles.summaryLabel}>Total Sessions</span>
+              <span className={styles.summaryLabel} style={{ display: 'flex', alignItems: 'center' }}>
+                Total Sessions
+                <UITooltip content={t.tooltips?.volume || 'Total number of sessions played.'} position="top" />
+              </span>
               <span className={styles.summaryValue}>{stats.totalSessions}</span>
             </div>
           </div>
@@ -270,7 +274,10 @@ export default function SessionsPage() {
               <TrendingUp size={18} />
             </div>
             <div className={styles.summaryContent}>
-              <span className={styles.summaryLabel}>Total Profit</span>
+              <span className={styles.summaryLabel} style={{ display: 'flex', alignItems: 'center' }}>
+                Total Profit
+                <UITooltip content={t.tooltips?.totalProfit || 'Net profit minus all buy-ins and fees.'} position="top" />
+              </span>
               <span className={cn(styles.summaryValue, getProfitClass(stats.totalProfit))}>
                 {formatCurrency(stats.totalProfit, settings.currency, true)}
               </span>
@@ -281,7 +288,10 @@ export default function SessionsPage() {
               <Trophy size={18} />
             </div>
             <div className={styles.summaryContent}>
-              <span className={styles.summaryLabel}>Win Rate</span>
+              <span className={styles.summaryLabel} style={{ display: 'flex', alignItems: 'center' }}>
+                Win Rate
+                <UITooltip content={t.tooltips?.winRate || 'Percentage of sessions ended in profit.'} position="top" />
+              </span>
               <span className={styles.summaryValue}>
                 {formatPercent(stats.winRate, 1).replace('+', '')}
               </span>
@@ -292,7 +302,10 @@ export default function SessionsPage() {
               <Target size={18} />
             </div>
             <div className={styles.summaryContent}>
-              <span className={styles.summaryLabel}>Avg Buy-in</span>
+              <span className={styles.summaryLabel} style={{ display: 'flex', alignItems: 'center' }}>
+                Avg Buy-in
+                <UITooltip content={t.tooltips?.avgBuyIn || 'Average cost to enter a session.'} position="top" />
+              </span>
               <span className={styles.summaryValue}>
                 {formatCurrency(avgBuyIn, settings.currency)}
               </span>

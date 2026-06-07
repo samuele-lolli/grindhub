@@ -10,6 +10,7 @@ import { profileService } from '@/lib/services/profile-service';
 import type { PlayerProfile } from '@/types';
 import { useI18n } from '@/i18n';
 import { formatCurrency, formatPercent, formatDate, formatNumber, getInitials, platformLabels, getSessionProfit, getProfitClass, formatDuration } from '@/lib/utils';
+import { UITooltip } from '@/components/ui/Tooltip';
 import styles from './page.module.css';
 
 /**
@@ -124,12 +125,22 @@ export default function ProfilePage() {
       {/* Stats Grid */}
       <h2 className="section-title">{t.profile.stats}</h2>
       <div className={styles.statsGrid}>
-        {statItems.filter(s => s.show).map((stat, i) => (
-          <div key={i} className={`${styles.statItem} ${styles[`c${stat.color}`]}`} style={{ animationDelay: `${i * 50}ms` }}>
-            <span className={styles.statLabel}>{stat.label}</span>
-            <span className={styles.statValue}>{stat.value}</span>
-          </div>
-        ))}
+        {statItems.filter(s => s.show).map((stat, i) => {
+          let tooltipContent = '';
+          if (stat.label === t.profile.profit) tooltipContent = t.tooltips?.totalProfit || 'Net profit minus buy-ins.';
+          if (stat.label === t.profile.winRate) tooltipContent = t.tooltips?.winRate || 'Percentage of winning sessions.';
+          if (stat.label === t.profile.roi) tooltipContent = t.tooltips?.roi || 'Return on Investment.';
+
+          return (
+            <div key={i} className={`${styles.statItem} ${styles[`c${stat.color}`]}`} style={{ animationDelay: `${i * 50}ms` }}>
+              <span className={styles.statLabel} style={{ display: 'flex', alignItems: 'center' }}>
+                {stat.label}
+                {tooltipContent && <UITooltip content={tooltipContent} position="top" />}
+              </span>
+              <span className={styles.statValue}>{stat.value}</span>
+            </div>
+          );
+        })}
       </div>
 
       <div className={styles.contentGrid}>
