@@ -68,12 +68,16 @@ export default function AnalyticsPage() {
 
     const playableAccountIds = new Set(accounts.filter(a => a.category !== 'bank_account' && a.category !== 'cash').map(a => a.id));
     const events: { date: Date; amount: number }[] = [];
-    
-    // We must use ALL sessions and transactions to trace backwards correctly!
-    sessions.forEach(s => events.push({ date: new Date(s.date), amount: getSessionProfit(s) }));
+    // We strictly use transactions to trace Bankroll backwards. Sessions alone don't mutate DB bankroll.
     transactions.forEach(tx => {
       if (playableAccountIds.has(tx.accountId)) {
-        events.push({ date: new Date(tx.date), amount: tx.type === 'deposit' ? tx.amount : -tx.amount });
+        let delta = 0;
+        if (tx.type === 'withdrawal') {
+          delta = -tx.amount;
+        } else {
+          delta = tx.amount; // deposit, session_result, transfer
+        }
+        events.push({ date: new Date(tx.date), amount: delta });
       }
     });
 

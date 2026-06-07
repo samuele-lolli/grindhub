@@ -77,11 +77,16 @@ export default function BankrollPage() {
   const chartData = useMemo(() => {
     const playableAccountIds = new Set(accounts.filter(a => a.category !== 'bank_account' && a.category !== 'cash').map(a => a.id));
     const events: { date: Date; amount: number }[] = [];
-    
-    sessions.forEach(s => events.push({ date: new Date(s.date), amount: getSessionProfit(s) }));
+    // We only use transactions to trace bankroll backwards. Sessions don't mutate DB bankroll.
     transactions.forEach(tx => {
       if (playableAccountIds.has(tx.accountId)) {
-        events.push({ date: new Date(tx.date), amount: tx.type === 'deposit' ? tx.amount : -tx.amount });
+        let delta = 0;
+        if (tx.type === 'withdrawal') {
+          delta = -tx.amount;
+        } else {
+          delta = tx.amount; // deposit, session_result, transfer
+        }
+        events.push({ date: new Date(tx.date), amount: delta });
       }
     });
     
