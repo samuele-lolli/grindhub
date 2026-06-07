@@ -57,6 +57,12 @@ export function Sidebar() {
         })}
       </nav>
 
+      <div className={styles.legalLinks}>
+        <Link href="/privacy">Privacy</Link>
+        <span>•</span>
+        <Link href="/terms">Terms</Link>
+      </div>
+
       <div className={styles.userSection}>
         <div className={styles.userAvatar}>
           {profile?.displayName?.[0]?.toUpperCase() || '?'}

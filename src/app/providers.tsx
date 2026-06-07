@@ -51,6 +51,11 @@ function RootContent({ children }: { children: React.ReactNode }) {
       setSession(session);
       setLoggedIn(!!session);
       setLoadingAuth(false);
+      
+      // Clean up the URL if it contains the OAuth access_token fragment
+      if (window.location.hash.includes('access_token')) {
+        window.history.replaceState(null, '', window.location.pathname);
+      }
     });
 
     const {
@@ -60,6 +65,10 @@ function RootContent({ children }: { children: React.ReactNode }) {
       setLoggedIn(!!session);
       setLoadingAuth(false);
       if (!session) setDataLoaded(false); // Reset on logout
+      
+      if (session && window.location.hash.includes('access_token')) {
+        window.history.replaceState(null, '', window.location.pathname);
+      }
     });
 
     return () => subscription.unsubscribe();

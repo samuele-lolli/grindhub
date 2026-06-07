@@ -158,9 +158,6 @@ export default function DashboardPage() {
               <Link href="/social" className={styles.actionCard}>
                 <Users size={20} /> <span>Social Feed</span> <ArrowUpRight size={14} />
               </Link>
-              <Link href="/login" className={styles.actionCard}>
-                <Shield size={20} /> <span>Account (Soon)</span> <ArrowUpRight size={14} />
-              </Link>
             </div>
           </div>
         </div>

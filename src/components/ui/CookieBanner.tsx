@@ -44,7 +44,7 @@ export function CookieBanner() {
         <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#f8fafc', marginBottom: '8px' }}>We use cookies</h3>
         <p style={{ fontSize: '0.875rem', color: '#cbd5e1', lineHeight: '1.5', margin: 0 }}>
           GrindHub uses cookies to ensure you get the best experience on our website, keep you logged in securely, and analyze our traffic. 
-          By clicking &quot;Accept All&quot;, you consent to our use of cookies.
+          By clicking &quot;Accept All&quot;, you consent to our use of cookies. Read more in our <a href="/privacy" style={{ color: '#60a5fa', textDecoration: 'none' }}>Privacy Policy</a>.
         </p>
       </div>
       <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', alignItems: 'center' }}>
