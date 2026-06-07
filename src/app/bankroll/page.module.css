@@ -10,7 +10,7 @@
 
 .actionsCard { background: var(--bg-glass); backdrop-filter: blur(12px); border: 1px solid var(--border-primary); border-radius: var(--radius-xl); padding: var(--space-6); display: flex; flex-direction: column; }
 .actionsTitle { font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-4); color: var(--text-primary); }
-.actionsGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); flex: 1; }
+.actionsGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: var(--space-3); flex: 1; }
 .actionBtn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-3); background: var(--bg-tertiary); border: 1px solid var(--border-secondary); border-radius: var(--radius-lg); padding: var(--space-4) var(--space-2); cursor: pointer; transition: all var(--transition-fast); }
 .actionBtn:hover { border-color: var(--border-hover); background: var(--bg-hover); transform: translateY(-2px); }
 .actionBtn span { font-size: var(--text-xs); font-weight: var(--font-medium); color: var(--text-secondary); }
@@ -20,6 +20,7 @@
 .iconGreen { background: var(--accent-green-bg); color: var(--accent-green); }
 .iconRed { background: var(--accent-red-bg); color: var(--accent-red); }
 .iconBlue { background: var(--accent-blue-bg); color: var(--accent-blue); }
+.iconPurple { background: var(--accent-purple-bg); color: var(--accent-purple); }
 
 .mainGrid { display: grid; grid-template-columns: 1.5fr 1fr; gap: var(--space-6); animation: fadeInUp 0.5s ease; }
 .chartsCol { display: flex; flex-direction: column; gap: var(--space-6); }

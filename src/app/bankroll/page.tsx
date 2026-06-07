@@ -228,6 +228,10 @@ export default function BankrollPage() {
           <div className={styles.actionsCard}>
             <h3 className={styles.actionsTitle}>Quick Actions</h3>
             <div className={styles.actionsGrid}>
+              <button className={styles.actionBtn} onClick={() => setShowSyncModal(true)}>
+                <div className={cn(styles.actionIcon, styles.iconPurple)}><ArrowRightLeft size={20} /></div>
+                <span>Quick Sync</span>
+              </button>
               <button className={styles.actionBtn} onClick={() => { setTxForm(prev => ({...prev, type: 'deposit', accountId: accounts[0]?.id || ''})); setShowTxModal(true); }}>
                 <div className={cn(styles.actionIcon, styles.iconGreen)}><ArrowDownRight size={20} /></div>
                 <span>Deposit</span>
