@@ -328,20 +328,28 @@ export default function BankrollPage() {
                   <div className={styles.emptyState}>No transactions found.</div>
                 ) : visibleTx.map(tx => {
                   const accName = accounts.find(a => a.id === tx.accountId)?.name || 'Account';
+                  const realAmount = tx.type === 'withdrawal' ? -Math.abs(tx.amount) : tx.amount;
+                  const isPositive = realAmount > 0;
+                  
+                  let txLabel = 'Session Result';
+                  if (tx.type === 'deposit') txLabel = 'Deposit';
+                  if (tx.type === 'withdrawal') txLabel = 'Withdrawal';
+                  if (tx.type === 'transfer') txLabel = 'Transfer';
+
                   return (
                     <div key={tx.id} className={styles.txRow}>
                       <div className={styles.txLeft}>
-                        <div className={cn(styles.txIcon, tx.type === 'deposit' ? styles.iconGreen : styles.iconRed)}>
-                          {tx.type === 'deposit' ? <ArrowDownRight size={18} /> : <ArrowUpRight size={18} />}
+                        <div className={cn(styles.txIcon, isPositive ? styles.iconGreen : styles.iconRed)}>
+                          {isPositive ? <ArrowDownRight size={18} /> : <ArrowUpRight size={18} />}
                         </div>
                         <div className={styles.txInfo}>
-                          <span className={styles.txType}>{tx.type === 'deposit' ? 'Deposit' : 'Withdrawal'}</span>
+                          <span className={styles.txType}>{txLabel}</span>
                           <span className={styles.txMeta}>{formatDate(tx.date)} · {accName}</span>
                         </div>
                       </div>
                       <div className={styles.txRight}>
-                        <span className={cn(styles.txAmount, tx.type === 'deposit' ? styles.cgreen : styles.cred)}>
-                          {tx.type === 'deposit' ? '+' : '-'}{formatCurrency(tx.amount, 'EUR')}
+                        <span className={cn(styles.txAmount, isPositive ? styles.cgreen : styles.cred)}>
+                          {formatCurrency(realAmount, 'EUR', true)}
                         </span>
                         <button className={styles.deleteTxBtn} onClick={() => deleteTransaction(tx.id)}><X size={16}/></button>
                       </div>
