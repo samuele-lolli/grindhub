@@ -61,6 +61,7 @@ export function seedData(): void {
       showHourlyRate: false,
       showBiggestWin: true,
       showCurrentStreak: true,
+      autoShareGoals: true,
     },
     isCurrentUser: true,
   };

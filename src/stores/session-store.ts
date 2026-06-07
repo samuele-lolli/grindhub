@@ -20,6 +20,7 @@ import {
 } from '@/lib/utils';
 import { sessionService } from '@/lib/services/session-service';
 import { useProfileStore } from './profile-store';
+import { useGoalsStore } from './goals-store';
 
 export interface SessionFilter {
   dateRange?: DateRange;
@@ -50,20 +51,25 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
 
     const newSession = await sessionService.createSession(userId, session);
     set((state) => ({ sessions: [newSession, ...state.sessions] }));
+    
+    useGoalsStore.getState().evaluateActiveGoals(get().getStats());
   },
 
-  updateSession: (id, updates) =>
+  updateSession: (id, updates) => {
     set((state) => ({
       sessions: state.sessions.map((s) =>
         s.id === id ? ({ ...s, ...updates, updatedAt: new Date().toISOString() } as Session) : s
       ),
-    })),
+    }));
+    useGoalsStore.getState().evaluateActiveGoals(get().getStats());
+  },
 
   deleteSession: async (id) => {
     await sessionService.deleteSession(id);
     set((state) => ({
       sessions: state.sessions.filter((s) => s.id !== id),
     }));
+    useGoalsStore.getState().evaluateActiveGoals(get().getStats());
   },
 
   setSessions: (sessions) => set({ sessions }),

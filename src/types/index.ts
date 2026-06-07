@@ -146,6 +146,7 @@ export interface PlayerPrivacySettings {
   showHourlyRate: boolean;
   showBiggestWin: boolean;
   showCurrentStreak: boolean;
+  autoShareGoals: boolean;
 }
 
 /** A player's public-facing profile information. */

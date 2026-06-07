@@ -316,6 +316,23 @@ export default function SettingsPage() {
                     <span className={styles.slider}></span>
                   </label>
                 </div>
+
+                <div className={styles.divider} />
+
+                <div className={styles.toggleRow}>
+                  <div>
+                    <span className={styles.toggleLabel}>Auto-Share Goals</span>
+                    <span className={styles.toggleDesc}>Automatically post to the Social Feed when you reach 100% of an active goal.</span>
+                  </div>
+                  <label className={styles.switch}>
+                    <input 
+                      type="checkbox" 
+                      checked={localProfile.privacy?.autoShareGoals ?? false} 
+                      onChange={e => setLocalProfile(p => p ? {...p, privacy: {...p.privacy, autoShareGoals: e.target.checked}} : p)} 
+                    />
+                    <span className={styles.slider}></span>
+                  </label>
+                </div>
               </div>
 
               <h2 className={styles.sectionTitle} style={{ marginTop: '2rem', color: 'var(--accent-red)' }}>Danger Zone</h2>

@@ -94,7 +94,7 @@ export default function SocialPage() {
   const profile = useProfileStore(s => s.profile);
   const mySessions = useSessionStore(s => s.sessions);
 
-  const [tab, setTab] = useState<'feed' | 'discover'>('feed');
+
   const [newPost, setNewPost] = useState('');
   const [composerFocused, setComposerFocused] = useState(false);
   const [showSessionPicker, setShowSessionPicker] = useState(false);
@@ -120,12 +120,9 @@ export default function SocialPage() {
 
   // ── Feed filtering ──
   const feedPosts = useMemo(() => {
-    const list =
-      tab === 'feed'
-        ? posts.filter(p => following.includes(p.authorId) || p.authorId === 'current-user')
-        : posts.filter(p => !following.includes(p.authorId) && p.authorId !== 'current-user');
+    const list = posts.filter(p => following.includes(p.authorId) || p.authorId === 'current-user' || p.authorId === profile?.id);
     return list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [posts, following, tab]);
+  }, [posts, following, profile?.id]);
 
   // ── Suggested players ──
   const suggestedPlayers = useMemo(() => {
@@ -193,18 +190,10 @@ export default function SocialPage() {
         <h1 className="page-title">{t.social.title}</h1>
         <div className={styles.tabs}>
           <button
-            className={`${styles.tab} ${tab === 'feed' ? styles.tabActive : ''}`}
-            onClick={() => setTab('feed')}
+            className={`${styles.tab} ${styles.tabActive}`}
           >
             <Users size={15} />
             {t.social.feed}
-          </button>
-          <button
-            className={`${styles.tab} ${tab === 'discover' ? styles.tabActive : ''}`}
-            onClick={() => setTab('discover')}
-          >
-            <TrendingUp size={15} />
-            {t.social.discover}
           </button>
         </div>
       </div>

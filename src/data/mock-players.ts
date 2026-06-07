@@ -38,6 +38,7 @@ export const MOCK_PLAYERS: PlayerProfile[] = [
       showHourlyRate: false,
       showBiggestWin: true,
       showCurrentStreak: true,
+      autoShareGoals: true,
     },
   },
   {
@@ -61,6 +62,7 @@ export const MOCK_PLAYERS: PlayerProfile[] = [
       showHourlyRate: true,
       showBiggestWin: true,
       showCurrentStreak: true,
+      autoShareGoals: true,
     },
   },
   {
@@ -84,6 +86,7 @@ export const MOCK_PLAYERS: PlayerProfile[] = [
       showHourlyRate: false,
       showBiggestWin: true,
       showCurrentStreak: false,
+      autoShareGoals: false,
     },
   },
   {
@@ -107,6 +110,7 @@ export const MOCK_PLAYERS: PlayerProfile[] = [
       showHourlyRate: false,
       showBiggestWin: false,
       showCurrentStreak: true,
+      autoShareGoals: true,
     },
   },
   {
@@ -130,6 +134,7 @@ export const MOCK_PLAYERS: PlayerProfile[] = [
       showHourlyRate: true,
       showBiggestWin: true,
       showCurrentStreak: true,
+      autoShareGoals: true,
     },
   },
   {
@@ -153,6 +158,7 @@ export const MOCK_PLAYERS: PlayerProfile[] = [
       showHourlyRate: false,
       showBiggestWin: true,
       showCurrentStreak: true,
+      autoShareGoals: true,
     },
   },
   {
@@ -176,6 +182,7 @@ export const MOCK_PLAYERS: PlayerProfile[] = [
       showHourlyRate: true,
       showBiggestWin: true,
       showCurrentStreak: true,
+      autoShareGoals: true,
     },
   },
   {
@@ -199,6 +206,7 @@ export const MOCK_PLAYERS: PlayerProfile[] = [
       showHourlyRate: true,
       showBiggestWin: true,
       showCurrentStreak: true,
+      autoShareGoals: true,
     },
   },
   {
@@ -222,6 +230,7 @@ export const MOCK_PLAYERS: PlayerProfile[] = [
       showHourlyRate: false,
       showBiggestWin: true,
       showCurrentStreak: true,
+      autoShareGoals: true,
     },
   },
   {
@@ -245,6 +254,7 @@ export const MOCK_PLAYERS: PlayerProfile[] = [
       showHourlyRate: false,
       showBiggestWin: true,
       showCurrentStreak: true,
+      autoShareGoals: true,
     },
   },
   {
@@ -268,6 +278,7 @@ export const MOCK_PLAYERS: PlayerProfile[] = [
       showHourlyRate: true,
       showBiggestWin: true,
       showCurrentStreak: true,
+      autoShareGoals: true,
     },
   },
   {
@@ -291,6 +302,7 @@ export const MOCK_PLAYERS: PlayerProfile[] = [
       showHourlyRate: false,
       showBiggestWin: true,
       showCurrentStreak: false,
+      autoShareGoals: true,
     },
   },
   {
@@ -314,6 +326,7 @@ export const MOCK_PLAYERS: PlayerProfile[] = [
       showHourlyRate: false,
       showBiggestWin: false,
       showCurrentStreak: false,
+      autoShareGoals: true,
     },
   },
   {
@@ -337,6 +350,7 @@ export const MOCK_PLAYERS: PlayerProfile[] = [
       showHourlyRate: true,
       showBiggestWin: true,
       showCurrentStreak: true,
+      autoShareGoals: true,
     },
   },
   {
@@ -360,6 +374,7 @@ export const MOCK_PLAYERS: PlayerProfile[] = [
       showHourlyRate: false,
       showBiggestWin: true,
       showCurrentStreak: true,
+      autoShareGoals: true,
     },
   },
   {
@@ -383,6 +398,7 @@ export const MOCK_PLAYERS: PlayerProfile[] = [
       showHourlyRate: true,
       showBiggestWin: true,
       showCurrentStreak: true,
+      autoShareGoals: true,
     },
   },
 ];
@@ -409,6 +425,7 @@ export const CURRENT_USER_PROFILE: PlayerProfile = {
     showHourlyRate: true,
     showBiggestWin: true,
     showCurrentStreak: true,
+    autoShareGoals: true,
   },
   isCurrentUser: true,
 };

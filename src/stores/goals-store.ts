@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { Goal, PlayerStats } from '@/types';
 import { goalsService } from '@/lib/services/goals-service';
 import { useProfileStore } from './profile-store';
+import { useSocialStore } from './social-store';
 
 /**
  * Achievement unlocked by a user.
@@ -23,6 +24,7 @@ interface GoalsActions {
   setGoals: (goals: Goal[]) => void;
   updateProgress: (id: string, value: number) => Promise<void>;
   checkAchievements: (stats: PlayerStats) => void;
+  evaluateActiveGoals: (stats: PlayerStats) => Promise<void>;
 }
 
 type GoalsStore = GoalsState & GoalsActions;
@@ -77,9 +79,50 @@ export const useGoalsStore = create<GoalsStore>()((set, get) => ({
 
     await goalsService.updateGoal(id, updates);
 
+    // Auto-share to social if completed
+    if (newStatus === 'completed' && goal.status === 'active') {
+      const profile = useProfileStore.getState().profile;
+      if (profile && profile.privacy?.autoShareGoals) {
+        const { addPost } = useSocialStore.getState();
+        await addPost({
+          authorId: profile.id,
+          type: 'goal_completed',
+          content: `🎯 I just crushed my goal: "${goal.title}"! Hard work pays off.`,
+          data: { goalId: goal.id, goalTitle: goal.title, target: goal.targetValue },
+          isPublic: true
+        });
+      }
+    }
+
     set(state => ({
       goals: state.goals.map(g => g.id === id ? { ...g, ...updates } as Goal : g)
     }));
+  },
+
+  evaluateActiveGoals: async (stats: PlayerStats) => {
+    const { goals, updateProgress } = get();
+    const activeGoals = goals.filter(g => g.status === 'active');
+    
+    for (const goal of activeGoals) {
+      let newValue = goal.currentValue;
+      
+      switch (goal.type) {
+        case 'profit':
+          newValue = stats.totalProfit;
+          break;
+        case 'volume':
+          newValue = stats.totalSessions;
+          break;
+        case 'roi':
+          newValue = stats.roi;
+          break;
+        // time and custom logic could be added here
+      }
+
+      if (newValue !== goal.currentValue) {
+        await updateProgress(goal.id, newValue);
+      }
+    }
   },
 
   checkAchievements: (stats: PlayerStats) => {
