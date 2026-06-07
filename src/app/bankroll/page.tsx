@@ -16,7 +16,7 @@ import { useI18n } from '@/i18n';
 import {
   formatCurrency, formatDate, getBankrollHealth, cn, getSessionProfit
 } from '@/lib/utils';
-import type { TimeFilter, Platform, BankrollCategory } from '@/types';
+import type { Platform, BankrollCategory } from '@/types';
 import styles from './page.module.css';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Tooltip, Legend, Filler);
@@ -30,6 +30,11 @@ const categoryIcons: Record<string, React.ReactNode> = {
   cash: <CreditCard size={16} />
 };
 
+/**
+ * BankrollPage — Bankroll management hub.
+ * Renders account balances, health status, bankroll history chart, portfolio allocation donut,
+ * recent transactions, and modals for deposits, withdrawals, transfers, and new accounts.
+ */
 export default function BankrollPage() {
   const { t } = useI18n();
   const accounts = useBankrollStore(s => s.accounts);

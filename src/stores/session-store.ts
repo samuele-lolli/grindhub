@@ -31,7 +31,7 @@ interface SessionState {
 }
 
 interface SessionActions {
-  addSession: (session: Omit<Session, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  addSession: (session: Omit<Session, 'id' | 'createdAt' | 'updatedAt'> | Omit<Session, 'createdAt' | 'updatedAt'>) => Promise<void>;
   updateSession: (id: string, updates: Partial<Session>) => void; // local only for MVP
   deleteSession: (id: string) => Promise<void>;
   setSessions: (sessions: Session[]) => void;

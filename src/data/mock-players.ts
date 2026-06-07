@@ -1,10 +1,13 @@
+// NOTE: This file is not imported anywhere in the application and exists as
+// reference data only. It is consumed by `seed.ts`, which is also unreferenced.
+
 // ============================================================
 // GrindHub — Mock Player Profiles (16 players)
 // ============================================================
 
 import type { PlayerProfile } from '@/types';
 
-// Avatar colors — each player gets a unique gradient pair
+/** Unique gradient/accent colors assigned to each mock player's avatar. */
 const avatarColors = [
   '#10b981', '#3b82f6', '#8b5cf6', '#f59e0b',
   '#ef4444', '#06b6d4', '#ec4899', '#84cc16',
@@ -12,6 +15,7 @@ const avatarColors = [
   '#a855f7', '#22c55e', '#0ea5e9', '#eab308',
 ];
 
+/** Array of 16 fictitious player profiles used for seeding and demos. */
 export const MOCK_PLAYERS: PlayerProfile[] = [
   {
     id: 'player-1',
@@ -383,7 +387,7 @@ export const MOCK_PLAYERS: PlayerProfile[] = [
   },
 ];
 
-// Current user profile (the logged-in player)
+/** Profile for the currently authenticated (demo) user. */
 export const CURRENT_USER_PROFILE: PlayerProfile = {
   id: 'current-user',
   username: 'TheGrinder',

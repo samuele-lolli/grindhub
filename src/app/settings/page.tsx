@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Settings, User, Shield, Globe, Save, Moon, CheckCircle2 } from 'lucide-react';
+import { Settings, User, Shield, Globe, Save, Moon, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { useSettingsStore } from '@/stores/settings-store';
 import { useProfileStore } from '@/stores/profile-store';
 import { useI18n } from '@/i18n';
@@ -10,9 +10,14 @@ import { Avatar } from '@/components/ui/Avatar';
 import type { Currency, AppSettings } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
-import { AlertTriangle } from 'lucide-react';
+
 import styles from './page.module.css';
 
+/**
+ * SettingsPage — Application preferences, profile editing, and privacy controls.
+ * Renders a tabbed interface for general settings, profile information, privacy toggles,
+ * and account deletion (danger zone).
+ */
 export default function SettingsPage() {
   const { t } = useI18n();
   const settings = useSettingsStore(s => s.settings);

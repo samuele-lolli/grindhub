@@ -7,6 +7,10 @@ import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/ui/Toast';
 import styles from './page.module.css';
 
+/**
+ * LoginPage — OAuth authentication entry point.
+ * Renders branded sign-in buttons for Google and Apple providers via Supabase Auth.
+ */
 export default function LoginPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -46,6 +50,7 @@ export default function LoginPage() {
             onClick={() => handleLogin('google')}
             disabled={isLoading}
           >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             {isLoading ? <Loader2 size={20} className={styles.spin} /> : <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className={styles.googleIcon} />}
             Continue with Google
           </button>

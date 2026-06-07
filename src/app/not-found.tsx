@@ -12,11 +12,10 @@ export default function NotFound() {
         <div className={styles.iconWrap}>
           <AlertTriangle size={64} className={styles.icon} />
         </div>
-        <h1 className={styles.title}>404</h1>
-        <h2 className={styles.subtitle}>Page Not Found</h2>
-        <p className={styles.desc}>
-          Oops! It looks like you've gone all in on a hand that doesn't exist. 
-          The page you are looking for has been moved, deleted, or possibly never existed.
+        <h1 className={styles.errorCode}>404</h1>
+        <h2 className={styles.title}>Folded before the flop?</h2>
+        <p className={styles.description}>
+          We couldn&apos;t find the page you&apos;re looking for. It might have been moved or deleted.
         </p>
         <Link href="/" className={styles.homeBtn}>
           <Home size={18} />

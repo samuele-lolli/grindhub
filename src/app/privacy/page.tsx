@@ -1,6 +1,10 @@
 import React from 'react';
 import styles from '../legal.module.css';
 
+/**
+ * PrivacyPolicyPage — Static GDPR-compliant privacy policy.
+ * Renders data collection, usage, storage, and right-to-be-forgotten information.
+ */
 export default function PrivacyPolicyPage() {
   return (
     <div className={styles.container}>
@@ -19,7 +23,7 @@ export default function PrivacyPolicyPage() {
         </ul>
 
         <h2>2. How We Use Your Data</h2>
-        <p>We use your data solely to provide, improve, and personalize the GrindHub experience. We do not sell your personal data to third parties.</p>
+        <p>We may share your information with trusted third-party service providers (like Supabase for database hosting and Google for authentication) solely for the purpose of operating GrindHub. We will never sell your personal data.</p>
         <ul>
           <li>To manage your account and authentication securely.</li>
           <li>To calculate your poker statistics and bankroll progression.</li>
@@ -30,7 +34,7 @@ export default function PrivacyPolicyPage() {
         <p>Your data is securely stored using Supabase, which provides enterprise-grade security and Row Level Security (RLS). This ensures your private data is completely isolated and inaccessible to anyone without your unique authentication token.</p>
 
         <h2>4. Your Legal Rights (Right to be Forgotten)</h2>
-        <p>Under the GDPR, you have the right to request the deletion of your personal data. You can exercise this right at any time by navigating to <strong>Settings &gt; Privacy</strong> and clicking the "Delete Account" button. This action will permanently erase your profile, bankroll history, and sessions from our active databases.</p>
+        <p>Under the GDPR, you have the right to request the deletion of your personal data. You can exercise this right at any time by navigating to <strong>Settings &gt; Privacy</strong> and clicking the &quot;Delete Account&quot; button. This action will permanently erase your profile, bankroll history, and sessions from our active databases.</p>
 
         <h2>5. Contact Us</h2>
         <p>If you have any questions about this Privacy Policy, please contact us at privacy@grindhub.app.</p>

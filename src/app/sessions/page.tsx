@@ -10,7 +10,7 @@ import { useSettingsStore } from '@/stores/settings-store';
 import { useI18n } from '@/i18n';
 import {
   formatCurrency, formatDate, formatDuration, getSessionProfit, getSessionBuyIn,
-  getProfitClass, platformLabels, generateId, formatPercent, cn,
+  getProfitClass, platformLabels, formatPercent, cn,
 } from '@/lib/utils';
 import type {
   Session,
@@ -75,6 +75,10 @@ function getSessionSubline(session: Session): string {
 // Main Component
 // ════════════════════════════════════════════════════════════════
 
+/**
+ * SessionsPage — CRUD interface for poker sessions.
+ * Renders a filterable, sortable list of MTT sessions with a modal form for adding new entries.
+ */
 export default function SessionsPage() {
   const { t } = useI18n();
   const sessions = useSessionStore((s) => s.sessions);
@@ -193,8 +197,8 @@ export default function SessionsPage() {
       const now = new Date().toISOString();
       const duration = parseInt(form.hours || '0') * 60 + parseInt(form.minutes || '0');
 
-      const session: Session = {
-        id: generateId(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const session: any = {
         date: new Date(form.date).toISOString(),
         platforms: form.platforms,
         duration,

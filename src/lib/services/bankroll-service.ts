@@ -105,12 +105,14 @@ export const bankrollService = {
   },
 
   /**
-   * Creates a new bankroll transaction and updates the associated account's balance in a single operation.
-   * @param userId - The UUID of the user making the transaction.
-   * @param transaction - Transaction details (deposit or withdrawal).
-   * @returns A promise resolving to the created BankrollTransaction.
+   * Creates a new bankroll transaction and updates the associated account's balance.
+   * The balance change is sign-aware: deposits ADD, withdrawals SUBTRACT.
+   * Returns the created transaction AND the updated account balance.
    */
-  async createTransaction(userId: string, transaction: Omit<BankrollTransaction, 'id' | 'createdAt'>): Promise<BankrollTransaction> {
+  async createTransaction(
+    userId: string,
+    transaction: Omit<BankrollTransaction, 'id' | 'createdAt'>
+  ): Promise<{ transaction: BankrollTransaction; newBalance: number }> {
     const { data, error } = await supabase
       .from('bankroll_transactions')
       .insert({
@@ -125,30 +127,72 @@ export const bankrollService = {
       .single();
 
     if (error) throw error;
-    
-    // In a real app we would run this in an RPC/Transaction to also update the account balance securely.
-    // For MVP, we let the client side update the balance and we just send an update call.
+
+    // Sign-aware balance update: deposits add, withdrawals subtract
     const { data: account } = await supabase
       .from('bankroll_accounts')
       .select('balance')
       .eq('id', transaction.accountId)
       .single();
-      
+
+    let newBalance = 0;
     if (account) {
+      const currentBalance = Number(account.balance);
+      const delta = transaction.type === 'deposit' ? transaction.amount : -transaction.amount;
+      newBalance = currentBalance + delta;
       await supabase
         .from('bankroll_accounts')
-        .update({ balance: Number(account.balance) + Number(transaction.amount) })
+        .update({ balance: newBalance })
         .eq('id', transaction.accountId);
     }
 
     return {
-      id: data.id,
-      accountId: data.account_id,
-      type: data.type as BankrollTransaction['type'],
-      amount: Number(data.amount),
-      date: data.date,
-      notes: data.notes || '',
-      createdAt: data.created_at,
+      transaction: {
+        id: data.id,
+        accountId: data.account_id,
+        type: data.type as BankrollTransaction['type'],
+        amount: Number(data.amount),
+        date: data.date,
+        notes: data.notes || '',
+        createdAt: data.created_at,
+      },
+      newBalance,
     };
+  },
+
+  /**
+   * Deletes a transaction and reverses its effect on the account balance.
+   */
+  async deleteTransaction(
+    transaction: { id: string; accountId: string; type: string; amount: number }
+  ): Promise<number> {
+    // Delete the transaction row
+    const { error } = await supabase
+      .from('bankroll_transactions')
+      .delete()
+      .eq('id', transaction.id);
+
+    if (error) throw error;
+
+    // Reverse the balance change
+    const { data: account } = await supabase
+      .from('bankroll_accounts')
+      .select('balance')
+      .eq('id', transaction.accountId)
+      .single();
+
+    let newBalance = 0;
+    if (account) {
+      const currentBalance = Number(account.balance);
+      // Reversing: if it was a deposit, subtract; if withdrawal, add
+      const delta = transaction.type === 'deposit' ? -transaction.amount : transaction.amount;
+      newBalance = currentBalance + delta;
+      await supabase
+        .from('bankroll_accounts')
+        .update({ balance: newBalance })
+        .eq('id', transaction.accountId);
+    }
+
+    return newBalance;
   },
 };

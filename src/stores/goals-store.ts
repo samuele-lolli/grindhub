@@ -1,8 +1,11 @@
 import { create } from 'zustand';
-import type { Goal } from '@/types';
+import type { Goal, PlayerStats } from '@/types';
 import { goalsService } from '@/lib/services/goals-service';
 import { useProfileStore } from './profile-store';
 
+/**
+ * Achievement unlocked by a user.
+ */
 interface Achievement {
   id: string;
   unlockedAt: string;
@@ -19,7 +22,7 @@ interface GoalsActions {
   deleteGoal: (id: string) => Promise<void>;
   setGoals: (goals: Goal[]) => void;
   updateProgress: (id: string, value: number) => Promise<void>;
-  checkAchievements: (stats: any) => void;
+  checkAchievements: (stats: PlayerStats) => void;
 }
 
 type GoalsStore = GoalsState & GoalsActions;
@@ -79,7 +82,7 @@ export const useGoalsStore = create<GoalsStore>()((set, get) => ({
     }));
   },
 
-  checkAchievements: (stats) => {
+  checkAchievements: (stats: PlayerStats) => {
     // Basic implementation to satisfy the type
     // In a real app, this would check stats and update unlocked achievements
     const newAchievements = [...get().achievements];

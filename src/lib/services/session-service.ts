@@ -94,7 +94,7 @@ export const sessionService = {
    * @param updates - Partial Session object containing the fields to update.
    */
   async updateSession(id: string, updates: Partial<Session>): Promise<void> {
-    const dbUpdates: Record<string, any> = {};
+    const dbUpdates: Record<string, unknown> = {};
     if (updates.date) dbUpdates.date = updates.date;
     if (updates.platforms) dbUpdates.platforms = updates.platforms;
     if (updates.duration !== undefined) dbUpdates.duration = updates.duration;

@@ -8,10 +8,10 @@ export default function TermsOfServicePage() {
       <span className={styles.lastUpdated}>Last updated: June 2026</span>
 
       <div className={styles.content}>
-        <p>Please read these Terms of Service ("Terms") carefully before using the GrindHub platform operated by us.</p>
+        <p>Please read these Terms of Service (&quot;Terms&quot;) carefully before using the GrindHub platform operated by us.</p>
 
         <h2>1. Acceptance of Terms</h2>
-        <p>By accessing or using GrindHub, you agree to be bound by these Terms. If you disagree with any part of the terms, then you may not access the service.</p>
+        <p>By registering for and using GrindHub, you accept and agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the application.</p>
 
         <h2>2. Use of Service</h2>
         <p>GrindHub is a personal analytics and social tracking tool designed for poker players. You agree to use the service only for lawful purposes. You are responsible for the accuracy of the data you input into the system.</p>
@@ -23,10 +23,10 @@ export default function TermsOfServicePage() {
         <p>GrindHub includes social features allowing you to share sessions and achievements. You agree not to post abusive, offensive, or illegal content. We reserve the right to suspend or terminate accounts that violate community guidelines.</p>
 
         <h2>5. Disclaimer of Liability</h2>
-        <p>GrindHub is an analytics tool and does not offer gambling services, financial advice, or host real-money games. We are not responsible for your financial decisions or poker losses. The platform is provided "as is" without warranties of any kind.</p>
+        <p>GrindHub is an analytics tool and does not offer gambling services, financial advice, or host real-money games. We are not responsible for your financial decisions or poker losses. The platform is provided &quot;as is&quot; without warranties of any kind.</p>
 
-        <h2>6. Termination</h2>
-        <p>You may terminate your account at any time using the "Delete Account" feature in your Settings. Upon termination, your right to use the Service will immediately cease, and your data will be permanently deleted in accordance with our Privacy Policy.</p>
+        <h2>6. Modifications</h2>
+        <p>We reserve the right to modify or replace these Terms at any time. We will provide notice of significant changes on our website. Your continued use of GrindHub after any changes indicates your acceptance of the new Terms.</p>
       </div>
     </div>
   );

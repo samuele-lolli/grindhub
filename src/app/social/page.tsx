@@ -6,7 +6,7 @@ import { useSocialStore } from '@/stores/social-store';
 import { useProfileStore } from '@/stores/profile-store';
 import { useSessionStore } from '@/stores/session-store';
 import { useI18n } from '@/i18n';
-import { formatRelativeTime, getInitials, generateId, formatCurrency, getSessionProfit, formatDate, formatDuration, platformLabels } from '@/lib/utils';
+import { formatRelativeTime, getInitials, formatCurrency, getSessionProfit, formatDate, formatDuration, platformLabels } from '@/lib/utils';
 import type { PostType, AggregatedMTTSession } from '@/types';
 import styles from './page.module.css';
 
@@ -75,6 +75,11 @@ function PostTypeBadge({ type }: { type: PostType }) {
 
 // ── Main Page Component ──
 
+/**
+ * SocialPage — Social feed and discovery interface.
+ * Renders a post composer, feed/discover tabs, session sharing, kudos, comments,
+ * trending topics sidebar, and suggested players to follow.
+ */
 export default function SocialPage() {
   const { t } = useI18n();
   const posts = useSocialStore(s => s.feed);
@@ -141,7 +146,7 @@ export default function SocialPage() {
     setNewPost('');
     setAttachedSession(null);
     setComposerFocused(false);
-  }, [newPost, attachedSession, addPost]);
+  }, [newPost, attachedSession, addPost, profile?.id]);
 
   // ── Comment ──
   const handleComment = useCallback(

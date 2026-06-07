@@ -10,6 +10,11 @@ import { useI18n } from '@/i18n';
 import { formatCurrency, formatPercent, formatDate, formatNumber, getInitials, platformLabels, getSessionProfit, getProfitClass, formatDuration } from '@/lib/utils';
 import styles from './page.module.css';
 
+/**
+ * ProfilePage — User profile and player discovery.
+ * Renders the user's hero card with stats, recent activity feed, and a searchable
+ * list of other players with follow/unfollow functionality.
+ */
 export default function ProfilePage() {
   const { t } = useI18n();
   const profile = useProfileStore(s => s.profile);

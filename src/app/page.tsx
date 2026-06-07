@@ -13,6 +13,10 @@ import {
 } from '@/lib/utils';
 import styles from './page.module.css';
 
+/**
+ * DashboardPage — Primary landing page after login.
+ * Renders stat cards, recent sessions, bankroll overview, quick actions, and a monthly summary.
+ */
 export default function DashboardPage() {
   const { t } = useI18n();
   const sessions = useSessionStore(s => s.sessions);

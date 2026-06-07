@@ -18,7 +18,7 @@ import {
   formatCurrency, formatPercent, formatNumber, getSessionProfit, getSessionBuyIn,
   filterSessionsByTime, platformLabels, isSessionProfitable
 } from '@/lib/utils';
-import type { TimeFilter, Session } from '@/types';
+import type { TimeFilter } from '@/types';
 import styles from './page.module.css';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Tooltip, Legend, Filler);
@@ -30,6 +30,11 @@ const timeFilters: { id: TimeFilter; label: string }[] = [
   { id: 'all', label: 'All' },
 ];
 
+/**
+ * AnalyticsPage — Comprehensive poker analytics dashboard.
+ * Renders stat cards, bankroll-over-time chart, ROI by buy-in level, platform breakdown,
+ * results distribution histogram, and a monthly performance table.
+ */
 export default function AnalyticsPage() {
   const { t } = useI18n();
   const sessions = useSessionStore(s => s.sessions);

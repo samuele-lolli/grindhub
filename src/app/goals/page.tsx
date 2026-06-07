@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Target, CheckCircle2, Circle, Trophy, Plus, Flame, Zap, Star, Award, TrendingUp, Calendar, Shield, Crown, Gem, X } from 'lucide-react';
+import { Target, CheckCircle2, Trophy, Plus, Flame, Zap, Star, Award, TrendingUp, Calendar, Shield, Crown, Gem, X } from 'lucide-react';
 import { useGoalsStore, ACHIEVEMENT_DEFINITIONS } from '@/stores/goals-store';
 import { useSessionStore } from '@/stores/session-store';
 import { useI18n } from '@/i18n';
@@ -16,6 +16,11 @@ const goalTypeOptions: { value: GoalType; label: string; icon: React.ReactNode }
   { value: 'custom', label: 'Custom', icon: <Zap size={16} /> },
 ];
 
+/**
+ * GoalsPage — Goal tracking and achievements dashboard.
+ * Renders active/completed goals with progress bars, unlocked/locked achievement badges,
+ * and a modal form for creating new goals.
+ */
 export default function GoalsPage() {
   const { t } = useI18n();
   const goals = useGoalsStore(s => s.goals);
