@@ -12,6 +12,7 @@ const Doughnut = dynamic(() => import('react-chartjs-2').then(mod => mod.Doughnu
 import { Wallet, Shield, Plus, ArrowUpRight, ArrowDownRight, ArrowRightLeft, CreditCard, X, Building2, Coins } from 'lucide-react';
 import { useBankrollStore } from '@/stores/bankroll-store';
 import { useSessionStore } from '@/stores/session-store';
+import { SyncBalancesModal } from '@/components/ui/SyncBalancesModal';
 import { useI18n } from '@/i18n';
 import {
   formatCurrency, formatDate, getBankrollHealth, cn, getSessionProfit
@@ -53,6 +54,7 @@ export default function BankrollPage() {
   const [showTxModal, setShowTxModal] = useState(false);
   const [showAccModal, setShowAccModal] = useState(false);
   const [showTransferModal, setShowTransferModal] = useState(false);
+  const [showSyncModal, setShowSyncModal] = useState(false);
 
   // Forms
   const [txForm, setTxForm] = useState({ type: 'deposit' as 'deposit'|'withdrawal', amount: '', accountId: '', notes: '' });
@@ -450,6 +452,11 @@ export default function BankrollPage() {
           </div>
         </div>
       )}
+
+      <SyncBalancesModal 
+        isOpen={showSyncModal} 
+        onClose={() => setShowSyncModal(false)} 
+      />
     </>
   );
 }

@@ -138,7 +138,14 @@ export const bankrollService = {
     let newBalance = 0;
     if (account) {
       const currentBalance = Number(account.balance);
-      const delta = transaction.type === 'deposit' ? transaction.amount : -transaction.amount;
+      let delta = 0;
+      if (transaction.type === 'withdrawal') {
+        delta = -transaction.amount;
+      } else {
+        // deposit, session_result, transfer all add their exact amount
+        // (note: session_result can be negative for losses)
+        delta = transaction.amount;
+      }
       newBalance = currentBalance + delta;
       await supabase
         .from('bankroll_accounts')
@@ -184,8 +191,13 @@ export const bankrollService = {
     let newBalance = 0;
     if (account) {
       const currentBalance = Number(account.balance);
-      // Reversing: if it was a deposit, subtract; if withdrawal, add
-      const delta = transaction.type === 'deposit' ? -transaction.amount : transaction.amount;
+      // Reversing: withdrawal adds back, others (deposit, session_result) subtract the exact amount
+      let delta = 0;
+      if (transaction.type === 'withdrawal') {
+        delta = transaction.amount;
+      } else {
+        delta = -transaction.amount;
+      }
       newBalance = currentBalance + delta;
       await supabase
         .from('bankroll_accounts')

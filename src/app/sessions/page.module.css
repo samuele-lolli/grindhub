@@ -508,7 +508,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 5vh var(--space-4);
+  padding: var(--space-4);
   overflow-y: auto;
   animation: fadeIn 0.2s ease;
 }
@@ -519,7 +519,7 @@
   border-radius: var(--radius-xl);
   width: 100%;
   max-width: 680px;
-  max-height: 90vh;
+  max-height: calc(100svh - var(--space-8));
   overflow-y: auto;
   animation: fadeInUp 0.3s ease;
   box-shadow: var(--shadow-xl);
@@ -876,7 +876,7 @@
 
   .modal {
     max-width: 100%;
-    max-height: 95vh;
+    max-height: calc(100svh - var(--space-4));
     border-radius: var(--radius-lg);
   }
 }
