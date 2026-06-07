@@ -8,6 +8,9 @@ import { useI18n } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { Avatar } from '@/components/ui/Avatar';
 import type { Currency, AppSettings } from '@/types';
+import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
+import { AlertTriangle } from 'lucide-react';
 import styles from './page.module.css';
 
 export default function SettingsPage() {
@@ -21,6 +24,8 @@ export default function SettingsPage() {
   const [localSettings, setLocalSettings] = useState<AppSettings>(settings);
   const [localProfile, setLocalProfile] = useState(profile);
   const [isSaved, setIsSaved] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -47,6 +52,36 @@ export default function SettingsPage() {
 
   const handleSettingChange = <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
     setLocalSettings(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleDeleteAccount = async () => {
+    const confirm = window.confirm('Are you absolutely sure you want to delete your account? This will permanently delete all your sessions, bankroll history, and profile data. This action cannot be undone.');
+    if (!confirm) return;
+
+    setIsDeleting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const res = await fetch('/api/user/delete', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to delete account on server');
+      }
+
+      await supabase.auth.signOut();
+      window.localStorage.clear();
+      router.push('/login');
+    } catch (err) {
+      console.error(err);
+      alert('An error occurred while deleting your account. Please try again.');
+      setIsDeleting(false);
+    }
   };
 
   if (!localProfile) return null; // Profile must be setup
@@ -207,6 +242,24 @@ export default function SettingsPage() {
                     />
                     <span className={styles.slider}></span>
                   </label>
+                </div>
+              </div>
+
+              <h2 className={styles.sectionTitle} style={{ marginTop: '2rem', color: 'var(--accent-red)' }}>Danger Zone</h2>
+              <div className={styles.card} style={{ borderColor: 'rgba(239, 68, 68, 0.3)' }}>
+                <div className={styles.toggleRow}>
+                  <div>
+                    <span className={styles.toggleLabel} style={{ color: 'var(--accent-red)' }}>Delete Account</span>
+                    <span className={styles.toggleDesc}>Permanently erase your account, sessions, and bankroll data.</span>
+                  </div>
+                  <button 
+                    className={styles.deleteAccBtn} 
+                    onClick={handleDeleteAccount}
+                    disabled={isDeleting}
+                  >
+                    <AlertTriangle size={16} />
+                    {isDeleting ? 'Deleting...' : 'Delete Account'}
+                  </button>
                 </div>
               </div>
             </div>

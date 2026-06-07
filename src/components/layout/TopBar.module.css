@@ -114,11 +114,19 @@
 @media (max-width: 768px) {
   .topbar {
     left: 0;
-    padding: 0 var(--space-4);
+    padding: 0 var(--space-3);
   }
 
   .pageTitle {
     font-size: var(--text-base);
+  }
+  
+  .right {
+    gap: var(--space-1);
+  }
+  
+  .langBtn {
+    padding: var(--space-1) var(--space-2);
   }
 }
 

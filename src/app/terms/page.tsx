@@ -1,35 +1,33 @@
 import React from 'react';
+import styles from '../legal.module.css';
 
 export default function TermsOfServicePage() {
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '40px 20px', color: '#e2e8f0' }}>
-      <h1 style={{ fontSize: '2rem', marginBottom: '24px', color: '#fff' }}>Terms of Service</h1>
-      <p style={{ marginBottom: '16px' }}>Last updated: {new Date().toLocaleDateString()}</p>
-      
-      <h2 style={{ fontSize: '1.5rem', marginTop: '32px', marginBottom: '16px', color: '#fff' }}>1. Acceptance of Terms</h2>
-      <p style={{ marginBottom: '16px', lineHeight: '1.6' }}>
-        By accessing or using GrindHub, you agree to be bound by these Terms of Service. If you disagree with any part of the terms, then you do not have permission to access the Service.
-      </p>
+    <div className={styles.container}>
+      <h1 className={styles.title}>Terms of Service</h1>
+      <span className={styles.lastUpdated}>Last updated: June 2026</span>
 
-      <h2 style={{ fontSize: '1.5rem', marginTop: '32px', marginBottom: '16px', color: '#fff' }}>2. Description of Service</h2>
-      <p style={{ marginBottom: '16px', lineHeight: '1.6' }}>
-        GrindHub is a platform designed to help poker players track their tournaments, bankroll, and goals. The data is for informational purposes only. We are not a gambling operator and do not process real money bets.
-      </p>
+      <div className={styles.content}>
+        <p>Please read these Terms of Service ("Terms") carefully before using the GrindHub platform operated by us.</p>
 
-      <h2 style={{ fontSize: '1.5rem', marginTop: '32px', marginBottom: '16px', color: '#fff' }}>3. User Responsibilities</h2>
-      <p style={{ marginBottom: '16px', lineHeight: '1.6' }}>
-        You are responsible for safeguarding the password that you use to access the Service and for any activities or actions under your password. You agree not to disclose your password to any third party.
-      </p>
+        <h2>1. Acceptance of Terms</h2>
+        <p>By accessing or using GrindHub, you agree to be bound by these Terms. If you disagree with any part of the terms, then you may not access the service.</p>
 
-      <h2 style={{ fontSize: '1.5rem', marginTop: '32px', marginBottom: '16px', color: '#fff' }}>4. Disclaimer</h2>
-      <p style={{ marginBottom: '16px', lineHeight: '1.6' }}>
-        The Service is provided on an &quot;AS IS&quot; and &quot;AS AVAILABLE&quot; basis. We make no warranties regarding the accuracy, completeness, or reliability of any data you input into the platform.
-      </p>
+        <h2>2. Use of Service</h2>
+        <p>GrindHub is a personal analytics and social tracking tool designed for poker players. You agree to use the service only for lawful purposes. You are responsible for the accuracy of the data you input into the system.</p>
 
-      <h2 style={{ fontSize: '1.5rem', marginTop: '32px', marginBottom: '16px', color: '#fff' }}>5. Contact Us</h2>
-      <p style={{ marginBottom: '16px', lineHeight: '1.6' }}>
-        If you have any questions about these Terms, please contact us at: <strong>samuele@example.com</strong>.
-      </p>
+        <h2>3. User Accounts</h2>
+        <p>When you create an account with us via Google Authentication, you must provide accurate information. You are responsible for safeguarding your Google account credentials. We are not liable for any unauthorized access to your GrindHub account resulting from compromised Google credentials.</p>
+
+        <h2>4. Social Features & Conduct</h2>
+        <p>GrindHub includes social features allowing you to share sessions and achievements. You agree not to post abusive, offensive, or illegal content. We reserve the right to suspend or terminate accounts that violate community guidelines.</p>
+
+        <h2>5. Disclaimer of Liability</h2>
+        <p>GrindHub is an analytics tool and does not offer gambling services, financial advice, or host real-money games. We are not responsible for your financial decisions or poker losses. The platform is provided "as is" without warranties of any kind.</p>
+
+        <h2>6. Termination</h2>
+        <p>You may terminate your account at any time using the "Delete Account" feature in your Settings. Upon termination, your right to use the Service will immediately cease, and your data will be permanently deleted in accordance with our Privacy Policy.</p>
+      </div>
     </div>
   );
 }

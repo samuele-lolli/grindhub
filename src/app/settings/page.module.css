@@ -51,6 +51,10 @@ input:checked + .slider:before { transform: translateX(20px); background-color: 
 .uploadBtn { padding: var(--space-2) var(--space-4); border-radius: var(--radius-md); background: var(--bg-tertiary); border: 1px solid var(--border-primary); color: var(--text-primary); font-size: var(--text-sm); cursor: pointer; font-weight: var(--font-medium); transition: all 0.2s; }
 .uploadBtn:hover { background: var(--bg-hover); border-color: var(--border-hover); }
 
+.deleteAccBtn { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-4); border-radius: var(--radius-md); background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--accent-red); font-size: var(--text-sm); cursor: pointer; font-weight: var(--font-medium); transition: all 0.2s; white-space: nowrap; }
+.deleteAccBtn:hover { background: var(--accent-red); color: white; }
+.deleteAccBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
 @media (max-width: 768px) {
   .layout { flex-direction: column; }
   .navSidebar { width: 100%; flex-direction: row; overflow-x: auto; padding-bottom: var(--space-2); }

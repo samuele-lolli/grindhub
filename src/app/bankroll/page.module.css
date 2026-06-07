@@ -85,11 +85,11 @@
 
 /* Modal */
 .modalOverlay { position: fixed; inset: 0; background: var(--bg-overlay); backdrop-filter: blur(6px); z-index: var(--z-modal-backdrop); display: flex; align-items: center; justify-content: center; padding: var(--space-4); animation: fadeIn 0.2s ease; }
-.modal { background: var(--bg-secondary); border: 1px solid var(--border-primary); border-radius: var(--radius-xl); width: 100%; max-width: 480px; animation: fadeInUp 0.3s ease; box-shadow: var(--shadow-xl); overflow: hidden; }
+.modal { background: var(--bg-secondary); border: 1px solid var(--border-primary); border-radius: var(--radius-xl); width: 100%; max-width: 480px; max-height: 90vh; display: flex; flex-direction: column; animation: fadeInUp 0.3s ease; box-shadow: var(--shadow-xl); overflow: hidden; }
 .modalHeader { display: flex; justify-content: space-between; align-items: center; padding: var(--space-4); border-bottom: 1px solid var(--border-secondary); }
 .closeBtn { background: transparent; border: none; color: var(--text-muted); cursor: pointer; display: flex; padding: 4px; border-radius: 4px; }
 .closeBtn:hover { color: var(--text-primary); background: var(--bg-tertiary); }
-.form { padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-4); }
+.form { padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-4); overflow-y: auto; flex: 1; }
 .formGroup { display: flex; flex-direction: column; gap: var(--space-1); }
 .formGroup label { font-size: var(--text-xs); color: var(--text-muted); text-transform: uppercase; font-weight: var(--font-semibold); }
 .formGroup input, .formGroup select { width: 100%; }
