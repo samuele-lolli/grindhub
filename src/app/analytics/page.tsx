@@ -248,6 +248,27 @@ export default function AnalyticsPage() {
     };
   }, [filtered]);
 
+  // --- Profit by Day of Week ---
+  const profitByDayOfWeek = useMemo(() => {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const buckets = [0, 0, 0, 0, 0, 0, 0];
+    
+    filtered.forEach(s => {
+      const dayIndex = new Date(s.date).getDay();
+      buckets[dayIndex] += getSessionProfit(s);
+    });
+
+    return {
+      labels: days,
+      datasets: [{
+        label: 'Profit', data: buckets,
+        backgroundColor: buckets.map(b => b >= 0 ? 'rgba(16,185,129,0.6)' : 'rgba(239,68,68,0.6)'),
+        borderColor: buckets.map(b => b >= 0 ? '#10b981' : '#ef4444'),
+        borderWidth: 1, borderRadius: 4,
+      }],
+    };
+  }, [filtered]);
+
   // --- Monthly performance table ---
   const monthlyPerformance = useMemo(() => {
     const byMonth = new Map<string, { sessions: number; profit: number; wins: number }>();
@@ -358,11 +379,22 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      {/* Charts Row 3: Results Distribution (full width) */}
-      <div className={styles.chartCardFull}>
-        <h3 className={styles.chartTitle}>{t.analytics.resultsDistribution}</h3>
-        <div className={styles.chartWrap}>
-          <Bar data={resultsDistribution} options={histOptions} />
+      {/* Charts Row 3: Results Distribution + Day of Week */}
+      <div className={styles.chartsGrid}>
+        <div className={styles.chartCard}>
+          <h3 className={styles.chartTitle}>{t.analytics.resultsDistribution}</h3>
+          <div className={styles.chartWrap}>
+            <Bar data={resultsDistribution} options={histOptions} />
+          </div>
+        </div>
+        <div className={styles.chartCard}>
+          <h3 className={styles.chartTitle}>Profit by Day</h3>
+          <div className={styles.chartWrap}>
+            <Bar data={profitByDayOfWeek} options={{
+              ...lineOptions,
+              plugins: { ...lineOptions.plugins, tooltip: { ...lineOptions.plugins.tooltip, callbacks: { label: (ctx:any) => formatCurrency(ctx.raw, 'EUR') } } },
+            }} />
+          </div>
         </div>
       </div>
 
