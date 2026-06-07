@@ -3,11 +3,12 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ListTodo, BarChart3, Users, User } from 'lucide-react';
+import { LayoutDashboard, ListTodo, BarChart3, Users, User, Wallet } from 'lucide-react';
 import styles from './MobileNav.module.css';
 
 const tabs = [
   { href: '/', icon: LayoutDashboard, label: 'Home' },
+  { href: '/bankroll', icon: Wallet, label: 'Bankroll' },
   { href: '/sessions', icon: ListTodo, label: 'Sessions' },
   { href: '/analytics', icon: BarChart3, label: 'Stats' },
   { href: '/social', icon: Users, label: 'Social' },
