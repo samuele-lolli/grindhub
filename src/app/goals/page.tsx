@@ -29,6 +29,7 @@ export default function GoalsPage() {
   const deleteGoal = useGoalsStore(s => s.deleteGoal);
   const checkAchievements = useGoalsStore(s => s.checkAchievements);
   const sessions = useSessionStore(s => s.sessions);
+  const getStats = useSessionStore(s => s.getStats);
 
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ title: '', description: '', type: 'volume' as GoalType, targetValue: '', deadline: '' });
@@ -37,7 +38,7 @@ export default function GoalsPage() {
   const completedGoals = useMemo(() => goals.filter(g => g.status === 'completed'), [goals]);
 
   // Check achievements on mount
-  useMemo(() => { if (sessions.length > 0) checkAchievements(sessions); }, [sessions]); // eslint-disable-line
+  useMemo(() => { if (sessions.length > 0) checkAchievements(getStats()); }, [sessions, getStats, checkAchievements]); // eslint-disable-line
 
   const unlockedAchievements = useMemo(() => {
     return achievements
