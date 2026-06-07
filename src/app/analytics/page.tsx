@@ -449,7 +449,7 @@ export default function AnalyticsPage() {
         <div className={styles.chartCard}>
           <h3 className={styles.chartTitle} style={{ display: 'flex', alignItems: 'center' }}>
             Platform Breakdown
-            <UITooltip content={t.tooltips?.platforms || 'Your most profitable platforms.'} position="left" />
+            <UITooltip content="Distribution of your sessions across different platforms." position="left" />
           </h3>
           <div className={styles.chartWrapSmall}>
             <Doughnut data={platformChart} options={{ responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { display: true, position: 'bottom' as const, labels: { color: '#94a3b8', padding: 14, usePointStyle: true, font: { size: 12 } } } } }} />
@@ -467,8 +467,8 @@ export default function AnalyticsPage() {
         </div>
         <div className={styles.chartCard}>
           <h3 className={styles.chartTitle} style={{ display: 'flex', alignItems: 'center' }}>
-            Profit by Day
-            <UITooltip content={t.tooltips?.variance || 'Shows your actual profit vs expected swings.'} position="left" />
+            Profit by Day of Week
+            <UITooltip content="Profitability based on the day of the week." position="left" />
           </h3>
           <div className={styles.chartWrap}>
             <Bar data={profitByDayOfWeek} options={{
