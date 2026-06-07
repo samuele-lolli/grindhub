@@ -11,6 +11,7 @@ const Line = dynamic(() => import('react-chartjs-2').then(mod => mod.Line), { ss
 const Bar = dynamic(() => import('react-chartjs-2').then(mod => mod.Bar), { ssr: false });
 const Doughnut = dynamic(() => import('react-chartjs-2').then(mod => mod.Doughnut), { ssr: false });
 import { TrendingUp, Target, BarChart3, DollarSign, CreditCard, Clock, Award, Zap } from 'lucide-react';
+import { Tooltip as UITooltip } from '@/components/ui/Tooltip';
 import { useSessionStore } from '@/stores/session-store';
 import { useBankrollStore } from '@/stores/bankroll-store';
 import { useI18n } from '@/i18n';
@@ -344,7 +345,11 @@ export default function AnalyticsPage() {
         {statCards.map((card, i) => (
           <div key={i} className={`${styles.miniStat} ${styles[`c${card.color}`]}`} style={{ animationDelay: `${i * 40}ms` }}>
             <div className={styles.miniIcon}>{card.icon}</div>
-            <span className={styles.miniLabel}>{card.label}</span>
+            <span className={styles.miniLabel} style={{ display: 'flex', alignItems: 'center' }}>
+              {card.label}
+              {card.label === t.analytics.roi && <UITooltip content={t.tooltips?.roi || 'Return on Investment.'} />}
+              {card.label === t.analytics.itm && <UITooltip content={t.tooltips?.itm || 'In-The-Money percentage.'} />}
+            </span>
             <span className={styles.miniValue}>{card.value}</span>
           </div>
         ))}
@@ -372,7 +377,10 @@ export default function AnalyticsPage() {
           </div>
         </div>
         <div className={styles.chartCard}>
-          <h3 className={styles.chartTitle}>Platform Breakdown</h3>
+          <h3 className={styles.chartTitle} style={{ display: 'flex', alignItems: 'center' }}>
+            Platform Breakdown
+            <UITooltip content={t.tooltips?.platforms || 'Your most profitable platforms.'} position="left" />
+          </h3>
           <div className={styles.chartWrapSmall}>
             <Doughnut data={platformChart} options={{ responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { display: true, position: 'bottom' as const, labels: { color: '#94a3b8', padding: 14, usePointStyle: true, font: { size: 12 } } } } }} />
           </div>
@@ -388,7 +396,10 @@ export default function AnalyticsPage() {
           </div>
         </div>
         <div className={styles.chartCard}>
-          <h3 className={styles.chartTitle}>Profit by Day</h3>
+          <h3 className={styles.chartTitle} style={{ display: 'flex', alignItems: 'center' }}>
+            Profit by Day
+            <UITooltip content={t.tooltips?.variance || 'Shows your actual profit vs expected swings.'} position="left" />
+          </h3>
           <div className={styles.chartWrap}>
             <Bar data={profitByDayOfWeek} options={{
               ...lineOptions,

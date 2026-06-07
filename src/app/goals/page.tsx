@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { Target, CheckCircle2, Trophy, Plus, Flame, Zap, Star, Award, TrendingUp, Calendar, Shield, Crown, Gem, X, Lock } from 'lucide-react';
 import { useGoalsStore, ACHIEVEMENT_DEFINITIONS } from '@/stores/goals-store';
 import { useSessionStore } from '@/stores/session-store';
+import { Tooltip as UITooltip } from '@/components/ui/Tooltip';
 import { useI18n } from '@/i18n';
 import { formatDate } from '@/lib/utils';
 import type { GoalType } from '@/types';
@@ -112,7 +113,10 @@ export default function GoalsPage() {
       </div>
 
       {/* Active Goals */}
-      <h2 className={styles.sectionTitle}>{t.goals.activeGoals} ({activeGoals.length})</h2>
+      <h2 className={styles.sectionTitle} style={{ display: 'flex', alignItems: 'center' }}>
+        {t.goals.activeGoals} ({activeGoals.length})
+        <UITooltip content={t.tooltips?.activeGoals || 'Goals automatically progress as you log new sessions.'} position="right" />
+      </h2>
       <div className={styles.goalsGrid}>
         {activeGoals.length === 0 ? (
           <div className={styles.empty}>

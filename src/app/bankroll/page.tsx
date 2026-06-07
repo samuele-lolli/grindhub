@@ -18,6 +18,7 @@ import { format } from 'date-fns';
 import {
   formatCurrency, formatDate, getBankrollHealth, cn, getSessionProfit
 } from '@/lib/utils';
+import { Tooltip as UITooltip } from '@/components/ui/Tooltip';
 import type { Platform, BankrollCategory } from '@/types';
 import styles from './page.module.css';
 
@@ -239,7 +240,7 @@ export default function BankrollPage() {
             <div className={styles.actionsGrid}>
               <button className={styles.actionBtn} onClick={() => setShowSyncModal(true)}>
                 <div className={cn(styles.actionIcon, styles.iconPurple)}><ArrowRightLeft size={20} /></div>
-                <span>Quick Sync</span>
+                <span>Quick Sync <UITooltip content={t.tooltips?.quickSync || "Instantly fix discrepancies between GrindHub and your real balances."} position="top" /></span>
               </button>
               <button className={styles.actionBtn} onClick={() => { setTxForm(prev => ({...prev, type: 'deposit', accountId: accounts[0]?.id || ''})); setShowTxModal(true); }}>
                 <div className={cn(styles.actionIcon, styles.iconGreen)}><ArrowDownRight size={20} /></div>

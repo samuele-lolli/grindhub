@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { MapPin, Calendar, Gamepad2, Star, Users, UserPlus, UserMinus, BarChart3, Edit3 } from 'lucide-react';
 import { useProfileStore } from '@/stores/profile-store';
 import { useSessionStore } from '@/stores/session-store';
 import { useSocialStore } from '@/stores/social-store';
+import { profileService } from '@/lib/services/profile-service';
+import type { PlayerProfile } from '@/types';
 import { useI18n } from '@/i18n';
 import { formatCurrency, formatPercent, formatDate, formatNumber, getInitials, platformLabels, getSessionProfit, getProfitClass, formatDuration } from '@/lib/utils';
 import styles from './page.module.css';
@@ -25,6 +27,8 @@ export default function ProfilePage() {
   const follow = useSocialStore(s => s.followUser);
   const unfollow = useSocialStore(s => s.unfollowUser);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchedPlayers, setSearchedPlayers] = useState<PlayerProfile[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   const stats = useMemo(() => getStats(), [getStats]);
 
@@ -32,16 +36,20 @@ export default function ProfilePage() {
   const recentSessions = useMemo(() => sessions.slice(0, 8), [sessions]);
 
   // Filter players by search
-  const filteredPlayers = useMemo(() => {
-    const list = searchQuery
-      ? players.filter(p =>
-          p.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.country.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-      : players;
-    return list.slice(0, 12);
-  }, [players, searchQuery]);
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const results = await profileService.searchPlayers(searchQuery);
+        setSearchedPlayers(results.filter(p => p.id !== profile?.id)); // Don't show self
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery, profile?.id]);
 
   if (!profile) {
     return (
@@ -161,7 +169,9 @@ export default function ProfilePage() {
             />
           </div>
           <div className={styles.playersList}>
-            {filteredPlayers.map((player, i) => {
+            {searchedPlayers.length === 0 && !isSearching ? (
+              <p className={styles.playerMeta} style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem' }}>No players found.</p>
+            ) : searchedPlayers.map((player, i) => {
               const isFollowing = following.includes(player.id);
               return (
                 <div key={player.id} className={styles.playerCard} style={{ animationDelay: `${i * 40}ms` }}>

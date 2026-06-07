@@ -5,6 +5,7 @@ import { MessageCircle, Send, Share2, Users, TrendingUp, Trophy, X, Heart } from
 import { useSocialStore } from '@/stores/social-store';
 import { useProfileStore } from '@/stores/profile-store';
 import { useSessionStore } from '@/stores/session-store';
+import { Tooltip as UITooltip } from '@/components/ui/Tooltip';
 import { useI18n } from '@/i18n';
 import { formatRelativeTime, getInitials, formatCurrency, getSessionProfit, formatDate, formatDuration, platformLabels } from '@/lib/utils';
 import type { PostType, AggregatedMTTSession, PlayerProfile, PlayerStats } from '@/types';
@@ -187,7 +188,10 @@ export default function SocialPage() {
     <div className="page-container">
       {/* Header */}
       <div className="page-header">
-        <h1 className="page-title">{t.social.title}</h1>
+        <h1 className="page-title" style={{ display: 'flex', alignItems: 'center' }}>
+          {t.social.title}
+          <UITooltip content={t.tooltips?.socialFeed || 'Posts are visible to anyone who follows you. Your exact bankroll is ALWAYS private.'} position="right" />
+        </h1>
         <div className={styles.tabs}>
           <button
             className={`${styles.tab} ${styles.tabActive}`}

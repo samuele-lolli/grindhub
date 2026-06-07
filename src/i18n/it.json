@@ -236,5 +236,14 @@
     "90d": "90 Giorni",
     "1y": "1 Anno",
     "all": "Sempre"
+  },
+  "tooltips": {
+    "roi": "Ritorno sull'Investimento. Calcolato come (Vincite Totali - Buy-in Totali) / Buy-in Totali.",
+    "itm": "Percentuale In-The-Money. La frequenza con cui raggiungi i premi.",
+    "variance": "Mostra il tuo profitto reale rispetto alle oscillazioni previste.",
+    "platforms": "Le tue piattaforme più profittevoli.",
+    "activeGoals": "Gli obiettivi progrediscono automaticamente quando registri nuove sessioni.",
+    "quickSync": "Correggi istantaneamente le discrepanze tra GrindHub e il saldo reale della tua poker room.",
+    "socialFeed": "I post sono visibili a chiunque ti segua. Il tuo bankroll esatto è SEMPRE privato."
   }
 }

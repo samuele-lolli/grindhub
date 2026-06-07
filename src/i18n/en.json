@@ -236,5 +236,14 @@
     "90d": "90 Days",
     "1y": "1 Year",
     "all": "All Time"
+  },
+  "tooltips": {
+    "roi": "Return on Investment. Calculated as (Total Cashes - Total Buy-ins) / Total Buy-ins.",
+    "itm": "In-The-Money percentage. The frequency you reach the payout structure.",
+    "variance": "Shows your actual profit vs expected swings.",
+    "platforms": "Your most profitable platforms.",
+    "activeGoals": "Goals automatically progress as you log new sessions.",
+    "quickSync": "Instantly fix discrepancies between GrindHub and your real poker room balances.",
+    "socialFeed": "Posts are visible to anyone who follows you. Your exact bankroll is ALWAYS private."
   }
 }

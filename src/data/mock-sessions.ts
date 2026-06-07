@@ -9,7 +9,7 @@ import type { Session, Platform } from '@/types';
 import { generateId } from '@/lib/utils';
 
 /** Platforms available for random session generation. */
-const PLATFORMS: Platform[] = ['pokerstars', 'ggpoker', 'winamax', '888poker'];
+const PLATFORMS: Platform[] = ['pokerstars', 'ggpoker'];
 
 /** Sample session notes randomly assigned to ~15% of generated sessions. */
 const SESSION_NOTES = [
@@ -43,7 +43,7 @@ function randomDate(monthsBack: number): string {
  * @param playerId - Optional player ID prefix for deterministic session IDs.
  * @returns Sessions sorted newest-first.
  */
-export function generateMockSessions(count = 280, playerId?: string): Session[] {
+export function generateMockSessions(count = 50, playerId?: string): Session[] {
   const sessions: Session[] = [];
 
   for (let i = 0; i < count; i++) {
