@@ -711,4 +711,7 @@
   .templatesGrid {
     grid-template-columns: 1fr;
   }
+  .achievementsGrid {
+    grid-template-columns: 1fr;
+  }
 }
