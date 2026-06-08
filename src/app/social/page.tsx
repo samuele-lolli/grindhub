@@ -9,6 +9,8 @@ import { Tooltip as UITooltip } from '@/components/ui/Tooltip';
 import { useI18n } from '@/i18n';
 import { formatRelativeTime, getInitials, formatCurrency, getSessionProfit, formatDate, formatDuration, platformLabels } from '@/lib/utils';
 import type { PostType, AggregatedMTTSession, PlayerProfile, PlayerStats } from '@/types';
+import { Avatar } from '@/components/ui/Avatar';
+import { PublicProfileModal } from '@/components/ui/PublicProfileModal';
 import { profileService } from '@/lib/services/profile-service';
 import styles from './page.module.css';
 
@@ -468,10 +470,12 @@ export default function SocialPage() {
               <div className={styles.suggestedList}>
                 {suggestedPlayers.map(p => (
                   <div key={p.id} className={styles.suggestedItem}>
-                    <Avatar name={p.displayName} avatarColor={getAvatarColor(p.id)} size="md" />
+                    <div style={{ cursor: 'pointer' }} onClick={() => handleViewProfile(p.id)}>
+                      <Avatar name={p.displayName} avatarColor={getAvatarColor(p.id)} size="md" />
+                    </div>
                     <div className={styles.suggestedInfo}>
-                      <span className={styles.suggestedName}>{p.displayName}</span>
-                      <span className={styles.suggestedUsername}>@{p.username}</span>
+                      <span className={styles.suggestedName} style={{ cursor: 'pointer' }} onClick={() => handleViewProfile(p.id)}>{p.displayName}</span>
+                      <span className={styles.suggestedUsername} style={{ cursor: 'pointer' }} onClick={() => handleViewProfile(p.id)}>@{p.username}</span>
                     </div>
                     <button className={styles.followBtn} onClick={() => follow(p.id)}>
                       {t.profile?.follow || 'Follow'}
@@ -518,81 +522,11 @@ export default function SocialPage() {
         </div>
       )}
 
-      {/* ── Public Profile Modal ── */}
       {selectedProfile && (
-        <div className={styles.profileModalOverlay} onClick={() => setSelectedProfile(null)}>
-          <div className={styles.profileModal} onClick={e => e.stopPropagation()}>
-            <button className={styles.modalClose} onClick={() => setSelectedProfile(null)}>
-              <X size={16} />
-            </button>
-            <div className={styles.profileModalHeader}>
-              <Avatar 
-                name={selectedProfile.profile.displayName} 
-                avatarColor={typeof selectedProfile.profile.avatar === 'string' && selectedProfile.profile.avatar.startsWith('#') ? selectedProfile.profile.avatar : getAvatarColor(selectedProfile.profile.id)} 
-                size="lg" 
-              />
-              <div>
-                <span className={styles.profileModalName}>{selectedProfile.profile.displayName}</span>
-                <span className={styles.profileModalUser}>@{selectedProfile.profile.username} • {selectedProfile.profile.country || 'Global'}</span>
-              </div>
-            </div>
-            
-            {selectedProfile.profile.bio && (
-              <div className={styles.profileModalBio}>
-                {selectedProfile.profile.bio}
-              </div>
-            )}
-
-            <h4 style={{ marginBottom: '12px', fontSize: '14px', color: 'var(--text-secondary)' }}>Public Statistics</h4>
-            
-            <div className={styles.publicStatsGrid}>
-              {selectedProfile.stats?.totalSessions != null && (
-                <div className={styles.publicStatCard}>
-                  <span className={styles.embedMetricLabel}>Volume</span>
-                  <span className={styles.embedMetricValue}>{selectedProfile.stats.totalSessions} MTTs</span>
-                </div>
-              )}
-              {selectedProfile.stats?.totalProfit != null && (
-                <div className={styles.publicStatCard}>
-                  <span className={styles.embedMetricLabel}>Profit</span>
-                  <span className={`${styles.embedMetricValue} ${selectedProfile.stats.totalProfit >= 0 ? styles.profitPos : styles.profitNeg}`}>
-                    {formatCurrency(selectedProfile.stats.totalProfit, 'EUR', true)}
-                  </span>
-                </div>
-              )}
-              {selectedProfile.stats?.roi != null && (
-                <div className={styles.publicStatCard}>
-                  <span className={styles.embedMetricLabel}>ROI</span>
-                  <span className={styles.embedMetricValue}>{selectedProfile.stats.roi.toFixed(1)}%</span>
-                </div>
-              )}
-              {selectedProfile.stats?.itm != null && (
-                <div className={styles.publicStatCard}>
-                  <span className={styles.embedMetricLabel}>ITM</span>
-                  <span className={styles.embedMetricValue}>{selectedProfile.stats.itm.toFixed(1)}%</span>
-                </div>
-              )}
-              {selectedProfile.stats?.avgBuyIn != null && (
-                <div className={styles.publicStatCard}>
-                  <span className={styles.embedMetricLabel}>Avg Buy-in</span>
-                  <span className={styles.embedMetricValue}>{formatCurrency(selectedProfile.stats.avgBuyIn, 'EUR')}</span>
-                </div>
-              )}
-              {selectedProfile.stats?.biggestWin != null && (
-                <div className={styles.publicStatCard}>
-                  <span className={styles.embedMetricLabel}>Biggest Win</span>
-                  <span className={`${styles.embedMetricValue} ${styles.profitPos}`}>{formatCurrency(selectedProfile.stats.biggestWin, 'EUR')}</span>
-                </div>
-              )}
-            </div>
-            
-            {(!selectedProfile.stats || Object.values(selectedProfile.stats).every(v => v === null)) && (
-              <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '14px', padding: '20px 0' }}>
-                This user has chosen to keep their statistics private.
-              </div>
-            )}
-          </div>
-        </div>
+        <PublicProfileModal 
+          selectedProfile={selectedProfile} 
+          onClose={() => setSelectedProfile(null)} 
+        />
       )}
     </div>
   );

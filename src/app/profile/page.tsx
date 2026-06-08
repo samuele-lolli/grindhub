@@ -11,6 +11,7 @@ import type { PlayerProfile } from '@/types';
 import { useI18n } from '@/i18n';
 import { formatCurrency, formatPercent, formatDate, formatNumber, getInitials, platformLabels, getSessionProfit, getProfitClass, formatDuration } from '@/lib/utils';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { PublicProfileModal } from '@/components/ui/PublicProfileModal';
 import styles from './page.module.css';
 
 /**
@@ -30,6 +31,18 @@ export default function ProfilePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchedPlayers, setSearchedPlayers] = useState<PlayerProfile[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [selectedProfile, setSelectedProfile] = useState<any>(null);
+
+  const handleViewProfile = async (userId: string) => {
+    try {
+      const data = await profileService.fetchPublicProfile(userId);
+      if (data && data.profile) {
+        setSelectedProfile(data);
+      }
+    } catch (err) {
+      console.error('Error fetching public profile:', err);
+    }
+  };
 
   const stats = useMemo(() => getStats(), [getStats]);
 
@@ -186,12 +199,12 @@ export default function ProfilePage() {
               const isFollowing = following.includes(player.id);
               return (
                 <div key={player.id} className={styles.playerCard} style={{ animationDelay: `${i * 40}ms` }}>
-                  <div className={styles.playerAvatar} style={{ background: typeof player.avatar === 'string' && player.avatar.startsWith('#') ? player.avatar : 'var(--gradient-primary)' }}>
+                  <div className={styles.playerAvatar} style={{ background: typeof player.avatar === 'string' && player.avatar.startsWith('#') ? player.avatar : 'var(--gradient-primary)', cursor: 'pointer' }} onClick={() => handleViewProfile(player.id)}>
                     {getInitials(player.displayName)}
                   </div>
                   <div className={styles.playerInfo}>
-                    <span className={styles.playerName}>{player.displayName}</span>
-                    <span className={styles.playerUsername}>@{player.username}</span>
+                    <span className={styles.playerName} style={{ cursor: 'pointer' }} onClick={() => handleViewProfile(player.id)}>{player.displayName}</span>
+                    <span className={styles.playerUsername} style={{ cursor: 'pointer' }} onClick={() => handleViewProfile(player.id)}>@{player.username}</span>
                     <span className={styles.playerMeta}>{player.country} · MTT · {player.preferredStakes}</span>
                   </div>
                   <button
@@ -205,7 +218,16 @@ export default function ProfilePage() {
             })}
           </div>
         </div>
+          </div>
+        </div>
       </div>
+      
+      {selectedProfile && (
+        <PublicProfileModal 
+          selectedProfile={selectedProfile} 
+          onClose={() => setSelectedProfile(null)} 
+        />
+      )}
     </div>
   );
 }
