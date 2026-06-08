@@ -195,12 +195,14 @@ export const useGoalsStore = create<GoalsStore>()(
         });
       }
     }
-  },
+  }
+  }),
   {
     name: 'goals-storage',
     partialize: (state) => ({ achievements: state.achievements })
   }
-)));
+));
+
 export const ACHIEVEMENT_DEFINITIONS = [
   { id: 'first_win', name: 'First Blood', description: 'Win your first tournament', icon: 'Target' as const },
   { id: 'streak_3', name: 'Hot Streak', description: 'Cash in 3 consecutive sessions', icon: 'Flame' as const },
