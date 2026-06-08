@@ -22,6 +22,7 @@ export function PublicProfileModal({ selectedProfile, onClose }: PublicProfileMo
         <div className={styles.profileModalHeader}>
           <Avatar 
             name={selectedProfile.profile.displayName} 
+            src={selectedProfile.profile.avatar}
             size="lg" 
           />
           <div>

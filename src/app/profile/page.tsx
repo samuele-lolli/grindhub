@@ -11,6 +11,7 @@ import { PlayerProfile, PlayerStats } from '@/types';
 import { useI18n } from '@/i18n';
 import { formatCurrency, formatPercent, formatDate, formatNumber, getInitials, platformLabels, getSessionProfit, getProfitClass, formatDuration } from '@/lib/utils';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { Avatar } from '@/components/ui/Avatar';
 import { PublicProfileModal } from '@/components/ui/PublicProfileModal';
 import styles from './page.module.css';
 
@@ -91,8 +92,8 @@ export default function ProfilePage() {
       {/* Hero Card */}
       <div className={styles.hero}>
         <div className={styles.heroLeft}>
-          <div className={styles.avatarLarge} style={{ background: typeof profile.avatar === 'string' && profile.avatar.startsWith('#') ? profile.avatar : 'var(--gradient-primary)' }}>
-            {getInitials(profile.displayName)}
+          <div className={styles.avatarLargeWrap}>
+            <Avatar name={profile.displayName} src={profile.avatar} size="xl" showBorder />
           </div>
           <div className={styles.heroInfo}>
             <div className={styles.nameRow}>
@@ -199,8 +200,8 @@ export default function ProfilePage() {
               const isFollowing = following.includes(player.id);
               return (
                 <div key={player.id} className={styles.playerCard} style={{ animationDelay: `${i * 40}ms` }}>
-                  <div className={styles.playerAvatar} style={{ background: typeof player.avatar === 'string' && player.avatar.startsWith('#') ? player.avatar : 'var(--gradient-primary)', cursor: 'pointer' }} onClick={() => handleViewProfile(player.id)}>
-                    {getInitials(player.displayName)}
+                  <div style={{ cursor: 'pointer' }} onClick={() => handleViewProfile(player.id)}>
+                    <Avatar name={player.displayName} src={player.avatar} size="md" />
                   </div>
                   <div className={styles.playerInfo}>
                     <span className={styles.playerName} style={{ cursor: 'pointer' }} onClick={() => handleViewProfile(player.id)}>{player.displayName}</span>

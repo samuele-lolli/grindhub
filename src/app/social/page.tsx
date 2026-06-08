@@ -91,7 +91,7 @@ export default function SocialPage() {
   // ── Player lookup ──
   const getPlayer = useCallback(
     (id: string) => {
-      if (id === 'current-user') return profile;
+      if (id === 'current-user' || id === profile?.id) return profile;
       return players.find(p => p.id === id) || profile;
     },
     [players, profile]
@@ -188,6 +188,7 @@ export default function SocialPage() {
             <div className={styles.composerTop}>
               <Avatar
                 name={profile?.displayName || 'You'}
+                src={profile?.avatar}
                 size="md"
               />
               <div className={styles.composerInputWrap}>
@@ -281,7 +282,7 @@ export default function SocialPage() {
                     {/* Header */}
                     <div className={styles.postHeader}>
                       <div className={styles.authorAvatarWrap} style={{ cursor: 'pointer' }} onClick={() => handleViewProfile(post.authorId)}>
-                        <Avatar name={author?.displayName || 'Unknown'} size="md" />
+                        <Avatar name={author?.displayName || 'Unknown'} src={author?.avatar} size="md" />
                       </div>
                       <div className={styles.postMeta}>
                         <div className={styles.postMetaTop}>
@@ -375,7 +376,7 @@ export default function SocialPage() {
                               const cAuthor = getPlayer(c.authorId);
                               return (
                                 <div key={c.id} className={styles.commentItem}>
-                                  <Avatar name={cAuthor?.displayName || 'Unknown'} size="sm" />
+                                  <Avatar name={cAuthor?.displayName || 'Unknown'} src={cAuthor?.avatar} size="sm" />
                                   <div className={styles.commentBubble}>
                                     <span className={styles.commentAuthorName}>{cAuthor?.displayName || 'Unknown'}</span>
                                     <span className={styles.commentText}>{c.content}</span>
@@ -387,7 +388,7 @@ export default function SocialPage() {
                           </div>
                         )}
                         <div className={styles.commentInputRow}>
-                          <Avatar name={profile?.displayName || 'You'} size="sm" />
+                          <Avatar name={profile?.displayName || 'You'} src={profile?.avatar} size="sm" />
                           <div className={styles.commentInputWrap}>
                             <input
                               type="text"
@@ -446,7 +447,7 @@ export default function SocialPage() {
                 {suggestedPlayers.map(p => (
                   <div key={p.id} className={styles.suggestedItem}>
                     <div style={{ cursor: 'pointer' }} onClick={() => handleViewProfile(p.id)}>
-                      <Avatar name={p.displayName} size="md" />
+                      <Avatar name={p.displayName} src={p.avatar} size="md" />
                     </div>
                     <div className={styles.suggestedInfo}>
                       <span className={styles.suggestedName} style={{ cursor: 'pointer' }} onClick={() => handleViewProfile(p.id)}>{p.displayName}</span>
