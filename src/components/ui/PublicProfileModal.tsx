@@ -1,5 +1,5 @@
 import React from 'react';
-import { X } from 'lucide-react';
+import { X, CalendarDays, Gamepad2, Layers, Monitor } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { formatCurrency } from '@/lib/utils';
 import styles from './PublicProfileModal.module.css';
@@ -35,6 +35,48 @@ export function PublicProfileModal({ selectedProfile, onClose }: PublicProfileMo
             {selectedProfile.profile.bio}
           </div>
         )}
+
+        <div className={styles.profileDetailsList}>
+          <div className={styles.profileDetailItem}>
+            <span className={styles.profileDetailLabel}>
+              <CalendarDays size={14} /> Experience
+            </span>
+            <span className={styles.profileDetailValue}>
+              {selectedProfile.profile.yearsPlaying ? `${selectedProfile.profile.yearsPlaying} years` : 'Not specified'}
+            </span>
+          </div>
+          
+          <div className={styles.profileDetailItem}>
+            <span className={styles.profileDetailLabel}>
+              <Gamepad2 size={14} /> Main Game
+            </span>
+            <span className={styles.profileDetailValue} style={{ textTransform: 'uppercase' }}>
+              {selectedProfile.profile.primaryGameType || 'Mixed'}
+            </span>
+          </div>
+
+          <div className={styles.profileDetailItem}>
+            <span className={styles.profileDetailLabel}>
+              <Layers size={14} /> Stakes
+            </span>
+            <span className={styles.profileDetailValue}>
+              {selectedProfile.profile.preferredStakes || 'Any'}
+            </span>
+          </div>
+
+          {selectedProfile.profile.platforms && selectedProfile.profile.platforms.length > 0 && (
+            <div className={styles.profileDetailItem} style={{ alignItems: 'flex-start', marginTop: '4px' }}>
+              <span className={styles.profileDetailLabel}>
+                <Monitor size={14} /> Platforms
+              </span>
+              <div className={styles.platformBadges}>
+                {selectedProfile.profile.platforms.map((p: string) => (
+                  <span key={p} className={styles.platformBadge}>{p}</span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
         <h4 style={{ marginBottom: '12px', fontSize: '14px', color: 'var(--text-secondary)' }}>Public Statistics</h4>
         
