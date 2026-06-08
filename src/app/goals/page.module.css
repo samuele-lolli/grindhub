@@ -683,3 +683,32 @@
   from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }
 }
+
+/* Responsive Mobile */
+@media (max-width: 768px) {
+  .pageContainer {
+    padding: var(--space-4) var(--space-4) var(--space-8);
+  }
+  .pageHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-4);
+  }
+  .addBtn {
+    width: 100%;
+    justify-content: center;
+  }
+  .goalsGrid {
+    grid-template-columns: 1fr;
+  }
+  .modalContent {
+    padding: var(--space-4);
+    max-height: 95vh;
+  }
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+  .templatesGrid {
+    grid-template-columns: 1fr;
+  }
+}

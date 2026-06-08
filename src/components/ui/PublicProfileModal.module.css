@@ -172,3 +172,23 @@
   color: var(--text-secondary);
   text-transform: capitalize;
 }
+
+/* Responsive Mobile */
+@media (max-width: 600px) {
+  .profileModal {
+    padding: var(--space-4);
+    max-height: 100vh;
+    border-radius: var(--radius-lg);
+  }
+  .publicStatsGrid {
+    grid-template-columns: 1fr;
+  }
+  .profileDetailItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .platformBadges {
+    justify-content: flex-start;
+  }
+}
