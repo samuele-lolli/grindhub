@@ -45,6 +45,7 @@ function RootContent({ children }: { children: React.ReactNode }) {
   const setFollowing = useSocialStore(s => s.setFollowing);
   const setGoals = useGoalsStore(s => s.setGoals);
   const setLoggedIn = useProfileStore(s => s.setLoggedIn);
+  const setPlayers = useProfileStore(s => s.setPlayers);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -93,21 +94,22 @@ function RootContent({ children }: { children: React.ReactNode }) {
           }
         }
         
-        // Load all data in parallel
         const [
           sessionsData,
           accounts,
           transactions,
           feed,
           following,
-          goals
+          goals,
+          playersData
         ] = await Promise.all([
           sessionService.fetchSessions(userId),
           bankrollService.fetchAccounts(userId),
           bankrollService.fetchTransactions(userId),
           socialService.fetchFeed(userId),
           socialService.fetchFollowing(userId),
-          goalsService.fetchGoals(userId)
+          goalsService.fetchGoals(userId),
+          profileService.searchPlayers('')
         ]);
 
         if (profile) setupProfile(profile);
@@ -117,6 +119,7 @@ function RootContent({ children }: { children: React.ReactNode }) {
         setPosts(feed);
         setFollowing(following);
         setGoals(goals);
+        setPlayers(playersData);
 
         setDataLoaded(true);
       } catch (err) {
