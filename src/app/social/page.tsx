@@ -407,24 +407,31 @@ export default function SocialPage() {
             <h3 className={styles.sidebarTitle}><TrendingUp size={16} /> Top Discussions</h3>
             <div className={styles.trendingList}>
               {trendingTopics.map((topic, i) => (
-                <div key={i} className={styles.trendingItem} style={{ flexDirection: 'column', alignItems: 'flex-start', cursor: 'pointer' }} onClick={() => {
+                <div key={i} className={styles.trendingItem} style={{ flexDirection: 'column', alignItems: 'flex-start', cursor: 'pointer', position: 'relative' }} onClick={() => {
                   const element = document.getElementById(`post-${topic.postId}`);
-                  if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    element.style.animation = 'none';
+                    setTimeout(() => element.style.animation = 'pulse 1.5s ease', 10);
+                  }
                 }}>
-                  <div className={styles.trendingTag} style={{ fontSize: '13px', marginBottom: '4px' }}>
+                  <div className={styles.trendingTag} style={{ fontSize: '13px', marginBottom: '4px', color: 'var(--accent-blue)', fontWeight: 'var(--font-semibold)' }}>
                     {topic.authorName || '#GrindHub'}
                   </div>
                   {topic.content && (
-                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px', lineHeight: 1.4 }}>
-                      &quot;{topic.content.length > 60 ? topic.content.substring(0, 60) + '...' : topic.content}&quot;
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px', lineHeight: 1.4, fontStyle: 'italic' }}>
+                      &quot;{topic.content.length > 50 ? topic.content.substring(0, 50) + '...' : topic.content}&quot;
                     </div>
                   )}
-                  {topic.score !== undefined && (
-                    <div className={styles.trendingCount} style={{ alignSelf: 'flex-start', color: 'var(--accent-red)' }}>
-                      <TrendingUp size={12} style={{ marginRight: '4px', display: 'inline', verticalAlign: 'text-bottom' }} />
-                      Hot Score: {Math.round(topic.score * 10) / 10}
-                    </div>
-                  )}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                    {topic.score !== undefined && (
+                      <div className={styles.trendingCount} style={{ color: 'var(--accent-red)' }}>
+                        <TrendingUp size={12} style={{ marginRight: '4px', display: 'inline', verticalAlign: 'text-bottom' }} />
+                        Hot Score: {Math.round(topic.score * 10) / 10}
+                      </div>
+                    )}
+                    <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)' }}>View Post →</span>
+                  </div>
                 </div>
               ))}
             </div>

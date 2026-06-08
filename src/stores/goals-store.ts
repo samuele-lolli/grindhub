@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { Goal, PlayerStats } from '@/types';
 import { goalsService } from '@/lib/services/goals-service';
 import { useProfileStore } from './profile-store';
@@ -29,7 +30,9 @@ interface GoalsActions {
 
 type GoalsStore = GoalsState & GoalsActions;
 
-export const useGoalsStore = create<GoalsStore>()((set, get) => ({
+export const useGoalsStore = create<GoalsStore>()(
+  persist(
+    (set, get) => ({
   goals: [],
   achievements: [],
 
@@ -108,9 +111,16 @@ export const useGoalsStore = create<GoalsStore>()((set, get) => ({
     const allSessions = useSessionStore.getState().sessions;
     
     for (const goal of activeGoals) {
-      // Only count sessions that happened AFTER the goal was created
-      const goalStartDate = new Date(goal.createdAt).getTime();
-      const relevantSessions = allSessions.filter(s => new Date(s.date).getTime() >= goalStartDate);
+      // Only count sessions that happened AFTER the goal was created (ignoring exact time)
+      const goalStartDate = new Date(goal.createdAt);
+      goalStartDate.setHours(0,0,0,0);
+      const goalStartTime = goalStartDate.getTime();
+
+      const relevantSessions = allSessions.filter(s => {
+        const sessionDate = new Date(s.date);
+        sessionDate.setHours(0,0,0,0);
+        return sessionDate.getTime() >= goalStartTime;
+      });
       const goalStats = useSessionStore.getState().getStats(relevantSessions);
       
       let newValue = goal.currentValue;
@@ -185,9 +195,12 @@ export const useGoalsStore = create<GoalsStore>()((set, get) => ({
         });
       }
     }
+  },
+  {
+    name: 'goals-storage',
+    partialize: (state) => ({ achievements: state.achievements })
   }
-}));
-
+)));
 export const ACHIEVEMENT_DEFINITIONS = [
   { id: 'first_win', name: 'First Blood', description: 'Win your first tournament', icon: 'Target' as const },
   { id: 'streak_3', name: 'Hot Streak', description: 'Cash in 3 consecutive sessions', icon: 'Flame' as const },
