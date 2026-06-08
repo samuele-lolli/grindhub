@@ -85,7 +85,7 @@ export default function SocialPage() {
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
 
   // ── Public Profile Modal State ──
-  const [selectedProfile, setSelectedProfile] = useState<{ profile: PlayerProfile, stats: PlayerStats | null } | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<{ profile: PlayerProfile, stats: Partial<PlayerStats> | null } | null>(null);
   const [isProfileLoading, setIsProfileLoading] = useState(false);
 
   // ── Player lookup ──

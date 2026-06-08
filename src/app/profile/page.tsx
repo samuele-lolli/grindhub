@@ -7,7 +7,7 @@ import { useProfileStore } from '@/stores/profile-store';
 import { useSessionStore } from '@/stores/session-store';
 import { useSocialStore } from '@/stores/social-store';
 import { profileService } from '@/lib/services/profile-service';
-import type { PlayerProfile } from '@/types';
+import { PlayerProfile, PlayerStats } from '@/types';
 import { useI18n } from '@/i18n';
 import { formatCurrency, formatPercent, formatDate, formatNumber, getInitials, platformLabels, getSessionProfit, getProfitClass, formatDuration } from '@/lib/utils';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -31,7 +31,7 @@ export default function ProfilePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchedPlayers, setSearchedPlayers] = useState<PlayerProfile[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [selectedProfile, setSelectedProfile] = useState<any>(null);
+  const [selectedProfile, setSelectedProfile] = useState<{ profile: PlayerProfile, stats: Partial<PlayerStats> | null } | null>(null);
 
   const handleViewProfile = async (userId: string) => {
     try {

@@ -98,7 +98,7 @@ export const profileService = {
    * Calls the get_player_public_stats RPC to respect privacy toggles on the DB side.
    * @param id - The UUID of the target user.
    */
-  async fetchPublicProfile(id: string): Promise<{ profile: PlayerProfile; stats: PlayerStats | null } | null> {
+  async fetchPublicProfile(id: string): Promise<{ profile: PlayerProfile; stats: Partial<PlayerStats> | null } | null> {
     const profile = await this.getProfile(id);
     if (!profile) return null;
 
@@ -110,18 +110,18 @@ export const profileService = {
         return { profile, stats: null };
       }
 
-      // Map the DB response (camelCase as built by our RPC JSON object) to our PlayerStats interface
-      const stats: PlayerStats | null = data ? {
-        totalProfit: data.totalProfit ?? 0,
-        totalSessions: data.totalSessions ?? 0,
-        totalTournaments: data.totalTournaments ?? 0,
-        roi: data.roi ?? 0,
-        itm: data.itm ?? 0,
-        avgBuyIn: data.avgBuyIn ?? 0,
-        hourlyRate: data.hourlyRate ?? 0,
-        biggestWin: data.biggestWin ?? 0,
-        currentStreak: data.currentStreak ?? 0,
-      } as PlayerStats : null;
+      // Map the DB response directly, preserving nulls for privacy-hidden fields
+      const stats: Partial<PlayerStats> | null = data ? {
+        totalProfit: data.totalProfit,
+        totalSessions: data.totalSessions,
+        totalTournaments: data.totalTournaments,
+        roi: data.roi,
+        itm: data.itm,
+        avgBuyIn: data.avgBuyIn,
+        hourlyRate: data.hourlyRate,
+        biggestWin: data.biggestWin,
+        currentStreak: data.currentStreak,
+      } : null;
 
       return { profile, stats };
     } catch (err) {
