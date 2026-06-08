@@ -161,14 +161,6 @@ export default function SocialPage() {
           {t.social.title}
           <UITooltip content={t.tooltips?.socialFeed || 'Posts are visible to anyone who follows you. Your exact bankroll is ALWAYS private.'} position="right" />
         </h1>
-        <div className={styles.tabs}>
-          <button
-            className={`${styles.tab} ${styles.tabActive}`}
-          >
-            <Users size={15} />
-            {t.social.feed}
-          </button>
-        </div>
       </div>
 
       <div className={styles.layout}>

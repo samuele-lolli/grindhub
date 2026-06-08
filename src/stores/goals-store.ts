@@ -24,7 +24,7 @@ interface GoalsActions {
   setGoals: (goals: Goal[]) => void;
   updateProgress: (id: string, value: number) => Promise<void>;
   checkAchievements: (stats: PlayerStats) => void;
-  evaluateActiveGoals: (stats: PlayerStats) => Promise<void>;
+  evaluateActiveGoals: () => Promise<void>;
 }
 
 type GoalsStore = GoalsState & GoalsActions;
@@ -99,22 +99,31 @@ export const useGoalsStore = create<GoalsStore>()((set, get) => ({
     }));
   },
 
-  evaluateActiveGoals: async (stats: PlayerStats) => {
+  evaluateActiveGoals: async () => {
     const { goals, updateProgress } = get();
     const activeGoals = goals.filter(g => g.status === 'active');
     
+    // Dynamically import to avoid circular dependency
+    const { useSessionStore } = await import('./session-store');
+    const allSessions = useSessionStore.getState().sessions;
+    
     for (const goal of activeGoals) {
+      // Only count sessions that happened AFTER the goal was created
+      const goalStartDate = new Date(goal.createdAt).getTime();
+      const relevantSessions = allSessions.filter(s => new Date(s.date).getTime() >= goalStartDate);
+      const goalStats = useSessionStore.getState().getStats(relevantSessions);
+      
       let newValue = goal.currentValue;
       
       switch (goal.type) {
         case 'profit':
-          newValue = stats.totalProfit;
+          newValue = goalStats.totalProfit;
           break;
         case 'volume':
-          newValue = stats.totalTournaments;
+          newValue = goalStats.totalTournaments;
           break;
         case 'roi':
-          newValue = stats.roi;
+          newValue = goalStats.roi;
           break;
         // time and custom logic could be added here
       }

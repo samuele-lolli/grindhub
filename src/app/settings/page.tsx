@@ -35,21 +35,31 @@ const PRESET_AVATARS = [
   'https://api.dicebear.com/9.x/avataaars/svg?seed=Sarah',
   'https://api.dicebear.com/9.x/avataaars/svg?seed=Ryan',
   'https://api.dicebear.com/9.x/avataaars/svg?seed=Emma',
-  // Pixel Art
-  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Hero',
-  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Mage',
-  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Rogue',
-  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Knight',
+  // Notionists (Hand-drawn)
+  'https://api.dicebear.com/9.x/notionists/svg?seed=Jack',
+  'https://api.dicebear.com/9.x/notionists/svg?seed=Jocelyn',
+  'https://api.dicebear.com/9.x/notionists/svg?seed=Aidan',
+  'https://api.dicebear.com/9.x/notionists/svg?seed=Brooklynn',
+  // Fun Emoji
+  'https://api.dicebear.com/9.x/fun-emoji/svg?seed=Happy',
+  'https://api.dicebear.com/9.x/fun-emoji/svg?seed=Cool',
+  'https://api.dicebear.com/9.x/fun-emoji/svg?seed=Nerd',
+  'https://api.dicebear.com/9.x/fun-emoji/svg?seed=Love',
   // Lorelei (Cute)
   'https://api.dicebear.com/9.x/lorelei/svg?seed=Luna',
   'https://api.dicebear.com/9.x/lorelei/svg?seed=Milo',
   'https://api.dicebear.com/9.x/lorelei/svg?seed=Nala',
   'https://api.dicebear.com/9.x/lorelei/svg?seed=Simba',
-  // Fun Emoji
-  'https://api.dicebear.com/9.x/fun-emoji/svg?seed=Happy',
-  'https://api.dicebear.com/9.x/fun-emoji/svg?seed=Cool',
-  'https://api.dicebear.com/9.x/fun-emoji/svg?seed=Nerd',
-  'https://api.dicebear.com/9.x/fun-emoji/svg?seed=Love'
+  // Pixel Art
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Hero',
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Mage',
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Rogue',
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Knight',
+  // Big Smile
+  'https://api.dicebear.com/9.x/big-smile/svg?seed=Grind',
+  'https://api.dicebear.com/9.x/big-smile/svg?seed=Poker',
+  'https://api.dicebear.com/9.x/big-smile/svg?seed=Cards',
+  'https://api.dicebear.com/9.x/big-smile/svg?seed=Chips'
 ];
 
 import styles from './page.module.css';
@@ -84,6 +94,8 @@ export default function SettingsPage() {
     setLocalProfile(profile);
   }, [profile]);
 
+  const [isDirty, setIsDirty] = useState(false);
+
   useEffect(() => {
     if (!localProfile || !profile) return;
     
@@ -100,30 +112,30 @@ export default function SettingsPage() {
 
     const settingsChanged = JSON.stringify(localSettings) !== JSON.stringify(settings);
 
-    if (!profileChanged && !settingsChanged) return;
+    setIsDirty(profileChanged || settingsChanged);
+  }, [localProfile, localSettings, profile, settings]);
 
-    const timer = setTimeout(() => {
-      if (settingsChanged) {
-        updateSettings(localSettings);
-      }
-      if (profileChanged) {
-        updateProfile(localProfile.id, {
-          displayName: localProfile.displayName,
-          bio: localProfile.bio,
-          privacy: localProfile.privacy,
-          avatar: localProfile.avatar,
-          yearsPlaying: localProfile.yearsPlaying,
-          primaryGameType: localProfile.primaryGameType,
-          preferredStakes: localProfile.preferredStakes,
-          platforms: localProfile.platforms
-        });
-      }
-      setIsSaved(true);
-      setTimeout(() => setIsSaved(false), 2000);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [localProfile, localSettings, profile, settings, updateProfile, updateSettings]);
+  const handleSave = () => {
+    if (!localProfile) return;
+    const settingsChanged = JSON.stringify(localSettings) !== JSON.stringify(settings);
+    if (settingsChanged) {
+      updateSettings(localSettings);
+    }
+    updateProfile(localProfile.id, {
+      displayName: localProfile.displayName,
+      bio: localProfile.bio,
+      privacy: localProfile.privacy,
+      avatar: localProfile.avatar,
+      yearsPlaying: localProfile.yearsPlaying,
+      primaryGameType: localProfile.primaryGameType,
+      preferredStakes: localProfile.preferredStakes,
+      platforms: localProfile.platforms
+    });
+    
+    setIsDirty(false);
+    setIsSaved(true);
+    setTimeout(() => setIsSaved(false), 3000);
+  };
 
   const handleSettingChange = <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
     setLocalSettings(prev => ({ ...prev, [key]: value }));
@@ -168,9 +180,7 @@ export default function SettingsPage() {
           <Settings size={28} className={styles.titleIcon} />
           <h1 className="page-title">{t.settings.title}</h1>
         </div>
-        <div className={cn(styles.saveIndicator, isSaved && styles.savedBtn)}>
-          {isSaved && <><CheckCircle2 size={18} /> Saved</>}
-        </div>
+
       </div>
 
       <div className={styles.layout}>
@@ -503,6 +513,24 @@ export default function SettingsPage() {
           )}
         </div>
       </div>
+      {/* Sticky Save Bar */}
+      {isDirty && !isSaved && (
+        <div className={styles.stickySaveBar}>
+          <div className={styles.stickySaveBarText}>
+            <AlertTriangle size={18} color="var(--accent-gold)" />
+            <span>You have unsaved changes.</span>
+          </div>
+          <button className={styles.saveBtn} onClick={handleSave}>Save Changes</button>
+        </div>
+      )}
+      {isSaved && (
+        <div className={styles.stickySaveBar} style={{ background: 'rgba(16, 185, 129, 0.9)', borderColor: 'var(--accent-green)' }}>
+          <div className={styles.stickySaveBarText} style={{ color: '#fff' }}>
+            <CheckCircle2 size={18} />
+            <span>Settings saved successfully!</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

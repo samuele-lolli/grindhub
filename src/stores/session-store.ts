@@ -52,7 +52,7 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
     const newSession = await sessionService.createSession(userId, session);
     set((state) => ({ sessions: [newSession, ...state.sessions] }));
     
-    useGoalsStore.getState().evaluateActiveGoals(get().getStats());
+    useGoalsStore.getState().evaluateActiveGoals();
     useGoalsStore.getState().checkAchievements(get().getStats());
   },
 
@@ -62,7 +62,7 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
         s.id === id ? ({ ...s, ...updates, updatedAt: new Date().toISOString() } as Session) : s
       ),
     }));
-    useGoalsStore.getState().evaluateActiveGoals(get().getStats());
+    useGoalsStore.getState().evaluateActiveGoals();
     useGoalsStore.getState().checkAchievements(get().getStats());
   },
 
@@ -71,7 +71,7 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
     set((state) => ({
       sessions: state.sessions.filter((s) => s.id !== id),
     }));
-    useGoalsStore.getState().evaluateActiveGoals(get().getStats());
+    useGoalsStore.getState().evaluateActiveGoals();
     useGoalsStore.getState().checkAchievements(get().getStats());
   },
 

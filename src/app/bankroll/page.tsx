@@ -231,7 +231,7 @@ export default function BankrollPage() {
             </div>
             <div className={styles.heroValueWrap} style={{ display: 'flex', flexDirection: 'column' }}>
               <span className={styles.heroValue}>{formatCurrency(playableBankroll, 'EUR')}</span>
-              <span style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+              <span style={{ fontSize: 'var(--text-sm)', color: 'rgba(255, 255, 255, 0.7)', marginTop: '0.25rem' }}>
                 Total Portfolio (including wallets/banks): {formatCurrency(totalPortfolio, 'EUR')}
               </span>
             </div>
