@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Bell, Globe } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { useProfileStore } from '@/stores/profile-store';
+import { Avatar } from '@/components/ui/Avatar';
 import styles from './TopBar.module.css';
 
 const routeTitles: Record<string, string> = {
@@ -50,8 +51,8 @@ export function TopBar() {
           <Globe size={16} />
           <span>{locale.toUpperCase()}</span>
         </button>
-        <div className={styles.avatar}>
-          {profile?.displayName?.[0]?.toUpperCase() || '?'}
+        <div className={styles.avatarWrap} style={{ marginLeft: '12px' }}>
+          <Avatar name={profile?.displayName || 'User'} src={profile?.avatar} size="sm" />
         </div>
       </div>
     </header>

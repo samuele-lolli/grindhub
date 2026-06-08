@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useProfileStore } from '@/stores/profile-store';
+import { Avatar } from '@/components/ui/Avatar';
 import styles from './Sidebar.module.css';
 
 const navItems = [
@@ -64,8 +65,8 @@ export function Sidebar() {
       </div>
 
       <div className={styles.userSection}>
-        <div className={styles.userAvatar}>
-          {profile?.displayName?.[0]?.toUpperCase() || '?'}
+        <div className={styles.userAvatarWrap}>
+          <Avatar name={profile?.displayName || 'User'} src={profile?.avatar} size="md" />
         </div>
         <div className={styles.userInfo}>
           <span className={styles.userName}>{profile?.displayName || 'Set up profile'}</span>

@@ -411,8 +411,11 @@ export default function SocialPage() {
                   const element = document.getElementById(`post-${topic.postId}`);
                   if (element) {
                     element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    element.style.animation = 'none';
-                    setTimeout(() => element.style.animation = 'pulse 1.5s ease', 10);
+                    element.animate([
+                      { transform: 'scale(1)', boxShadow: 'none' },
+                      { transform: 'scale(1.02)', boxShadow: '0 0 20px var(--accent-primary)' },
+                      { transform: 'scale(1)', boxShadow: 'none' }
+                    ], { duration: 1500, easing: 'ease-in-out' });
                   }
                 }}>
                   <div className={styles.trendingTag} style={{ fontSize: '13px', marginBottom: '4px', color: 'var(--accent-blue)', fontWeight: 'var(--font-semibold)' }}>
