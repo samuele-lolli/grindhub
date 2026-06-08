@@ -11,6 +11,18 @@ import type { Currency, AppSettings } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
+const PRESET_AVATARS = [
+  '', // Default initials
+  'https://api.dicebear.com/9.x/adventurer/svg?seed=Felix',
+  'https://api.dicebear.com/9.x/adventurer/svg?seed=Aneka',
+  'https://api.dicebear.com/9.x/adventurer/svg?seed=Jasper',
+  'https://api.dicebear.com/9.x/adventurer/svg?seed=Mia',
+  'https://api.dicebear.com/9.x/bottts/svg?seed=Grinder',
+  'https://api.dicebear.com/9.x/bottts/svg?seed=Pro',
+  'https://api.dicebear.com/9.x/avataaars/svg?seed=Alex',
+  'https://api.dicebear.com/9.x/avataaars/svg?seed=Sarah'
+];
+
 import styles from './page.module.css';
 
 /**
@@ -30,6 +42,7 @@ export default function SettingsPage() {
   const [localProfile, setLocalProfile] = useState(profile);
   const [isSaved, setIsSaved] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -183,9 +196,28 @@ export default function SettingsPage() {
                   <Avatar name={localProfile.displayName} src={localProfile.avatar} size="xl" showBorder />
                   <div className={styles.avatarInfo}>
                     <span className={styles.avatarLabel}>@{localProfile.username}</span>
-                    <button className={styles.uploadBtn}>Change Avatar</button>
+                    <button className={styles.uploadBtn} onClick={() => setShowAvatarPicker(!showAvatarPicker)}>
+                      Change Avatar
+                    </button>
                   </div>
                 </div>
+
+                {showAvatarPicker && (
+                  <div className={styles.avatarPickerGrid} style={{ marginTop: '16px', padding: '16px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(60px, 1fr))', gap: '12px' }}>
+                    {PRESET_AVATARS.map((url, i) => (
+                      <div 
+                        key={i} 
+                        style={{ cursor: 'pointer', borderRadius: '50%', overflow: 'hidden', border: localProfile.avatar === url ? '2px solid var(--accent-blue)' : '2px solid transparent', transition: 'all 0.2s' }}
+                        onClick={() => {
+                          setLocalProfile(p => p ? {...p, avatar: url} : p);
+                          setShowAvatarPicker(false);
+                        }}
+                      >
+                        <Avatar name={localProfile.displayName} src={url} size="lg" />
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 <div className={styles.divider} />
 
