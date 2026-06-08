@@ -112,7 +112,10 @@ export const useGoalsStore = create<GoalsStore>()(
     
     for (const goal of activeGoals) {
       // Only count sessions that happened AFTER the goal was created (ignoring exact time)
-      const goalStartDate = new Date(goal.createdAt);
+      let goalStartDate = goal.createdAt ? new Date(goal.createdAt) : new Date();
+      if (isNaN(goalStartDate.getTime()) || goalStartDate.getTime() < new Date('2020-01-01').getTime()) {
+        goalStartDate = new Date(); // fallback if date is invalid or ancient
+      }
       goalStartDate.setHours(0,0,0,0);
       const goalStartTime = goalStartDate.getTime();
 

@@ -52,6 +52,7 @@ export const goalsService = {
         current_value: goal.currentValue,
         deadline: goal.deadline || null,
         status: goal.status,
+        created_at: new Date().toISOString(),
       })
       .select()
       .single();
