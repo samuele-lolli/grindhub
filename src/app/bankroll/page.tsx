@@ -16,7 +16,7 @@ import { SyncBalancesModal } from '@/components/ui/SyncBalancesModal';
 import { useI18n } from '@/i18n';
 import { format } from 'date-fns';
 import {
-  formatCurrency, formatDate, getBankrollHealth, cn, getSessionProfit
+  formatCurrency, formatDate, getBankrollHealth, cn
 } from '@/lib/utils';
 import { Tooltip as UITooltip } from '@/components/ui/Tooltip';
 import type { Platform, BankrollCategory } from '@/types';
@@ -42,7 +42,6 @@ export default function BankrollPage() {
   const { t } = useI18n();
   const accounts = useBankrollStore(s => s.accounts);
   const transactions = useBankrollStore(s => s.transactions);
-  const getTotalBankroll = useBankrollStore(s => s.getTotalBankroll);
   const addTransaction = useBankrollStore(s => s.addTransaction);
   const deleteTransaction = useBankrollStore(s => s.deleteTransaction);
   const transferFunds = useBankrollStore(s => s.transferFunds);
@@ -63,8 +62,8 @@ export default function BankrollPage() {
   const [accForm, setAccForm] = useState({ platform: 'pokerstars' as Platform, name: '', balance: '', category: 'poker_room' as BankrollCategory });
   const [transferForm, setTransferForm] = useState({ fromId: '', toId: '', amount: '', notes: '' });
 
-  const playableBankroll = useMemo(() => getTotalBankroll(true), [getTotalBankroll]);
-  const totalPortfolio = useMemo(() => getTotalBankroll(false), [getTotalBankroll]);
+  const playableBankroll = useMemo(() => accounts.filter(a => a.category === 'poker_room').reduce((sum, a) => sum + a.balance, 0), [accounts]);
+  const totalPortfolio = useMemo(() => accounts.reduce((sum, a) => sum + a.balance, 0), [accounts]);
   const health = useMemo(() => getBankrollHealth(playableBankroll, stats.avgBuyIn, 'mtt'), [playableBankroll, stats.avgBuyIn]);
 
   const healthColors: Record<string, string> = { healthy: 'var(--accent-green)', caution: 'var(--accent-gold)', danger: 'var(--accent-red)' };
@@ -153,7 +152,7 @@ export default function BankrollPage() {
         fill: true, cubicInterpolationMode: 'monotone' as const, pointRadius: 0, pointHoverRadius: 5, borderWidth: 2,
       }],
     };
-  }, [sessions, transactions, playableBankroll, accounts]);
+  }, [transactions, playableBankroll, accounts]);
 
   const donutData = useMemo(() => {
     const data = accounts.filter(a => a.balance > 0);
@@ -331,20 +330,32 @@ export default function BankrollPage() {
                   const realAmount = tx.type === 'withdrawal' ? -Math.abs(tx.amount) : tx.amount;
                   const isPositive = realAmount > 0;
                   
+                  let isTransfer = false;
+                  if (tx.notes?.includes('→') || tx.notes?.includes('←')) isTransfer = true;
+
                   let txLabel = 'Session Result';
                   if (tx.type === 'deposit') txLabel = 'Deposit';
                   if (tx.type === 'withdrawal') txLabel = 'Withdrawal';
-                  if (tx.type === 'transfer') txLabel = 'Transfer';
+                  if (tx.type === 'transfer' || isTransfer) txLabel = 'Transfer';
 
                   return (
                     <div key={tx.id} className={styles.txRow}>
                       <div className={styles.txLeft}>
-                        <div className={cn(styles.txIcon, isPositive ? styles.iconGreen : styles.iconRed)}>
-                          {isPositive ? <ArrowDownRight size={18} /> : <ArrowUpRight size={18} />}
+                        <div className={cn(styles.txIcon, isPositive ? styles.iconGreen : styles.iconRed, isTransfer ? styles.iconPurple : '')}>
+                          {isTransfer ? <ArrowRightLeft size={18} /> : (isPositive ? <ArrowDownRight size={18} /> : <ArrowUpRight size={18} />)}
                         </div>
                         <div className={styles.txInfo}>
-                          <span className={styles.txType}>{txLabel}</span>
-                          <span className={styles.txMeta}>{formatDate(tx.date)} · {accName}</span>
+                          <span className={styles.txType}>
+                            {txLabel}
+                            {isTransfer && (
+                              <span style={{ marginLeft: '4px', display: 'inline-flex', verticalAlign: 'middle' }}>
+                                <UITooltip content="Internal transfer between your accounts. Doesn't affect total portfolio value." position="top" />
+                              </span>
+                            )}
+                          </span>
+                          <span className={styles.txMeta}>
+                            {formatDate(tx.date)} · {accName} {tx.notes ? `(${tx.notes})` : ''}
+                          </span>
                         </div>
                       </div>
                       <div className={styles.txRight}>

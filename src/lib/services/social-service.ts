@@ -5,13 +5,11 @@ import type { SocialPost, PostComment, PostType } from '@/types';
  * Service for managing social posts, feed, kudos, and follows via Supabase.
  */
 export const socialService = {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   /**
    * Retrieves the global or personalized social feed.
-   * @param _userId - The UUID of the current user (used to filter or customize feed if implemented).
    * @returns A promise resolving to an array of SocialPost objects.
    */
-  async fetchFeed(_userId: string): Promise<SocialPost[]> {
+  async fetchFeed(): Promise<SocialPost[]> {
     const { data, error } = await supabase
       .from('social_posts')
       .select(`
@@ -148,5 +146,22 @@ export const socialService = {
    */
   async unfollowUser(followerId: string, followingId: string): Promise<void> {
     await supabase.from('social_follows').delete().match({ follower_id: followerId, following_id: followingId });
+  },
+
+  /**
+   * Fetches trending discussions from the Supabase RPC.
+   */
+  async fetchTrendingDiscussions(): Promise<{ postId: string, authorName: string, content: string, score: number }[]> {
+    const { data, error } = await supabase.rpc('get_trending_discussions');
+    if (error || !data) {
+      console.error('Failed to fetch trending discussions:', error);
+      return [];
+    }
+    return (data as Array<{post_id: string, author_name: string, content: string, score: number}>).map(d => ({
+      postId: d.post_id,
+      authorName: d.author_name,
+      content: d.content,
+      score: d.score
+    }));
   }
 };

@@ -53,6 +53,7 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
     set((state) => ({ sessions: [newSession, ...state.sessions] }));
     
     useGoalsStore.getState().evaluateActiveGoals(get().getStats());
+    useGoalsStore.getState().checkAchievements(get().getStats());
   },
 
   updateSession: (id, updates) => {
@@ -62,6 +63,7 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
       ),
     }));
     useGoalsStore.getState().evaluateActiveGoals(get().getStats());
+    useGoalsStore.getState().checkAchievements(get().getStats());
   },
 
   deleteSession: async (id) => {
@@ -70,6 +72,7 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
       sessions: state.sessions.filter((s) => s.id !== id),
     }));
     useGoalsStore.getState().evaluateActiveGoals(get().getStats());
+    useGoalsStore.getState().checkAchievements(get().getStats());
   },
 
   setSessions: (sessions) => set({ sessions }),

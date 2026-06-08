@@ -9,7 +9,7 @@ import { useSocialStore } from '@/stores/social-store';
 import { profileService } from '@/lib/services/profile-service';
 import { PlayerProfile, PlayerStats } from '@/types';
 import { useI18n } from '@/i18n';
-import { formatCurrency, formatPercent, formatDate, formatNumber, getInitials, platformLabels, getSessionProfit, getProfitClass, formatDuration } from '@/lib/utils';
+import { formatCurrency, formatPercent, formatDate, formatNumber, platformLabels, getSessionProfit, getProfitClass, formatDuration } from '@/lib/utils';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { Avatar } from '@/components/ui/Avatar';
 import { PublicProfileModal } from '@/components/ui/PublicProfileModal';
@@ -23,7 +23,7 @@ import styles from './page.module.css';
 export default function ProfilePage() {
   const { t } = useI18n();
   const profile = useProfileStore(s => s.profile);
-  const players = useProfileStore(s => s.players);
+
   const sessions = useSessionStore(s => s.sessions);
   const getStats = useSessionStore(s => s.getStats);
   const following = useSocialStore(s => s.following);

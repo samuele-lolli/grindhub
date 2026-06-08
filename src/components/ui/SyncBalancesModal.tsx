@@ -34,8 +34,10 @@ export function SyncBalancesModal({ isOpen, onClose }: SyncBalancesModalProps) {
       platformAccounts.forEach((acc) => {
         initial[acc.id] = acc.balance.toString();
       });
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setBalances(initial);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, accounts]); // intentionally not including platformAccounts to avoid infinite loops
 
   const handleSubmit = (e: React.FormEvent) => {

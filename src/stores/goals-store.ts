@@ -111,7 +111,7 @@ export const useGoalsStore = create<GoalsStore>()((set, get) => ({
           newValue = stats.totalProfit;
           break;
         case 'volume':
-          newValue = stats.totalSessions;
+          newValue = stats.totalTournaments;
           break;
         case 'roi':
           newValue = stats.roi;
@@ -126,14 +126,55 @@ export const useGoalsStore = create<GoalsStore>()((set, get) => ({
   },
 
   checkAchievements: (stats: PlayerStats) => {
-    // Basic implementation to satisfy the type
-    // In a real app, this would check stats and update unlocked achievements
-    const newAchievements = [...get().achievements];
+    const { achievements } = get();
+    const newAchievements = [...achievements];
+    let newlyUnlocked = false;
+
+    // Evaluate First Blood
+    if (stats.biggestWin > 0 && !newAchievements.find(a => a.id === 'first_win')) {
+      newAchievements.push({ id: 'first_win', unlockedAt: new Date().toISOString() });
+      newlyUnlocked = true;
+    }
+    // Evaluate Hot Streak
+    if (stats.bestStreak >= 3 && !newAchievements.find(a => a.id === 'streak_3')) {
+      newAchievements.push({ id: 'streak_3', unlockedAt: new Date().toISOString() });
+      newlyUnlocked = true;
+    }
+    // Evaluate 1K Club
     if (stats.totalProfit >= 1000 && !newAchievements.find(a => a.id === 'profit_1k')) {
       newAchievements.push({ id: 'profit_1k', unlockedAt: new Date().toISOString() });
+      newlyUnlocked = true;
     }
-    if (newAchievements.length > get().achievements.length) {
+    // Evaluate The Grinder (100 hours)
+    if (stats.totalHoursPlayed >= 100 && !newAchievements.find(a => a.id === 'grinder')) {
+      newAchievements.push({ id: 'grinder', unlockedAt: new Date().toISOString() });
+      newlyUnlocked = true;
+    }
+    // Evaluate ROI King
+    if (stats.totalTournaments >= 50 && stats.roi >= 50 && !newAchievements.find(a => a.id === 'roi_king')) {
+      newAchievements.push({ id: 'roi_king', unlockedAt: new Date().toISOString() });
+      newlyUnlocked = true;
+    }
+
+    if (newlyUnlocked) {
       set({ achievements: newAchievements });
+      
+      // Auto-share to social if privacy allows
+      const profile = useProfileStore.getState().profile;
+      if (profile && profile.privacy?.autoShareGoals) {
+        const newlyUnlockedDefs = newAchievements.filter(na => !achievements.find(oa => oa.id === na.id));
+        newlyUnlockedDefs.forEach(na => {
+          const def = ACHIEVEMENT_DEFINITIONS.find(d => d.id === na.id);
+          if (def) {
+            useSocialStore.getState().addPost({
+              authorId: profile.id,
+              type: 'milestone',
+              content: `🏆 I just unlocked the "${def.name}" achievement! ${def.description}.`,
+              isPublic: true
+            });
+          }
+        });
+      }
     }
   }
 }));

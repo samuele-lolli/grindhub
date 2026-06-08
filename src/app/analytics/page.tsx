@@ -157,7 +157,7 @@ export default function AnalyticsPage() {
         pointHoverBackgroundColor: '#10b981', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2,
       }],
     };
-  }, [sessions, transactions, filter, accounts]);
+  }, [transactions, filter, accounts]);
 
   // --- Cumulative Profit over time ---
   const cumulativeChart = useMemo(() => {
@@ -473,6 +473,7 @@ export default function AnalyticsPage() {
           <div className={styles.chartWrap}>
             <Bar data={profitByDayOfWeek} options={{
               ...lineOptions,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               plugins: { ...lineOptions.plugins, tooltip: { ...lineOptions.plugins.tooltip, callbacks: { label: (ctx:any) => formatCurrency(ctx.raw, 'EUR') } } },
             }} />
           </div>

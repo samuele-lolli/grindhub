@@ -3,10 +3,10 @@ import { X, CalendarDays, Gamepad2, Layers, Monitor } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { formatCurrency } from '@/lib/utils';
 import styles from './PublicProfileModal.module.css';
-import { getAvatarColor } from '@/lib/utils';
+import { PlayerProfile, PlayerStats } from '@/types';
 
 interface PublicProfileModalProps {
-  selectedProfile: any;
+  selectedProfile: { profile: PlayerProfile, stats: Partial<PlayerStats> | null };
   onClose: () => void;
 }
 

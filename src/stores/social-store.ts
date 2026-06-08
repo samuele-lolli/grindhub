@@ -6,11 +6,12 @@ import { useProfileStore } from './profile-store';
 interface SocialState {
   feed: SocialPost[];
   following: string[];
+  trendingDiscussions: { postId: string, authorName: string, content: string, score: number }[];
 }
 
 interface SocialActions {
   addPost: (post: Omit<SocialPost, 'id' | 'createdAt' | 'kudos' | 'comments'>) => Promise<void>;
-  toggleKudos: (postId: string) => Promise<void>;
+  toggleLike: (postId: string) => Promise<void>;
   addComment: (postId: string, content: string) => Promise<void>;
   
   followUser: (followingId: string) => Promise<void>;
@@ -19,6 +20,7 @@ interface SocialActions {
 
   setPosts: (posts: SocialPost[]) => void;
   setFollowing: (userIds: string[]) => void;
+  loadTrending: () => Promise<void>;
 }
 
 type SocialStore = SocialState & SocialActions;
@@ -26,6 +28,7 @@ type SocialStore = SocialState & SocialActions;
 export const useSocialStore = create<SocialStore>()((set, get) => ({
   feed: [],
   following: [],
+  trendingDiscussions: [],
 
   addPost: async (post) => {
     const userId = useProfileStore.getState().profile?.id;
@@ -37,14 +40,14 @@ export const useSocialStore = create<SocialStore>()((set, get) => ({
     }));
   },
 
-  toggleKudos: async (postId) => {
+  toggleLike: async (postId) => {
     const userId = useProfileStore.getState().profile?.id;
     if (!userId) return;
 
     const post = get().feed.find(p => p.id === postId);
     if (!post) return;
     
-    const hasKudos = post.kudos.includes(userId);
+    const hasLiked = post.kudos.includes(userId);
     
     // Optimistic update
     set(state => ({
@@ -52,7 +55,7 @@ export const useSocialStore = create<SocialStore>()((set, get) => ({
         if (p.id === postId) {
           return {
             ...p,
-            kudos: hasKudos 
+            kudos: hasLiked 
               ? p.kudos.filter(id => id !== userId)
               : [...p.kudos, userId]
           };
@@ -61,8 +64,8 @@ export const useSocialStore = create<SocialStore>()((set, get) => ({
       })
     }));
 
-    // Service call
-    await socialService.toggleKudos(userId, postId, !hasKudos);
+    // Service call (the DB table remains social_kudos)
+    await socialService.toggleKudos(userId, postId, !hasLiked);
   },
 
   addComment: async (postId, content) => {
@@ -107,5 +110,10 @@ export const useSocialStore = create<SocialStore>()((set, get) => ({
   },
 
   setPosts: (posts) => set({ feed: posts }),
-  setFollowing: (userIds) => set({ following: userIds })
+  setFollowing: (userIds) => set({ following: userIds }),
+  
+  loadTrending: async () => {
+    const trends = await socialService.fetchTrendingDiscussions();
+    set({ trendingDiscussions: trends });
+  }
 }));

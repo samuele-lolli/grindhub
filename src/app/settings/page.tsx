@@ -1,26 +1,55 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Settings, User, Shield, Globe, Save, Moon, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Settings, User, Shield, Globe, Moon, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { useSettingsStore } from '@/stores/settings-store';
 import { useProfileStore } from '@/stores/profile-store';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { Avatar } from '@/components/ui/Avatar';
-import type { Currency, AppSettings } from '@/types';
+import type { Currency, AppSettings, Platform, GameType } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
 const PRESET_AVATARS = [
   '', // Default initials
-  'https://api.dicebear.com/9.x/adventurer/svg?seed=Felix',
-  'https://api.dicebear.com/9.x/adventurer/svg?seed=Aneka',
-  'https://api.dicebear.com/9.x/adventurer/svg?seed=Jasper',
-  'https://api.dicebear.com/9.x/adventurer/svg?seed=Mia',
+  // Micah (Modern & Clean)
+  'https://api.dicebear.com/9.x/micah/svg?seed=Felix',
+  'https://api.dicebear.com/9.x/micah/svg?seed=Aneka',
+  'https://api.dicebear.com/9.x/micah/svg?seed=Jasper',
+  'https://api.dicebear.com/9.x/micah/svg?seed=Mia',
+  'https://api.dicebear.com/9.x/micah/svg?seed=Leo',
+  'https://api.dicebear.com/9.x/micah/svg?seed=Zoe',
+  // Adventurer
+  'https://api.dicebear.com/9.x/adventurer/svg?seed=Jack',
+  'https://api.dicebear.com/9.x/adventurer/svg?seed=Lily',
+  'https://api.dicebear.com/9.x/adventurer/svg?seed=Oliver',
+  'https://api.dicebear.com/9.x/adventurer/svg?seed=Chloe',
+  // Bottts (Robots)
   'https://api.dicebear.com/9.x/bottts/svg?seed=Grinder',
   'https://api.dicebear.com/9.x/bottts/svg?seed=Pro',
+  'https://api.dicebear.com/9.x/bottts/svg?seed=Alpha',
+  'https://api.dicebear.com/9.x/bottts/svg?seed=Beta',
+  // Avataaars
   'https://api.dicebear.com/9.x/avataaars/svg?seed=Alex',
-  'https://api.dicebear.com/9.x/avataaars/svg?seed=Sarah'
+  'https://api.dicebear.com/9.x/avataaars/svg?seed=Sarah',
+  'https://api.dicebear.com/9.x/avataaars/svg?seed=Ryan',
+  'https://api.dicebear.com/9.x/avataaars/svg?seed=Emma',
+  // Pixel Art
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Hero',
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Mage',
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Rogue',
+  'https://api.dicebear.com/9.x/pixel-art/svg?seed=Knight',
+  // Lorelei (Cute)
+  'https://api.dicebear.com/9.x/lorelei/svg?seed=Luna',
+  'https://api.dicebear.com/9.x/lorelei/svg?seed=Milo',
+  'https://api.dicebear.com/9.x/lorelei/svg?seed=Nala',
+  'https://api.dicebear.com/9.x/lorelei/svg?seed=Simba',
+  // Fun Emoji
+  'https://api.dicebear.com/9.x/fun-emoji/svg?seed=Happy',
+  'https://api.dicebear.com/9.x/fun-emoji/svg?seed=Cool',
+  'https://api.dicebear.com/9.x/fun-emoji/svg?seed=Nerd',
+  'https://api.dicebear.com/9.x/fun-emoji/svg?seed=Love'
 ];
 
 import styles from './page.module.css';
@@ -55,19 +84,46 @@ export default function SettingsPage() {
     setLocalProfile(profile);
   }, [profile]);
 
-  const handleSave = () => {
-    updateSettings(localSettings);
-    if (localProfile) {
-      updateProfile(localProfile.id, {
-        displayName: localProfile.displayName,
-        bio: localProfile.bio,
-        privacy: localProfile.privacy,
-        avatar: localProfile.avatar
-      });
-    }
-    setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 3000);
-  };
+  useEffect(() => {
+    if (!localProfile || !profile) return;
+    
+    // Compare essential fields to avoid infinite loops on reference changes
+    const profileChanged = 
+      localProfile.displayName !== profile.displayName ||
+      localProfile.bio !== profile.bio ||
+      localProfile.avatar !== profile.avatar ||
+      localProfile.yearsPlaying !== profile.yearsPlaying ||
+      localProfile.primaryGameType !== profile.primaryGameType ||
+      localProfile.preferredStakes !== profile.preferredStakes ||
+      JSON.stringify(localProfile.platforms) !== JSON.stringify(profile.platforms) ||
+      JSON.stringify(localProfile.privacy) !== JSON.stringify(profile.privacy);
+
+    const settingsChanged = JSON.stringify(localSettings) !== JSON.stringify(settings);
+
+    if (!profileChanged && !settingsChanged) return;
+
+    const timer = setTimeout(() => {
+      if (settingsChanged) {
+        updateSettings(localSettings);
+      }
+      if (profileChanged) {
+        updateProfile(localProfile.id, {
+          displayName: localProfile.displayName,
+          bio: localProfile.bio,
+          privacy: localProfile.privacy,
+          avatar: localProfile.avatar,
+          yearsPlaying: localProfile.yearsPlaying,
+          primaryGameType: localProfile.primaryGameType,
+          preferredStakes: localProfile.preferredStakes,
+          platforms: localProfile.platforms
+        });
+      }
+      setIsSaved(true);
+      setTimeout(() => setIsSaved(false), 2000);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [localProfile, localSettings, profile, settings, updateProfile, updateSettings]);
 
   const handleSettingChange = <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
     setLocalSettings(prev => ({ ...prev, [key]: value }));
@@ -112,9 +168,9 @@ export default function SettingsPage() {
           <Settings size={28} className={styles.titleIcon} />
           <h1 className="page-title">{t.settings.title}</h1>
         </div>
-        <button className={cn(styles.saveBtn, isSaved && styles.savedBtn)} onClick={handleSave}>
-          {isSaved ? <><CheckCircle2 size={18} /> Saved</> : <><Save size={18} /> Save Changes</>}
-        </button>
+        <div className={cn(styles.saveIndicator, isSaved && styles.savedBtn)}>
+          {isSaved && <><CheckCircle2 size={18} /> Saved</>}
+        </div>
       </div>
 
       <div className={styles.layout}>
@@ -238,6 +294,64 @@ export default function SettingsPage() {
                     value={localProfile.bio || ''} 
                     onChange={e => setLocalProfile(p => p ? {...p, bio: e.target.value} : p)}
                     placeholder="Tell other players about yourself..."
+                  />
+                </div>
+
+                <div className={styles.divider} />
+                <h3 className={styles.sectionSubtitle} style={{ marginBottom: '16px', fontSize: '1.1rem', color: 'var(--text-primary)' }}>Gaming Profile</h3>
+
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label>Years Playing</label>
+                    <input 
+                      type="number" 
+                      min="0"
+                      max="50"
+                      value={localProfile.yearsPlaying || 0} 
+                      onChange={e => setLocalProfile(p => p ? {...p, yearsPlaying: parseInt(e.target.value) || 0} : p)} 
+                    />
+                  </div>
+                  
+                  <div className={styles.formGroup}>
+                    <label>Main Game</label>
+                    <select 
+                      value={localProfile.primaryGameType || 'mtt'} 
+                      onChange={e => setLocalProfile(p => p ? {...p, primaryGameType: e.target.value as GameType} : p)}
+                    >
+                      <option value="mtt">MTT (Tournaments)</option>
+                      <option value="cash">Cash Game</option>
+                      <option value="sng">Sit & Go</option>
+                      <option value="spin">Spin & Go</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label>Preferred Stakes</label>
+                    <select 
+                      value={localProfile.preferredStakes || 'Low'} 
+                      onChange={e => setLocalProfile(p => p ? {...p, preferredStakes: e.target.value} : p)}
+                    >
+                      <option value="Micro">Micro</option>
+                      <option value="Low">Low</option>
+                      <option value="Mid">Mid</option>
+                      <option value="High">High</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label>Platforms (comma separated)</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. PokerStars, GGPoker, Winamax"
+                    value={(localProfile.platforms || []).join(', ')} 
+                    onChange={e => setLocalProfile(p => {
+                      if (!p) return p;
+                      const platforms = e.target.value.split(',').map(s => s.trim()).filter(Boolean) as Platform[];
+                      return {...p, platforms};
+                    })} 
                   />
                 </div>
               </div>

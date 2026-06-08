@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { usePathname } from 'next/navigation';
-import { Search, Bell, Globe } from 'lucide-react';
+import { Bell, Globe } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { useProfileStore } from '@/stores/profile-store';
 import styles from './TopBar.module.css';
@@ -36,9 +36,7 @@ export function TopBar() {
         <h1 className={styles.pageTitle}>{pageTitle}</h1>
       </div>
       <div className={styles.right}>
-        <button className={styles.iconBtn} id="topbar-search" aria-label="Search">
-          <Search size={18} />
-        </button>
+
         <button className={styles.iconBtn} id="topbar-notifications" aria-label="Notifications">
           <Bell size={18} />
           <span className={styles.notifBadge}>3</span>

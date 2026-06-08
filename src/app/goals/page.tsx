@@ -43,7 +43,7 @@ export default function GoalsPage() {
   const completedGoals = useMemo(() => goals.filter(g => g.status === 'completed'), [goals]);
 
   // Check achievements on mount
-  useMemo(() => { if (sessions.length > 0) checkAchievements(getStats()); }, [sessions, getStats, checkAchievements]); // eslint-disable-line
+  useMemo(() => { if (sessions.length > 0) checkAchievements(getStats()); }, [sessions, getStats, checkAchievements]);
 
   const unlockedAchievements = useMemo(() => {
     return achievements
@@ -63,6 +63,7 @@ export default function GoalsPage() {
   const handleAddGoal = async (e?: React.FormEvent, template?: typeof GOAL_TEMPLATES[0]) => {
     if (e) e.preventDefault();
     
+    const now = new Date().getTime();
     let goalData;
     if (template) {
       goalData = {
@@ -71,7 +72,7 @@ export default function GoalsPage() {
         type: template.type,
         targetValue: template.targetValue,
         currentValue: 0,
-        deadline: new Date(Date.now() + 30 * 86400000).toISOString(),
+        deadline: new Date(now + 30 * 86400000).toISOString(),
         status: 'active' as const,
       };
     } else {
@@ -81,7 +82,7 @@ export default function GoalsPage() {
         type: form.type,
         targetValue: parseFloat(form.targetValue),
         currentValue: 0,
-        deadline: form.deadline ? new Date(form.deadline).toISOString() : new Date(Date.now() + 30 * 86400000).toISOString(),
+        deadline: form.deadline ? new Date(form.deadline).toISOString() : new Date(now + 30 * 86400000).toISOString(),
         status: 'active' as const,
       };
     }
@@ -105,8 +106,8 @@ export default function GoalsPage() {
 
   return (
     <div className={styles.pageContainer}>
-      <div className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>{t.goals.title}</h1>
+      <div className="page-header">
+        <h1 className="page-title">{t.goals.title}</h1>
         <button className={styles.addBtn} onClick={() => setShowModal(true)}>
           <Plus size={18} /> {t.goals.createGoal}
         </button>
@@ -289,7 +290,7 @@ export default function GoalsPage() {
             
             <div className={styles.formActions}>
               <button type="button" className={styles.cancelBtn} onClick={() => setShowModal(false)}>Cancel</button>
-              <button type="submit" className={styles.submitBtn} onClick={(e) => handleAddGoal(e as any)}>{t.goals.createGoal}</button>
+              <button type="submit" className={styles.submitBtn}>{t.goals.createGoal}</button>
             </div>
           </div>
         </div>

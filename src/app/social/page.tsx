@@ -7,7 +7,7 @@ import { useProfileStore } from '@/stores/profile-store';
 import { useSessionStore } from '@/stores/session-store';
 import { Tooltip as UITooltip } from '@/components/ui/Tooltip';
 import { useI18n } from '@/i18n';
-import { formatRelativeTime, getInitials, formatCurrency, getSessionProfit, formatDate, formatDuration, platformLabels, getAvatarColor } from '@/lib/utils';
+import { formatRelativeTime, formatCurrency, getSessionProfit, formatDate, formatDuration, platformLabels, getAvatarColor } from '@/lib/utils';
 import type { PostType, AggregatedMTTSession, PlayerProfile, PlayerStats } from '@/types';
 import { Avatar } from '@/components/ui/Avatar';
 import { PublicProfileModal } from '@/components/ui/PublicProfileModal';
@@ -16,10 +16,7 @@ import styles from './page.module.css';
 
 // ── Constants ──
 const MAX_POST_LENGTH = 500;
-const AVATAR_COLORS = [
-  '#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444',
-  '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#6366f1',
-];
+
 
 // ── Helpers ──
 
@@ -30,15 +27,6 @@ const POST_TYPE_BADGES: Record<string, { emoji: string; label: string }> = {
   goal_completed: { emoji: '🎯', label: 'Goal Completed' },
   text: { emoji: '💬', label: 'Discussion' },
 };
-
-// ── Trending topics ──
-const TRENDING_TOPICS = [
-  { tag: '#FinalTable', posts: 42 },
-  { tag: '#MTTGrind', posts: 38 },
-  { tag: '#BankrollChallenge', posts: 27 },
-  { tag: '#DeepRun', posts: 19 },
-  { tag: '#PokerStrategy', posts: 15 },
-];
 
 // ── Sub-Components ──
 
@@ -65,9 +53,11 @@ export default function SocialPage() {
   const posts = useSocialStore(s => s.feed);
   const following = useSocialStore(s => s.following);
   const addPost = useSocialStore(s => s.addPost);
-  const toggleKudos = useSocialStore(s => s.toggleKudos);
+  const toggleLike = useSocialStore(s => s.toggleLike);
   const addComment = useSocialStore(s => s.addComment);
   const follow = useSocialStore(s => s.followUser);
+  const loadTrending = useSocialStore(s => s.loadTrending);
+  const trendingTopics = useSocialStore(s => s.trendingDiscussions);
   
   const players = useProfileStore(s => s.players);
   const profile = useProfileStore(s => s.profile);
@@ -77,6 +67,10 @@ export default function SocialPage() {
   const [newPost, setNewPost] = useState('');
   const [composerFocused, setComposerFocused] = useState(false);
   const [showSessionPicker, setShowSessionPicker] = useState(false);
+
+  React.useEffect(() => {
+    loadTrending();
+  }, [loadTrending]);
   
   // Attach session state
   const [attachedSession, setAttachedSession] = useState<AggregatedMTTSession | null>(null);
@@ -86,7 +80,7 @@ export default function SocialPage() {
 
   // ── Public Profile Modal State ──
   const [selectedProfile, setSelectedProfile] = useState<{ profile: PlayerProfile, stats: Partial<PlayerStats> | null } | null>(null);
-  const [isProfileLoading, setIsProfileLoading] = useState(false);
+
 
   // ── Player lookup ──
   const getPlayer = useCallback(
@@ -131,7 +125,6 @@ export default function SocialPage() {
 
   // ── View Public Profile ──
   const handleViewProfile = useCallback(async (userId: string) => {
-    setIsProfileLoading(true);
     try {
       const data = await profileService.fetchPublicProfile(userId);
       if (data && data.profile) {
@@ -139,8 +132,6 @@ export default function SocialPage() {
       }
     } catch (err) {
       console.error('Error fetching public profile:', err);
-    } finally {
-      setIsProfileLoading(false);
     }
   }, []);
 
@@ -273,12 +264,12 @@ export default function SocialPage() {
             ) : (
               feedPosts.map((post, i) => {
                 const author = getPlayer(post.authorId);
-                const isKudosed = post.kudos.includes('current-user');
+                const isLiked = post.kudos.includes(profile?.id || 'current-user');
                 const isCommentsOpen = expandedComments[post.id] ?? false;
-                const avatarBg = typeof author?.avatar === 'string' && author.avatar.startsWith('#') ? author.avatar : getAvatarColor(post.authorId);
+
 
                 return (
-                  <article key={post.id} className={styles.postCard} style={{ animationDelay: `${i * 50}ms` }}>
+                  <article key={post.id} id={`post-${post.id}`} className={styles.postCard} style={{ animationDelay: `${i * 50}ms` }}>
                     {/* Header */}
                     <div className={styles.postHeader}>
                       <div className={styles.authorAvatarWrap} style={{ cursor: 'pointer' }} onClick={() => handleViewProfile(post.authorId)}>
@@ -345,12 +336,12 @@ export default function SocialPage() {
                     {/* Action Bar */}
                     <div className={styles.actionBar}>
                       <button
-                        className={`${styles.actionBtn} ${isKudosed ? styles.actionBtnKudosActive : ''}`}
-                        onClick={() => toggleKudos(post.id)}
+                        className={`${styles.actionBtn} ${isLiked ? styles.actionBtnKudosActive : ''}`}
+                        onClick={() => toggleLike(post.id)}
                       >
-                        <Heart size={16} className={styles.actionIcon} fill={isKudosed ? "currentColor" : "none"} />
+                        <Heart size={16} className={styles.actionIcon} fill={isLiked ? "currentColor" : "none"} />
                         <span className={styles.actionLabel}>
-                          {post.kudos.length > 0 ? post.kudos.length : ''} Kudos
+                          {post.kudos.length > 0 ? post.kudos.length : ''} {post.kudos.length === 1 ? 'Like' : 'Likes'}
                         </span>
                       </button>
                       <button
@@ -421,15 +412,27 @@ export default function SocialPage() {
         {/* ── Sidebar ── */}
         <aside className={styles.sidebar}>
           <div className={styles.sidebarCard}>
-            <h3 className={styles.sidebarTitle}>
-              <TrendingUp size={16} className="text-blue" />
-              Trending Topics
-            </h3>
+            <h3 className={styles.sidebarTitle}><TrendingUp size={16} /> Top Discussions</h3>
             <div className={styles.trendingList}>
-              {TRENDING_TOPICS.map((topic, i) => (
-                <div key={i} className={styles.trendingItem} style={{ animationDelay: `${i * 30}ms` }}>
-                  <span className={styles.trendingTag}>{topic.tag}</span>
-                  <span className={styles.trendingCount}>{topic.posts} posts</span>
+              {trendingTopics.map((topic, i) => (
+                <div key={i} className={styles.trendingItem} style={{ flexDirection: 'column', alignItems: 'flex-start', cursor: 'pointer' }} onClick={() => {
+                  const element = document.getElementById(`post-${topic.postId}`);
+                  if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }}>
+                  <div className={styles.trendingTag} style={{ fontSize: '13px', marginBottom: '4px' }}>
+                    {topic.authorName || '#GrindHub'}
+                  </div>
+                  {topic.content && (
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px', lineHeight: 1.4 }}>
+                      &quot;{topic.content.length > 60 ? topic.content.substring(0, 60) + '...' : topic.content}&quot;
+                    </div>
+                  )}
+                  {topic.score !== undefined && (
+                    <div className={styles.trendingCount} style={{ alignSelf: 'flex-start', color: 'var(--accent-red)' }}>
+                      <TrendingUp size={12} style={{ marginRight: '4px', display: 'inline', verticalAlign: 'text-bottom' }} />
+                      Hot Score: {Math.round(topic.score * 10) / 10}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

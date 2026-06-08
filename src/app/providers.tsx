@@ -106,7 +106,7 @@ function RootContent({ children }: { children: React.ReactNode }) {
           sessionService.fetchSessions(userId),
           bankrollService.fetchAccounts(userId),
           bankrollService.fetchTransactions(userId),
-          socialService.fetchFeed(userId),
+          socialService.fetchFeed(),
           socialService.fetchFollowing(userId),
           goalsService.fetchGoals(userId),
           profileService.searchPlayers('')
@@ -130,7 +130,7 @@ function RootContent({ children }: { children: React.ReactNode }) {
     if (session?.user && !dataLoaded) {
       loadData();
     }
-  }, [session, dataLoaded, setupProfile, setSessions, setAccounts, setTransactions, setPosts, setFollowing, setGoals]);
+  }, [session, dataLoaded, setupProfile, setSessions, setAccounts, setTransactions, setPosts, setFollowing, setGoals, setPlayers]);
 
   if (loadingAuth || (session && !dataLoaded)) {
     return (
