@@ -42,24 +42,6 @@ const TRENDING_TOPICS = [
 
 // ── Sub-Components ──
 
-interface AvatarProps {
-  name: string;
-  avatarColor?: string;
-  size?: 'sm' | 'md' | 'lg';
-}
-
-function Avatar({ name, avatarColor, size = 'md' }: AvatarProps) {
-  const sizeClass = size === 'sm' ? styles.avatarSm : size === 'lg' ? styles.avatarLg : styles.avatarMd;
-  return (
-    <div
-      className={`${styles.avatar} ${sizeClass}`}
-      style={{ background: avatarColor || 'var(--gradient-primary)' }}
-    >
-      {getInitials(name)}
-    </div>
-  );
-}
-
 function PostTypeBadge({ type }: { type: PostType }) {
   const badge = POST_TYPE_BADGES[type];
   if (!badge || type === 'text') return null;
