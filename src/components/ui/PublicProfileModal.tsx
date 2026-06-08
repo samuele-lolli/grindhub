@@ -22,7 +22,6 @@ export function PublicProfileModal({ selectedProfile, onClose }: PublicProfileMo
         <div className={styles.profileModalHeader}>
           <Avatar 
             name={selectedProfile.profile.displayName} 
-            avatarColor={typeof selectedProfile.profile.avatar === 'string' && selectedProfile.profile.avatar.startsWith('#') ? selectedProfile.profile.avatar : getAvatarColor(selectedProfile.profile.id)} 
             size="lg" 
           />
           <div>

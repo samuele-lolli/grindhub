@@ -188,7 +188,6 @@ export default function SocialPage() {
             <div className={styles.composerTop}>
               <Avatar
                 name={profile?.displayName || 'You'}
-                avatarColor={typeof profile?.avatar === 'string' && profile.avatar.startsWith('#') ? profile.avatar : undefined}
                 size="md"
               />
               <div className={styles.composerInputWrap}>
@@ -281,8 +280,8 @@ export default function SocialPage() {
                   <article key={post.id} className={styles.postCard} style={{ animationDelay: `${i * 50}ms` }}>
                     {/* Header */}
                     <div className={styles.postHeader}>
-                      <div style={{ cursor: 'pointer' }} onClick={() => handleViewProfile(post.authorId)}>
-                        <Avatar name={author?.displayName || 'Unknown'} avatarColor={avatarBg} size="md" />
+                      <div className={styles.authorAvatarWrap} style={{ cursor: 'pointer' }} onClick={() => handleViewProfile(post.authorId)}>
+                        <Avatar name={author?.displayName || 'Unknown'} size="md" />
                       </div>
                       <div className={styles.postMeta}>
                         <div className={styles.postMetaTop}>
@@ -447,7 +446,7 @@ export default function SocialPage() {
                 {suggestedPlayers.map(p => (
                   <div key={p.id} className={styles.suggestedItem}>
                     <div style={{ cursor: 'pointer' }} onClick={() => handleViewProfile(p.id)}>
-                      <Avatar name={p.displayName} avatarColor={getAvatarColor(p.id)} size="md" />
+                      <Avatar name={p.displayName} size="md" />
                     </div>
                     <div className={styles.suggestedInfo}>
                       <span className={styles.suggestedName} style={{ cursor: 'pointer' }} onClick={() => handleViewProfile(p.id)}>{p.displayName}</span>
