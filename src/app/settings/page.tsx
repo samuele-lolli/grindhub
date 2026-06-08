@@ -61,7 +61,8 @@ export default function SettingsPage() {
       updateProfile(localProfile.id, {
         displayName: localProfile.displayName,
         bio: localProfile.bio,
-        privacy: localProfile.privacy
+        privacy: localProfile.privacy,
+        avatar: localProfile.avatar
       });
     }
     setIsSaved(true);
