@@ -98,6 +98,16 @@ export function formatCompactCurrency(amount: number, currency: Currency = 'EUR'
 // ---------------------------------------------------------------------------
 
 /**
+ * Generate a consistent avatar color from a string ID
+ */
+export function getAvatarColor(id: string): string {
+  const colors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#06b6d4'];
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  return colors[Math.abs(hash) % colors.length];
+}
+
+/**
  * Formats a number as a percentage string with a leading sign.
  * @param value    - The percentage value.
  * @param decimals - Decimal places to display. Defaults to `1`.

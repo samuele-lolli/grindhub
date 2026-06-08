@@ -7,7 +7,7 @@ import { useProfileStore } from '@/stores/profile-store';
 import { useSessionStore } from '@/stores/session-store';
 import { Tooltip as UITooltip } from '@/components/ui/Tooltip';
 import { useI18n } from '@/i18n';
-import { formatRelativeTime, getInitials, formatCurrency, getSessionProfit, formatDate, formatDuration, platformLabels } from '@/lib/utils';
+import { formatRelativeTime, getInitials, formatCurrency, getSessionProfit, formatDate, formatDuration, platformLabels, getAvatarColor } from '@/lib/utils';
 import type { PostType, AggregatedMTTSession, PlayerProfile, PlayerStats } from '@/types';
 import { Avatar } from '@/components/ui/Avatar';
 import { PublicProfileModal } from '@/components/ui/PublicProfileModal';
@@ -22,13 +22,7 @@ const AVATAR_COLORS = [
 ];
 
 // ── Helpers ──
-function getAvatarColor(id: string): string {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    hash = id.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
-}
+
 
 const POST_TYPE_BADGES: Record<string, { emoji: string; label: string }> = {
   session_result: { emoji: '🏆', label: 'Session Result' },
