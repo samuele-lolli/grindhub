@@ -138,7 +138,7 @@ export default function BankrollPage() {
       labels: chronologicalDays.map(d => { const parts = d.split('-'); return `${parts[1]}/${parts[2]}`; }),
       datasets: [{
         data: chronologicalDays.map(d => byDay.get(d)!),
-        borderColor: '#10b981',
+        borderColor: '#00c27a',
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         backgroundColor: (ctx: any) => {
           const chart = ctx.chart;
@@ -160,7 +160,7 @@ export default function BankrollPage() {
       labels: data.map(a => a.name),
       datasets: [{
         data: data.map(a => a.balance),
-        backgroundColor: ['#3b82f6', '#8b5cf6', '#f59e0b', '#10b981', '#ef4444', '#ec4899', '#06b6d4'],
+        backgroundColor: ['#00c27a', '#2dd698', '#d9a441', '#00c27a', '#e5484d', '#ec4899', '#06b6d4'],
         borderWidth: 0, hoverOffset: 4,
       }]
     };
@@ -209,7 +209,7 @@ export default function BankrollPage() {
   const chartOptions = {
     responsive: true, maintainAspectRatio: false,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1e293b', titleColor: '#f1f5f9', bodyColor: '#94a3b8', padding: 12, displayColors: false, callbacks: { label: (ctx:any) => formatCurrency(ctx.raw, 'EUR') } } },
+    plugins: { legend: { display: false }, tooltip: { backgroundColor: '#121722', titleColor: '#f5f5f4', bodyColor: '#9ca3af', padding: 12, displayColors: false, callbacks: { label: (ctx:any) => formatCurrency(ctx.raw, 'EUR') } } },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     scales: { x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b', maxTicksLimit: 12, maxRotation: 45 } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b', callback: (v:any) => `€${v}` } } }
   };
@@ -311,7 +311,7 @@ export default function BankrollPage() {
               <h3 className={styles.cardTitle}>Total Portfolio Allocation</h3>
               <div className={styles.donutWrap}>
                 {accounts.filter(a => a.balance > 0).length > 0 ? (
-                  <Doughnut data={donutData} options={{ maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'right', labels: { color: '#94a3b8', usePointStyle: true, padding: 20 } } } }} />
+                  <Doughnut data={donutData} options={{ maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'right', labels: { color: '#9ca3af', usePointStyle: true, padding: 20 } } } }} />
                 ) : (
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)' }}>No funds available.</div>
                 )}

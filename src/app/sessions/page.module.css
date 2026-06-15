@@ -116,7 +116,7 @@
   font-size: var(--text-lg);
   font-weight: var(--font-bold);
   color: var(--text-primary);
-  font-family: var(--font-mono);
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
   line-height: 1.2;
 }
 
@@ -230,7 +230,7 @@
 
 .sessionCardDeleting {
   border-color: var(--accent-red) !important;
-  background: rgba(239, 68, 68, 0.04);
+  background: rgba(229, 72, 77, 0.04);
 }
 
 /* ── Card Left (Badge + Name) ── */
@@ -335,7 +335,7 @@
 .cardProfit {
   font-size: var(--text-base);
   font-weight: var(--font-bold);
-  font-family: var(--font-mono);
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
   white-space: nowrap;
   min-width: 90px;
   text-align: right;

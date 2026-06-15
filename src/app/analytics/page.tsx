@@ -142,7 +142,7 @@ export default function AnalyticsPage() {
       labels: chronologicalDays.map(d => { const parts = d.split('-'); return `${parts[1]}/${parts[2]}`; }),
       datasets: [{
         data: chronologicalDays.map(d => byDay.get(d)!),
-        fill: true, borderColor: '#10b981',
+        fill: true, borderColor: '#00c27a',
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         backgroundColor: (ctx: any) => {
           const chart = ctx.chart;
@@ -154,7 +154,7 @@ export default function AnalyticsPage() {
           return gradient;
         },
         cubicInterpolationMode: 'monotone' as const, pointRadius: 0, pointHoverRadius: 5, borderWidth: 2,
-        pointHoverBackgroundColor: '#10b981', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2,
+        pointHoverBackgroundColor: '#00c27a', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2,
       }],
     };
   }, [transactions, filter, accounts]);
@@ -183,7 +183,7 @@ export default function AnalyticsPage() {
     });
 
     const isPositive = runningProfit >= 0;
-    const color = isPositive ? '#10b981' : '#ef4444';
+    const color = isPositive ? '#00c27a' : '#e5484d';
     const rgbColor = isPositive ? '16,185,129' : '239,68,68';
 
     return {
@@ -239,7 +239,7 @@ export default function AnalyticsPage() {
         {
           label: 'ROI %', data: rois,
           backgroundColor: rois.map(r => r >= 0 ? 'rgba(16,185,129,0.6)' : 'rgba(239,68,68,0.6)'),
-          borderColor: rois.map(r => r >= 0 ? '#10b981' : '#ef4444'),
+          borderColor: rois.map(r => r >= 0 ? '#00c27a' : '#e5484d'),
           borderWidth: 1, borderRadius: 4,
         },
       ],
@@ -260,7 +260,7 @@ export default function AnalyticsPage() {
       labels,
       datasets: [{
         data: Object.values(byPlatform),
-        backgroundColor: ['#3b82f6', '#8b5cf6', '#f59e0b', '#10b981', '#ef4444', '#ec4899', '#6366f1', '#14b8a6'],
+        backgroundColor: ['#00c27a', '#2dd698', '#d9a441', '#00c27a', '#e5484d', '#ec4899', '#6366f1', '#14b8a6'],
         borderWidth: 0, hoverOffset: 8,
       }],
     };
@@ -312,7 +312,7 @@ export default function AnalyticsPage() {
       datasets: [{
         label: 'Profit', data: buckets,
         backgroundColor: buckets.map(b => b >= 0 ? 'rgba(16,185,129,0.6)' : 'rgba(239,68,68,0.6)'),
-        borderColor: buckets.map(b => b >= 0 ? '#10b981' : '#ef4444'),
+        borderColor: buckets.map(b => b >= 0 ? '#00c27a' : '#e5484d'),
         borderWidth: 1, borderRadius: 4,
       }],
     };
@@ -344,7 +344,7 @@ export default function AnalyticsPage() {
   const lineOptions = {
     responsive: true, maintainAspectRatio: false,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1e293b', titleColor: '#f1f5f9', bodyColor: '#94a3b8', padding: 12, displayColors: false, callbacks: { label: (ctx:any) => formatCurrency(ctx.raw, 'EUR') } } },
+    plugins: { legend: { display: false }, tooltip: { backgroundColor: '#121722', titleColor: '#f5f5f4', bodyColor: '#9ca3af', padding: 12, displayColors: false, callbacks: { label: (ctx:any) => formatCurrency(ctx.raw, 'EUR') } } },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     scales: { x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b', maxTicksLimit: 12, maxRotation: 45 } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b', callback: (v:any) => `€${v}` } } }
   };
@@ -452,7 +452,7 @@ export default function AnalyticsPage() {
             <UITooltip content="Distribution of your sessions across different platforms." position="left" />
           </h3>
           <div className={styles.chartWrapSmall}>
-            <Doughnut data={platformChart} options={{ responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { display: true, position: 'bottom' as const, labels: { color: '#94a3b8', padding: 14, usePointStyle: true, font: { size: 12 } } } } }} />
+            <Doughnut data={platformChart} options={{ responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { display: true, position: 'bottom' as const, labels: { color: '#9ca3af', padding: 14, usePointStyle: true, font: { size: 12 } } } } }} />
           </div>
         </div>
       </div>

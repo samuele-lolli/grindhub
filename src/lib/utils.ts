@@ -56,7 +56,7 @@ const currencySymbols: Record<Currency, string> = {
  * @param amount   - The monetary value (may be negative).
  * @param currency - The ISO currency code. Defaults to `'EUR'`.
  * @param showSign - When `true`, positive values are prefixed with `+`.
- * @returns A formatted string such as `"+€1,250"` or `"-$42.50"`.
+ * @returns A formatted string such as `"+€1,250"` or `"−$42.50"`.
  */
 export function formatCurrency(
   amount: number,
@@ -73,7 +73,7 @@ export function formatCurrency(
         })
       : absAmount.toFixed(2);
 
-  const sign = amount >= 0 ? (showSign ? '+' : '') : '-';
+  const sign = amount >= 0 ? (showSign ? '+' : '') : '−';
   return `${sign}${symbol}${formatted}`;
 }
 

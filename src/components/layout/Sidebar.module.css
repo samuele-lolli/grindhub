@@ -22,18 +22,16 @@
 }
 
 .logoIcon {
-  color: var(--accent-blue);
-  filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.4));
+  color: var(--accent-green);
+  filter: drop-shadow(0 0 8px rgba(0, 194, 122, 0.45));
+  flex-shrink: 0;
 }
 
 .logoText {
   font-size: var(--text-xl);
-  font-weight: var(--font-extrabold);
-  background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  letter-spacing: -0.02em;
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  letter-spacing: 0.08em;
 }
 
 .nav {
@@ -133,8 +131,16 @@
 }
 
 .logoutBtn:hover {
-  background: rgba(239, 68, 68, 0.1);
+  background: rgba(229, 72, 77, 0.1);
   color: var(--accent-red);
+}
+
+.tagline {
+  padding: var(--space-4) var(--space-5);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border-secondary);
 }
 
 .legalLinks {

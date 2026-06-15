@@ -47,7 +47,7 @@
   height: 3px;
   background: var(--accent-blue);
   border-radius: 0 0 var(--radius-full) var(--radius-full);
-  box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 8px rgba(0, 194, 122, 0.5);
 }
 
 .label {
@@ -134,7 +134,7 @@
 .logoutLink {
   color: var(--accent-red);
   margin-top: var(--space-4);
-  background: rgba(239, 68, 68, 0.1);
+  background: rgba(229, 72, 77, 0.1);
 }
 
 @keyframes fadeIn {

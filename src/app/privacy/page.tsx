@@ -12,7 +12,7 @@ export default function PrivacyPolicyPage() {
       <span className={styles.lastUpdated}>Last updated: June 2026</span>
 
       <div className={styles.content}>
-        <p>Welcome to GrindHub. We respect your privacy and are committed to protecting your personal data. This Privacy Policy will inform you as to how we look after your personal data when you visit our website and tell you about your privacy rights.</p>
+        <p>Welcome to GRINDOS. We respect your privacy and are committed to protecting your personal data. This Privacy Policy will inform you as to how we look after your personal data when you visit our website and tell you about your privacy rights.</p>
 
         <h2>1. The Data We Collect</h2>
         <p>We believe in data minimization. We only collect the data necessary to provide our services:</p>
@@ -23,7 +23,7 @@ export default function PrivacyPolicyPage() {
         </ul>
 
         <h2>2. How We Use Your Data</h2>
-        <p>We may share your information with trusted third-party service providers (like Supabase for database hosting and Google for authentication) solely for the purpose of operating GrindHub. We will never sell your personal data.</p>
+        <p>We may share your information with trusted third-party service providers (like Supabase for database hosting and Google for authentication) solely for the purpose of operating GRINDOS. We will never sell your personal data.</p>
         <ul>
           <li>To manage your account and authentication securely.</li>
           <li>To calculate your poker statistics and bankroll progression.</li>

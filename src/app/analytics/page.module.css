@@ -13,7 +13,7 @@
 .cgold .miniIcon { color: var(--accent-gold); }
 .cpurple .miniIcon { color: var(--accent-purple); }
 .miniLabel { font-size: var(--text-xs); color: var(--text-muted); font-weight: var(--font-medium); text-transform: uppercase; letter-spacing: 0.04em; }
-.miniValue { font-size: var(--text-lg); font-weight: var(--font-extrabold); font-family: var(--font-mono); color: var(--text-primary); }
+.miniValue { font-size: var(--text-lg); font-weight: var(--font-bold); font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--text-primary); }
 .cgreen .miniValue { color: var(--accent-green); }
 .cred .miniValue { color: var(--accent-red); }
 
@@ -35,12 +35,12 @@
 .monthlyRow:last-child { border-bottom: none; }
 .monthlyRow:hover { background: var(--bg-hover); }
 .monthLabel { font-size: var(--text-sm); font-weight: var(--font-semibold); color: var(--text-primary); }
-.monthSessions { font-size: var(--text-sm); color: var(--text-secondary); font-family: var(--font-mono); }
-.monthProfit { font-size: var(--text-sm); font-weight: var(--font-bold); font-family: var(--font-mono); }
+.monthSessions { font-size: var(--text-sm); color: var(--text-secondary); font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.monthProfit { font-size: var(--text-sm); font-weight: var(--font-bold); font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 .monthWinRate { display: flex; align-items: center; gap: var(--space-2); }
 .winRateBar { flex: 1; height: 6px; background: var(--bg-tertiary); border-radius: var(--radius-full); overflow: hidden; }
 .winRateFill { height: 100%; background: var(--gradient-primary); border-radius: var(--radius-full); transition: width 0.6s ease; }
-.monthWinRate span { font-size: var(--text-xs); color: var(--text-muted); font-family: var(--font-mono); min-width: 30px; }
+.monthWinRate span { font-size: var(--text-xs); color: var(--text-muted); font-family: var(--font-mono); font-variant-numeric: tabular-nums; min-width: 30px; }
 
 @media (max-width: 1024px) { .statsGrid { grid-template-columns: repeat(2, 1fr); } .chartsGrid { grid-template-columns: 1fr; } }
 @media (max-width: 768px) { .statsGrid { grid-template-columns: 1fr 1fr; } .monthlyHeader, .monthlyRow { grid-template-columns: 1fr 1fr 1fr; } .monthWinRate { display: none; } }

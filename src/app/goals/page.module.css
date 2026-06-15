@@ -40,12 +40,12 @@
   transition: all 0.3s ease;
   border: none;
   cursor: pointer;
-  box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 0 15px rgba(0, 194, 122, 0.4);
 }
 
 .addBtn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 0 25px rgba(139, 92, 246, 0.6);
+  box-shadow: 0 0 25px rgba(0, 194, 122, 0.6);
 }
 
 /* Gamified Grid */
@@ -128,16 +128,16 @@
   mask-composite: exclude;
 }
 
-.goalTypeIcon[data-type="volume"] { background: rgba(245, 158, 11, 0.15); color: var(--accent-gold); box-shadow: 0 0 15px rgba(245, 158, 11, 0.2); }
-.goalTypeIcon[data-type="profit"] { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); }
-.goalTypeIcon[data-type="roi"] { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }
+.goalTypeIcon[data-type="volume"] { background: rgba(217, 164, 65, 0.15); color: var(--accent-gold); box-shadow: 0 0 15px rgba(217, 164, 65, 0.2); }
+.goalTypeIcon[data-type="profit"] { background: rgba(0, 194, 122, 0.15); color: var(--accent-green); box-shadow: 0 0 15px rgba(0, 194, 122, 0.2); }
+.goalTypeIcon[data-type="roi"] { background: rgba(0, 194, 122, 0.15); color: var(--accent-blue); box-shadow: 0 0 15px rgba(0, 194, 122, 0.2); }
 .goalTypeIcon[data-type="custom"] { background: rgba(168, 85, 247, 0.15); color: var(--accent-purple); box-shadow: 0 0 15px rgba(168, 85, 247, 0.2); }
 
 .goalIconDone {
   color: var(--accent-green);
   flex-shrink: 0;
   margin-top: 2px;
-  filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.4));
+  filter: drop-shadow(0 0 8px rgba(0, 194, 122, 0.4));
 }
 
 .goalInfo {
@@ -181,9 +181,9 @@
 
 .deleteGoalBtn:hover {
   color: var(--accent-red);
-  background: rgba(239, 68, 68, 0.1);
-  border-color: rgba(239, 68, 68, 0.2);
-  box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+  background: rgba(229, 72, 77, 0.1);
+  border-color: rgba(229, 72, 77, 0.2);
+  box-shadow: 0 0 10px rgba(229, 72, 77, 0.3);
 }
 
 /* Progress Bar - Gamified */
@@ -201,7 +201,7 @@
 .goalProgress {
   font-size: var(--text-sm);
   color: var(--text-primary);
-  font-family: var(--font-mono);
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
   font-weight: var(--font-bold);
   text-shadow: 0 0 10px rgba(255,255,255,0.2);
 }
@@ -210,8 +210,8 @@
   font-size: var(--text-lg);
   color: var(--accent-blue);
   font-weight: var(--font-black);
-  font-family: var(--font-mono);
-  text-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 15px rgba(0, 194, 122, 0.5);
 }
 
 .progressBar {
@@ -236,8 +236,8 @@
 .progressFillDone {
   height: 100%;
   border-radius: var(--radius-full);
-  background: linear-gradient(90deg, #10b981, #34d399);
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+  background: linear-gradient(90deg, #00c27a, #2dd698);
+  box-shadow: 0 0 12px rgba(0, 194, 122, 0.6);
 }
 
 .progressFill::after, .progressFillDone::after {
@@ -275,10 +275,10 @@
   font-size: var(--text-xs);
   color: var(--accent-gold);
   font-weight: var(--font-medium);
-  background: rgba(245, 158, 11, 0.1);
+  background: rgba(217, 164, 65, 0.1);
   padding: 4px 8px;
   border-radius: var(--radius-md);
-  border: 1px solid rgba(245, 158, 11, 0.2);
+  border: 1px solid rgba(217, 164, 65, 0.2);
 }
 
 .empty {
@@ -335,7 +335,7 @@
 }
 
 .achUnlocked {
-  border-color: rgba(245, 158, 11, 0.3);
+  border-color: rgba(217, 164, 65, 0.3);
   box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
 
@@ -346,14 +346,14 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.15) 0%, transparent 70%);
+  background: radial-gradient(circle at 50% 0%, rgba(217, 164, 65, 0.15) 0%, transparent 70%);
   pointer-events: none;
 }
 
 .achUnlocked:hover {
   transform: translateY(-5px);
-  border-color: rgba(245, 158, 11, 0.6);
-  box-shadow: 0 10px 30px rgba(245, 158, 11, 0.2);
+  border-color: rgba(217, 164, 65, 0.6);
+  box-shadow: 0 10px 30px rgba(217, 164, 65, 0.2);
 }
 
 .achLocked {
@@ -371,13 +371,13 @@
   width: 56px;
   height: 56px;
   border-radius: var(--radius-full);
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(217, 164, 65, 0.2) 0%, rgba(181, 133, 47, 0.1) 100%);
   color: var(--accent-gold);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 20px rgba(245, 158, 11, 0.2), inset 0 0 10px rgba(245, 158, 11, 0.1);
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  box-shadow: 0 0 20px rgba(217, 164, 65, 0.2), inset 0 0 10px rgba(217, 164, 65, 0.1);
+  border: 1px solid rgba(217, 164, 65, 0.3);
   position: relative;
 }
 
@@ -410,7 +410,7 @@
   font-size: var(--text-xs);
   color: var(--accent-gold);
   font-weight: var(--font-bold);
-  background: rgba(245, 158, 11, 0.1);
+  background: rgba(217, 164, 65, 0.1);
   padding: 4px 8px;
   border-radius: var(--radius-full);
   margin-top: var(--space-2);
@@ -544,7 +544,7 @@
   transition: all 0.2s ease;
 }
 .templateCard:hover .templateIcon {
-  background: rgba(59, 130, 246, 0.2);
+  background: rgba(0, 194, 122, 0.2);
   color: var(--accent-blue);
 }
 
@@ -618,7 +618,7 @@
 .formGroup input:focus, .formGroup select:focus, .formGroup textarea:focus {
   outline: none;
   border-color: var(--accent-blue);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  box-shadow: 0 0 0 2px rgba(0, 194, 122, 0.2);
 }
 
 .formRow {
@@ -661,12 +661,12 @@
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 0 15px rgba(0, 194, 122, 0.4);
 }
 
 .submitBtn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 20px rgba(139, 92, 246, 0.6);
+  box-shadow: 0 5px 20px rgba(0, 194, 122, 0.6);
 }
 
 @keyframes fadeInUp {

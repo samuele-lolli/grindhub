@@ -419,7 +419,7 @@ export default function SocialPage() {
                   }
                 }}>
                   <div className={styles.trendingTag} style={{ fontSize: '13px', marginBottom: '4px', color: 'var(--accent-blue)', fontWeight: 'var(--font-semibold)' }}>
-                    {topic.authorName || '#GrindHub'}
+                    {topic.authorName || '#GRINDOS'}
                   </div>
                   {topic.content && (
                     <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px', lineHeight: 1.4, fontStyle: 'italic' }}>

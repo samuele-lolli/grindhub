@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "GrindHub",
+    "name": "GRINDOS",
     "tagline": "Track your grind. Own your game."
   },
   "nav": {
@@ -243,7 +243,7 @@
     "variance": "Shows your actual profit vs expected swings.",
     "platforms": "Your most profitable platforms.",
     "activeGoals": "Goals automatically progress as you log new sessions.",
-    "quickSync": "Instantly fix discrepancies between GrindHub and your real poker room balances.",
+    "quickSync": "Instantly fix discrepancies between GRINDOS and your real poker room balances.",
     "socialFeed": "Posts are visible to anyone who follows you. Your exact bankroll is ALWAYS private.",
     "cumulativeProfit": "Cumulative Profit Over Time. Tracks only the net profit/loss from your sessions. Starts at zero.",
     "bankrollHistory": "Bankroll Over Time. Tracks your total portfolio balance based on your manual deposits and withdrawals.",

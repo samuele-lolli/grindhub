@@ -3,84 +3,89 @@
    "Midnight Grind" Dark Theme
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 /* --- CSS Custom Properties (Design Tokens) --- */
 
 :root {
-  /* Background Colors */
-  --bg-primary: #0a0e17;
-  --bg-secondary: #111827;
-  --bg-tertiary: #1e293b;
-  --bg-elevated: #1a2332;
-  --bg-hover: #243044;
-  --bg-active: #2d3a4f;
-  --bg-glass: rgba(17, 24, 39, 0.7);
-  --bg-glass-hover: rgba(30, 41, 59, 0.8);
-  --bg-overlay: rgba(0, 0, 0, 0.6);
+  /* Background Colors — GRINDOS official tokens */
+  --bg-primary: #0B0D12;
+  --bg-secondary: #121722;
+  --bg-tertiary: #121722;
+  --bg-elevated: #171D2A;
+  --bg-hover: #171D2A;
+  --bg-active: #1C2433;
+  --bg-glass: rgba(18, 23, 34, 0.72);
+  --bg-glass-hover: rgba(23, 29, 42, 0.85);
+  --bg-overlay: rgba(0, 0, 0, 0.65);
 
   /* Accent Colors */
-  --accent-green: #10b981;
-  --accent-green-light: #34d399;
-  --accent-green-dark: #059669;
-  --accent-green-bg: rgba(16, 185, 129, 0.1);
-  --accent-green-bg-hover: rgba(16, 185, 129, 0.2);
+  /* Brand + Profit — Emerald #00C27A (primario e profitto) */
+  --accent-green: #00C27A;
+  --accent-green-light: #2DD698;
+  --accent-green-dark: #00A368;
+  --accent-green-bg: rgba(0, 194, 122, 0.12);
+  --accent-green-bg-hover: rgba(0, 194, 122, 0.2);
 
-  --accent-red: #ef4444;
-  --accent-red-light: #f87171;
-  --accent-red-dark: #dc2626;
-  --accent-red-bg: rgba(239, 68, 68, 0.1);
-  --accent-red-bg-hover: rgba(239, 68, 68, 0.2);
+  /* Loss — Danger #E5484D */
+  --accent-red: #E5484D;
+  --accent-red-light: #EE6B6F;
+  --accent-red-dark: #C13339;
+  --accent-red-bg: rgba(229, 72, 77, 0.12);
+  --accent-red-bg-hover: rgba(229, 72, 77, 0.2);
 
-  --accent-gold: #f59e0b;
-  --accent-gold-light: #fbbf24;
-  --accent-gold-dark: #d97706;
-  --accent-gold-bg: rgba(245, 158, 11, 0.1);
+  /* Gold #D9A441 — trofei, streak, obiettivi, achievement */
+  --accent-gold: #D9A441;
+  --accent-gold-light: #E6BC6A;
+  --accent-gold-dark: #B5852F;
+  --accent-gold-bg: rgba(217, 164, 65, 0.12);
 
-  --accent-purple: #8b5cf6;
-  --accent-purple-light: #a78bfa;
-  --accent-purple-dark: #7c3aed;
-  --accent-purple-bg: rgba(139, 92, 246, 0.1);
+  /* Purple → collassato sull'Emerald brand (niente viola decorativo) */
+  --accent-purple: #00C27A;
+  --accent-purple-light: #2DD698;
+  --accent-purple-dark: #00A368;
+  --accent-purple-bg: rgba(0, 194, 122, 0.12);
 
-  --accent-blue: #3b82f6;
-  --accent-blue-light: #60a5fa;
-  --accent-blue-dark: #2563eb;
-  --accent-blue-bg: rgba(59, 130, 246, 0.1);
-  --accent-blue-bg-hover: rgba(59, 130, 246, 0.2);
+  /* Brand — Emerald (token storicamente chiamato "blue") */
+  --accent-blue: #00C27A;
+  --accent-blue-light: #2DD698;
+  --accent-blue-dark: #00A368;
+  --accent-blue-bg: rgba(0, 194, 122, 0.12);
+  --accent-blue-bg-hover: rgba(0, 194, 122, 0.2);
 
   /* Text Colors */
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --text-inverse: #0a0e17;
+  --text-primary: #F5F5F4;
+  --text-secondary: #9CA3AF;
+  --text-muted: #6B7280;
+  --text-inverse: #06140D;
 
-  /* Borders */
-  --border-primary: rgba(45, 55, 72, 0.6);
-  --border-secondary: rgba(45, 55, 72, 0.3);
-  --border-hover: rgba(59, 130, 246, 0.4);
+  /* Borders — subtle white overlays */
+  --border-primary: rgba(255, 255, 255, 0.08);
+  --border-secondary: rgba(255, 255, 255, 0.05);
+  --border-hover: rgba(0, 194, 122, 0.4);
   --border-focus: var(--accent-blue);
 
   /* Gradients */
-  --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-  --gradient-green: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-  --gradient-gold: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
-  --gradient-red: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
-  --gradient-hero: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(139, 92, 246, 0.15) 50%, rgba(16, 185, 129, 0.1) 100%);
-  --gradient-sidebar: linear-gradient(180deg, #0f1729 0%, #0a0e17 100%);
-  --gradient-card: linear-gradient(145deg, rgba(30, 41, 59, 0.5) 0%, rgba(17, 24, 39, 0.8) 100%);
+  --gradient-primary: linear-gradient(135deg, #00C27A 0%, #00A368 100%);
+  --gradient-green: linear-gradient(135deg, #00C27A 0%, #00A368 100%);
+  --gradient-gold: linear-gradient(135deg, #D9A441 0%, #B5852F 100%);
+  --gradient-red: linear-gradient(135deg, #E5484D 0%, #C13339 100%);
+  --gradient-hero: linear-gradient(135deg, rgba(0, 194, 122, 0.12) 0%, rgba(0, 163, 104, 0.06) 100%);
+  --gradient-sidebar: linear-gradient(180deg, #0D1016 0%, #0B0D12 100%);
+  --gradient-card: linear-gradient(145deg, rgba(23, 29, 42, 0.5) 0%, rgba(18, 23, 34, 0.8) 100%);
 
   /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
-  --shadow-glow-blue: 0 0 20px rgba(59, 130, 246, 0.15);
-  --shadow-glow-green: 0 0 20px rgba(16, 185, 129, 0.15);
-  --shadow-glow-purple: 0 0 20px rgba(139, 92, 246, 0.15);
-  --shadow-glow-gold: 0 0 20px rgba(245, 158, 11, 0.15);
+  --shadow-glow-blue: 0 0 16px rgba(0, 194, 122, 0.18);
+  --shadow-glow-green: 0 0 16px rgba(0, 194, 122, 0.18);
+  --shadow-glow-purple: 0 0 16px rgba(0, 194, 122, 0.18);
+  --shadow-glow-gold: 0 0 16px rgba(217, 164, 65, 0.14);
 
   /* Typography */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-sans: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
   --text-xs: 0.75rem;
@@ -198,7 +203,7 @@ body {
 
 /* Selection */
 ::selection {
-  background: rgba(59, 130, 246, 0.3);
+  background: rgba(0, 194, 122, 0.3);
   color: var(--text-primary);
 }
 
@@ -241,6 +246,13 @@ a:hover {
 .profit-positive { color: var(--accent-green) !important; }
 .profit-negative { color: var(--accent-red) !important; }
 .profit-neutral { color: var(--text-muted) !important; }
+
+/* Semantic icon tint helpers (Lucide stroke inherits currentColor) */
+.text-gold { color: var(--accent-gold); }
+
+/* Accessibilita: segnale ridondante di direzione (oltre al colore) per profitto/perdita */
+.profit-positive::before { content: "▲ "; font-size: 0.7em; }
+.profit-negative::before { content: "▼ "; font-size: 0.7em; }
 
 .text-gradient {
   background: var(--gradient-primary);
@@ -310,8 +322,8 @@ a:hover {
 }
 
 @keyframes glow {
-  0%, 100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.2); }
-  50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.4); }
+  0%, 100% { box-shadow: 0 0 5px rgba(0, 194, 122, 0.2); }
+  50% { box-shadow: 0 0 20px rgba(0, 194, 122, 0.4); }
 }
 
 .animate-fade-in { animation: fadeIn var(--transition-slow) ease forwards; }
@@ -439,7 +451,7 @@ tr:hover td {
 
 .page-title {
   font-size: var(--text-3xl);
-  font-weight: var(--font-extrabold);
+  font-weight: var(--font-bold);
   letter-spacing: -0.02em;
 }
 

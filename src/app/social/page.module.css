@@ -39,7 +39,7 @@
 .tabActive {
   background: var(--gradient-primary) !important;
   color: white !important;
-  box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 0 15px rgba(0, 194, 122, 0.4);
   border-color: transparent !important;
 }
 
@@ -75,14 +75,14 @@
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.5), transparent);
+  background: linear-gradient(90deg, transparent, rgba(0, 194, 122, 0.5), transparent);
   opacity: 0;
   transition: opacity var(--transition-fast);
 }
 
 .composerFocused {
-  border-color: rgba(59, 130, 246, 0.5);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(59, 130, 246, 0.1);
+  border-color: rgba(0, 194, 122, 0.5);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(0, 194, 122, 0.1);
 }
 
 .composerFocused::before {
@@ -117,7 +117,7 @@
 .composerTextarea:focus {
   border-color: var(--accent-blue);
   outline: none;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  box-shadow: 0 0 0 2px rgba(0, 194, 122, 0.2);
   background: rgba(15, 23, 42, 0.8);
 }
 
@@ -143,9 +143,9 @@
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-full);
-  background: rgba(59, 130, 246, 0.1);
+  background: rgba(0, 194, 122, 0.1);
   color: var(--accent-blue-light);
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(0, 194, 122, 0.2);
   font-size: var(--text-xs);
   font-weight: var(--font-semibold);
   cursor: pointer;
@@ -153,7 +153,7 @@
 }
 
 .composerToolBtn:hover {
-  background: rgba(59, 130, 246, 0.2);
+  background: rgba(0, 194, 122, 0.2);
   transform: translateY(-1px);
 }
 
@@ -161,7 +161,7 @@
   background: var(--gradient-primary);
   color: white;
   border-color: transparent;
-  box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 0 10px rgba(0, 194, 122, 0.4);
 }
 
 .composerRight {
@@ -195,12 +195,12 @@
   border: none;
   cursor: pointer;
   transition: all var(--transition-fast);
-  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 4px 14px rgba(0, 194, 122, 0.4);
 }
 
 .postBtn:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+  box-shadow: 0 6px 20px rgba(0, 194, 122, 0.6);
 }
 
 .postBtn:active:not(:disabled) {
@@ -377,7 +377,7 @@
 
 .sessionEmbed {
   background: linear-gradient(145deg, rgba(15, 23, 42, 0.8), rgba(2, 6, 23, 0.9));
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(0, 194, 122, 0.2);
   border-radius: var(--radius-lg);
   padding: var(--space-4);
   margin-top: var(--space-3);
@@ -395,11 +395,11 @@
 }
 
 .sessionEmbed.negativeProfit::before {
-  background: linear-gradient(to bottom, #ef4444, #b91c1c);
+  background: linear-gradient(to bottom, #e5484d, #c13339);
 }
 
 .sessionEmbed.negativeProfit {
-  border-color: rgba(239, 68, 68, 0.2);
+  border-color: rgba(229, 72, 77, 0.2);
 }
 
 .sessionEmbedHeader {
@@ -447,8 +447,8 @@
   color: var(--text-primary);
 }
 
-.profitPos { color: var(--accent-green) !important; text-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
-.profitNeg { color: var(--accent-red) !important; text-shadow: 0 0 10px rgba(239, 68, 68, 0.3); }
+.profitPos { color: var(--accent-green) !important; text-shadow: 0 0 10px rgba(0, 194, 122, 0.3); }
+.profitNeg { color: var(--accent-red) !important; text-shadow: 0 0 10px rgba(229, 72, 77, 0.3); }
 
 /* ── Post Content ── */
 
@@ -493,7 +493,7 @@
 
 .actionBtnActive {
   color: var(--accent-blue-light) !important;
-  background: rgba(59, 130, 246, 0.1);
+  background: rgba(0, 194, 122, 0.1);
 }
 
 .actionBtnKudosActive {
@@ -606,7 +606,7 @@
 .commentInput:focus {
   border-color: var(--accent-blue);
   outline: none;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  box-shadow: 0 0 0 2px rgba(0, 194, 122, 0.2);
 }
 
 .commentInput::placeholder {
@@ -630,7 +630,7 @@
 }
 
 .commentSendBtn:hover:not(:disabled) {
-  background: rgba(59, 130, 246, 0.1);
+  background: rgba(0, 194, 122, 0.1);
 }
 
 .commentSendBtn:disabled {
@@ -732,9 +732,9 @@
   border-radius: var(--radius-full);
   font-size: var(--text-xs);
   font-weight: var(--font-bold);
-  background: rgba(59, 130, 246, 0.1);
+  background: rgba(0, 194, 122, 0.1);
   color: var(--accent-blue-light);
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(0, 194, 122, 0.2);
   cursor: pointer;
   transition: all var(--transition-fast);
   white-space: nowrap;
@@ -746,7 +746,7 @@
   color: white;
   border-color: var(--accent-blue);
   transform: translateY(-1px);
-  box-shadow: 0 2px 10px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 2px 10px rgba(0, 194, 122, 0.4);
 }
 
 .followBtnFollowing {
@@ -756,9 +756,9 @@
 }
 
 .followBtnFollowing:hover {
-  background: rgba(239, 68, 68, 0.1);
+  background: rgba(229, 72, 77, 0.1);
   color: var(--accent-red);
-  border-color: rgba(239, 68, 68, 0.2);
+  border-color: rgba(229, 72, 77, 0.2);
 }
 
 /* ── Trending ── */
@@ -835,7 +835,7 @@
 }
 
 .modalClose:hover {
-  background: rgba(239,68,68,0.2);
+  background: rgba(229, 72, 77,0.2);
   color: var(--accent-red);
 }
 

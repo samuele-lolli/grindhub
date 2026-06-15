@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "GrindHub",
+    "name": "GRINDOS",
     "tagline": "Traccia il tuo grind. Domina il tuo gioco."
   },
   "nav": {
@@ -243,7 +243,7 @@
     "variance": "Mostra il tuo profitto reale rispetto alle oscillazioni previste.",
     "platforms": "Le tue piattaforme più profittevoli.",
     "activeGoals": "Gli obiettivi progrediscono automaticamente quando registri nuove sessioni.",
-    "quickSync": "Correggi istantaneamente le discrepanze tra GrindHub e il saldo reale della tua poker room.",
+    "quickSync": "Correggi istantaneamente le discrepanze tra GRINDOS e il saldo reale della tua poker room.",
     "socialFeed": "I post sono visibili a chiunque ti segua. Il tuo bankroll esatto è SEMPRE privato.",
     "cumulativeProfit": "Profitto Cumulativo. Traccia ESCLUSIVAMENTE l'andamento dei tavoli. Parte da zero.",
     "bankrollHistory": "Storico Bankroll. Traccia il saldo totale del tuo portfolio, influenzato da Depositi e Prelievi manuali.",

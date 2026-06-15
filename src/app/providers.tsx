@@ -134,9 +134,9 @@ function RootContent({ children }: { children: React.ReactNode }) {
 
   if (loadingAuth || (session && !dataLoaded)) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0e17', color: '#94a3b8' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0d1117', color: '#9aa7b4' }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '2rem', fontWeight: 800, background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '8px' }}>GrindHub</div>
+          <div style={{ fontSize: '2rem', fontWeight: 700, letterSpacing: '0.08em', background: 'linear-gradient(135deg, #00C27A, #00A368)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '8px' }}>GRINDOS</div>
           <Loader2 size={32} style={{ margin: '0 auto', animation: 'spin 1s linear infinite' }} />
           <div style={{ fontSize: '0.875rem', marginTop: '16px' }}>Syncing your data...</div>
         </div>

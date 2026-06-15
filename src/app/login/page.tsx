@@ -2,9 +2,10 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Spade, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/ui/Toast';
+import { Logo } from '@/components/ui/Logo';
 import styles from './page.module.css';
 
 /**
@@ -36,8 +37,8 @@ export default function LoginPage() {
     <div className={styles.container}>
       <div className={styles.card}>
         <div className={styles.logoWrap}>
-          <Spade size={42} className={styles.logo} />
-          <h1>GrindHub</h1>
+          <Logo size={48} className={styles.logo} />
+          <h1>GRINDOS</h1>
         </div>
         
         <p className={styles.subtitle}>

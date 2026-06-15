@@ -25,8 +25,8 @@
 }
 
 .button:hover:not(:disabled) {
-  transform: scale(1.02);
-  filter: brightness(1.1);
+  transform: translateY(-1px);
+  filter: brightness(1.05);
 }
 
 .button:active:not(:disabled) {
@@ -51,11 +51,11 @@
   background: var(--gradient-primary);
   color: #fff;
   border-color: transparent;
-  box-shadow: var(--shadow-md), 0 0 16px rgba(59, 130, 246, 0.15);
+  box-shadow: var(--shadow-md), 0 0 16px rgba(0, 194, 122, 0.15);
 }
 
 .primary:hover:not(:disabled) {
-  box-shadow: var(--shadow-lg), 0 0 24px rgba(59, 130, 246, 0.25);
+  box-shadow: var(--shadow-lg), 0 0 24px rgba(0, 194, 122, 0.25);
 }
 
 .secondary {
@@ -83,13 +83,13 @@
 .danger {
   background: var(--accent-red-bg);
   color: var(--accent-red);
-  border-color: rgba(239, 68, 68, 0.2);
+  border-color: rgba(229, 72, 77, 0.2);
 }
 
 .danger:hover:not(:disabled) {
   background: var(--accent-red-bg-hover);
-  border-color: rgba(239, 68, 68, 0.4);
-  box-shadow: 0 0 16px rgba(239, 68, 68, 0.15);
+  border-color: rgba(229, 72, 77, 0.4);
+  box-shadow: 0 0 16px rgba(229, 72, 77, 0.15);
 }
 
 /* --- Sizes --- */

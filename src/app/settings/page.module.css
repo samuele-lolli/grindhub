@@ -3,7 +3,7 @@
 
 .saveBtn { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-5); border-radius: var(--radius-md); background: var(--gradient-primary); color: white; font-weight: var(--font-semibold); font-size: var(--text-sm); border: none; cursor: pointer; transition: all var(--transition-fast); }
 .saveBtn:hover { transform: translateY(-1px); box-shadow: var(--shadow-glow-blue); }
-.savedBtn { background: var(--gradient-green); box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
+.savedBtn { background: var(--gradient-green); box-shadow: 0 0 15px rgba(0, 194, 122, 0.4); }
 
 .layout { display: flex; gap: var(--space-8); margin-top: var(--space-4); align-items: flex-start; }
 
@@ -51,7 +51,7 @@ input:checked + .slider:before { transform: translateX(20px); background-color: 
 .uploadBtn { padding: var(--space-2) var(--space-4); border-radius: var(--radius-md); background: var(--bg-tertiary); border: 1px solid var(--border-primary); color: var(--text-primary); font-size: var(--text-sm); cursor: pointer; font-weight: var(--font-medium); transition: all 0.2s; }
 .uploadBtn:hover { background: var(--bg-hover); border-color: var(--border-hover); }
 
-.deleteAccBtn { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-4); border-radius: var(--radius-md); background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--accent-red); font-size: var(--text-sm); cursor: pointer; font-weight: var(--font-medium); transition: all 0.2s; white-space: nowrap; }
+.deleteAccBtn { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-4); border-radius: var(--radius-md); background: rgba(229, 72, 77, 0.1); border: 1px solid rgba(229, 72, 77, 0.3); color: var(--accent-red); font-size: var(--text-sm); cursor: pointer; font-weight: var(--font-medium); transition: all 0.2s; white-space: nowrap; }
 .deleteAccBtn:hover { background: var(--accent-red); color: white; }
 .deleteAccBtn:disabled { opacity: 0.5; cursor: not-allowed; }
 

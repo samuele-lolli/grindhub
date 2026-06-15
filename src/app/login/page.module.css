@@ -33,7 +33,7 @@
 
 .logo {
   color: var(--accent-blue);
-  filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.4));
+  filter: drop-shadow(0 0 12px rgba(0, 194, 122, 0.4));
 }
 
 .logoWrap h1 {
@@ -155,7 +155,7 @@
   transform: translate(-50%, -50%);
   width: 600px;
   height: 600px;
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0) 70%);
+  background: radial-gradient(circle, rgba(0, 194, 122, 0.1) 0%, rgba(0, 194, 122, 0) 70%);
   pointer-events: none;
   z-index: 1;
 }

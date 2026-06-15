@@ -78,7 +78,7 @@ export function SyncBalancesModal({ isOpen, onClose }: SyncBalancesModalProps) {
     <Modal isOpen={isOpen} onClose={onClose} title="Quick Sync Balances">
       <form onSubmit={handleSubmit} className={localStyles.form}>
         <p className={localStyles.description}>
-          Update your current balances below. GrindHub will automatically calculate the profit/loss and log the transactions.
+          Update your current balances below. GRINDOS will automatically calculate the profit/loss and log the transactions.
         </p>
 
         <div className={localStyles.accountList}>

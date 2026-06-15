@@ -12,12 +12,12 @@ import {
   User,
   Target,
   Settings,
-  Spade,
   LogOut,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useProfileStore } from '@/stores/profile-store';
 import { Avatar } from '@/components/ui/Avatar';
+import { Logo } from '@/components/ui/Logo';
 import styles from './Sidebar.module.css';
 
 const navItems = [
@@ -38,8 +38,8 @@ export function Sidebar() {
   return (
     <aside className={styles.sidebar}>
       <div className={styles.logo}>
-        <Spade className={styles.logoIcon} size={24} />
-        <span className={styles.logoText}>GrindHub</span>
+        <Logo className={styles.logoIcon} size={28} />
+        <span className={styles.logoText}>GRINDOS</span>
       </div>
 
       <nav className={styles.nav}>
@@ -57,6 +57,10 @@ export function Sidebar() {
           );
         })}
       </nav>
+
+      <div className={styles.tagline}>
+        Your poker career.<br />Built. Tracked. Elevated.
+      </div>
 
       <div className={styles.legalLinks}>
         <Link href="/privacy">Privacy</Link>

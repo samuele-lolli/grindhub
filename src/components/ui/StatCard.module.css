@@ -107,7 +107,7 @@
   color: var(--accent-red);
 }
 .color_red:hover {
-  box-shadow: var(--shadow-md), 0 0 20px rgba(239, 68, 68, 0.15);
+  box-shadow: var(--shadow-md), 0 0 20px rgba(229, 72, 77, 0.15);
 }
 .color_red .value {
   color: var(--accent-red);

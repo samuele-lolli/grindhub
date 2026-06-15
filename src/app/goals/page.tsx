@@ -121,7 +121,7 @@ export default function GoalsPage() {
       <div className={styles.goalsGrid}>
         {activeGoals.length === 0 ? (
           <div className={styles.empty}>
-            <Target size={48} style={{ color: 'var(--accent-blue)' }} />
+            <Target size={48} style={{ color: 'var(--accent-red)' }} />
             <h3>{t.goals.noGoals}</h3>
             <p>{t.goals.setGoals}</p>
           </div>

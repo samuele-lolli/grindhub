@@ -31,7 +31,7 @@ export function CookieBanner() {
       bottom: 0,
       left: 0,
       right: 0,
-      background: '#1e293b',
+      background: '#121722',
       borderTop: '1px solid #334155',
       padding: '16px 24px',
       display: 'flex',
@@ -43,8 +43,8 @@ export function CookieBanner() {
       <div style={{ flex: 1 }}>
         <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#f8fafc', marginBottom: '8px' }}>We use cookies</h3>
         <p style={{ fontSize: '0.875rem', color: '#cbd5e1', lineHeight: '1.5', margin: 0 }}>
-          GrindHub uses cookies to ensure you get the best experience on our website, keep you logged in securely, and analyze our traffic. 
-          By clicking &quot;Accept All&quot;, you consent to our use of cookies. Read more in our <a href="/privacy" style={{ color: '#60a5fa', textDecoration: 'none' }}>Privacy Policy</a>.
+          GRINDOS uses cookies to ensure you get the best experience on our website, keep you logged in securely, and analyze our traffic. 
+          By clicking &quot;Accept All&quot;, you consent to our use of cookies. Read more in our <a href="/privacy" style={{ color: '#2dd698', textDecoration: 'none' }}>Privacy Policy</a>.
         </p>
       </div>
       <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', alignItems: 'center' }}>
@@ -67,7 +67,7 @@ export function CookieBanner() {
           onClick={handleAccept}
           style={{
             padding: '8px 16px',
-            background: '#3b82f6',
+            background: '#00c27a',
             border: 'none',
             color: '#fff',
             borderRadius: '6px',

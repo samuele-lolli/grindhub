@@ -25,7 +25,7 @@ export function TopBar() {
   const { locale, setLocale } = useI18n();
   const profile = useProfileStore((s) => s.profile);
 
-  const pageTitle = routeTitles[pathname] || 'GrindHub';
+  const pageTitle = routeTitles[pathname] || 'GRINDOS';
 
   const toggleLocale = () => {
     setLocale(locale === 'en' ? 'it' : 'en');

@@ -35,7 +35,7 @@
 
 .title {
   font-size: 6rem;
-  font-weight: var(--font-extrabold);
+  font-weight: var(--font-bold);
   line-height: 1;
   background: var(--gradient-gold);
   -webkit-background-clip: text;
