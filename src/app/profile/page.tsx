@@ -52,18 +52,21 @@ export default function ProfilePage() {
 
   // Filter players by search
   useEffect(() => {
+    let stale = false;
     const timer = setTimeout(async () => {
       setIsSearching(true);
       try {
         const results = await profileService.searchPlayers(searchQuery);
-        setSearchedPlayers(results.filter(p => p.id !== profile?.id)); // Don't show self
+        if (!stale) {
+          setSearchedPlayers(results.filter(p => p.id !== profile?.id));
+        }
       } catch (err) {
         console.error(err);
       } finally {
-        setIsSearching(false);
+        if (!stale) setIsSearching(false);
       }
     }, 300);
-    return () => clearTimeout(timer);
+    return () => { stale = true; clearTimeout(timer); };
   }, [searchQuery, profile?.id]);
 
   if (!profile) {

@@ -33,7 +33,7 @@ interface SessionState {
 
 interface SessionActions {
   addSession: (session: Omit<Session, 'id' | 'createdAt' | 'updatedAt'> | Omit<Session, 'createdAt' | 'updatedAt'>) => Promise<void>;
-  updateSession: (id: string, updates: Partial<Session>) => void; // local only for MVP
+  updateSession: (id: string, updates: Partial<Session>) => Promise<void>;
   deleteSession: (id: string) => Promise<void>;
   setSessions: (sessions: Session[]) => void;
   getSessionsByFilter: (filter: SessionFilter) => Session[];
@@ -49,14 +49,23 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
     const userId = useProfileStore.getState().profile?.id;
     if (!userId) return;
 
-    const newSession = await sessionService.createSession(userId, session);
-    set((state) => ({ sessions: [newSession, ...state.sessions] }));
-    
-    useGoalsStore.getState().evaluateActiveGoals();
-    useGoalsStore.getState().checkAchievements(get().getStats());
+    try {
+      const newSession = await sessionService.createSession(userId, session);
+      set((state) => ({ sessions: [newSession, ...state.sessions] }));
+      
+      useGoalsStore.getState().evaluateActiveGoals();
+      useGoalsStore.getState().checkAchievements(get().getStats());
+    } catch (error) {
+      console.error('Failed to add session:', error);
+    }
   },
 
-  updateSession: (id, updates) => {
+  updateSession: async (id, updates) => {
+    try {
+      await sessionService.updateSession(id, updates);
+    } catch (error) {
+      console.error('Failed to update session:', error);
+    }
     set((state) => ({
       sessions: state.sessions.map((s) =>
         s.id === id ? ({ ...s, ...updates, updatedAt: new Date().toISOString() } as Session) : s
@@ -67,12 +76,16 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
   },
 
   deleteSession: async (id) => {
-    await sessionService.deleteSession(id);
-    set((state) => ({
-      sessions: state.sessions.filter((s) => s.id !== id),
-    }));
-    useGoalsStore.getState().evaluateActiveGoals();
-    useGoalsStore.getState().checkAchievements(get().getStats());
+    try {
+      await sessionService.deleteSession(id);
+      set((state) => ({
+        sessions: state.sessions.filter((s) => s.id !== id),
+      }));
+      useGoalsStore.getState().evaluateActiveGoals();
+      useGoalsStore.getState().checkAchievements(get().getStats());
+    } catch (error) {
+      console.error('Failed to delete session:', error);
+    }
   },
 
   setSessions: (sessions) => set({ sessions }),
@@ -115,8 +128,6 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
         bestStreak: 0,
         totalHoursPlayed: 0,
         winRate: 0,
-        avgFinishPercentile: 0,
-        finalTablePercent: 0,
       };
     }
 
@@ -144,8 +155,6 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
       bestStreak: calculateBestStreak(sessions),
       totalHoursPlayed: totalMinutes / 60,
       winRate: calculateWinRate(winCount, sessions.length),
-      avgFinishPercentile: 0,
-      finalTablePercent: 0,
     };
   },
 }));

@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useMemo, useCallback } from 'react';
-import { MessageCircle, Send, Share2, Users, TrendingUp, Trophy, X, Heart } from 'lucide-react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { MessageCircle, Send, Share2, Users, TrendingUp, Trophy, X, Heart, Trash2 } from 'lucide-react';
 import { useSocialStore } from '@/stores/social-store';
 import { useProfileStore } from '@/stores/profile-store';
 import { useSessionStore } from '@/stores/session-store';
@@ -55,6 +55,8 @@ export default function SocialPage() {
   const addPost = useSocialStore(s => s.addPost);
   const toggleLike = useSocialStore(s => s.toggleLike);
   const addComment = useSocialStore(s => s.addComment);
+  const deletePost = useSocialStore(s => s.deletePost);
+  const deleteComment = useSocialStore(s => s.deleteComment);
   const follow = useSocialStore(s => s.followUser);
   const loadTrending = useSocialStore(s => s.loadTrending);
   const trendingTopics = useSocialStore(s => s.trendingDiscussions);
@@ -105,7 +107,16 @@ export default function SocialPage() {
   }, [players, following]);
 
   // ── Create post ──
-  const handlePost = useCallback(() => {
+  // M2: Escape key to close modal
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowSessionPicker(false);
+    };
+    if (showSessionPicker) window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [showSessionPicker]);
+
+  const handlePostSubmit = useCallback(async (e: React.FormEvent) => {
     if (!newPost.trim() && !attachedSession) return;
     if (newPost.length > MAX_POST_LENGTH) return;
     
@@ -235,7 +246,7 @@ export default function SocialPage() {
                 </span>
                 <button
                   className={styles.postBtn}
-                  onClick={handlePost}
+                  onClick={handlePostSubmit as any}
                   disabled={(!newPost.trim() && !attachedSession) || charOverLimit}
                 >
                   <Send size={14} />
@@ -277,6 +288,11 @@ export default function SocialPage() {
                         </div>
                         <span className={styles.postTime}>{formatRelativeTime(post.createdAt)}</span>
                       </div>
+                      {post.authorId === profile?.id && (
+                        <button className={styles.actionBtn} onClick={() => deletePost(post.id)} title="Delete post" style={{ marginLeft: 'auto' }}>
+                          <Trash2 size={14} />
+                        </button>
+                      )}
                     </div>
 
                     {/* Content */}
@@ -365,6 +381,11 @@ export default function SocialPage() {
                                     <span className={styles.commentText}>{c.content}</span>
                                     <span className={styles.commentTime}>{formatRelativeTime(c.createdAt)}</span>
                                   </div>
+                                  {c.authorId === profile?.id && (
+                                    <button className={styles.deleteCommentBtn} onClick={() => deleteComment(post.id, c.id)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '2px', marginLeft: 'auto' }} title="Delete comment">
+                                      <Trash2 size={12} />
+                                    </button>
+                                  )}
                                 </div>
                               );
                             })}

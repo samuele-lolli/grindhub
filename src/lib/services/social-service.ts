@@ -116,6 +116,22 @@ export const socialService = {
   },
 
   /**
+   * Deletes a social post.
+   */
+  async deletePost(postId: string): Promise<void> {
+    const { error } = await supabase.from('social_posts').delete().eq('id', postId);
+    if (error) throw error;
+  },
+  
+  /**
+   * Deletes a comment.
+   */
+  async deleteComment(commentId: string): Promise<void> {
+    const { error } = await supabase.from('social_comments').delete().eq('id', commentId);
+    if (error) throw error;
+  },
+
+  /**
    * Retrieves the list of user IDs that the current user is following.
    * @param userId - The UUID of the current user.
    * @returns A promise resolving to an array of followed UUIDs.

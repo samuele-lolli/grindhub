@@ -101,6 +101,4 @@
 
 @media (max-width: 1024px) { .heroGrid, .mainGrid { grid-template-columns: 1fr; } }
 @media (max-width: 768px) { .heroValue { font-size: 2.5rem; } .actionsGrid { grid-template-columns: 1fr 1fr; } .timeFilters { display: none; } }
-
-@keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@media (max-width: 480px) { .actionsGrid, .accountsGrid { grid-template-columns: 1fr; } }

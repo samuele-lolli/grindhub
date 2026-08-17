@@ -8,11 +8,10 @@
   min-height: calc(100vh - var(--topbar-height));
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .main {
     margin-left: 0;
     padding-bottom: calc(var(--mobile-nav-height) + var(--space-4));
   }
 }
 
-@keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }

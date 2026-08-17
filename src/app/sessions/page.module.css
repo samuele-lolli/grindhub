@@ -894,21 +894,7 @@
 
 /* ── Animations ── */
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 .platformPills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
 .platformPill { padding: 4px 12px; border-radius: 9999px; border: 1px solid var(--border-secondary); background: var(--bg-tertiary); color: var(--text-muted); font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
 .platformPill:hover { background: var(--bg-hover); color: var(--text-primary); }

@@ -13,6 +13,8 @@ interface SocialActions {
   addPost: (post: Omit<SocialPost, 'id' | 'createdAt' | 'kudos' | 'comments'>) => Promise<void>;
   toggleLike: (postId: string) => Promise<void>;
   addComment: (postId: string, content: string) => Promise<void>;
+  deletePost: (postId: string) => Promise<void>;
+  deleteComment: (postId: string, commentId: string) => Promise<void>;
   
   followUser: (followingId: string) => Promise<void>;
   unfollowUser: (followingId: string) => Promise<void>;
@@ -34,10 +36,14 @@ export const useSocialStore = create<SocialStore>()((set, get) => ({
     const userId = useProfileStore.getState().profile?.id;
     if (!userId) return;
 
-    const newPost = await socialService.createPost(userId, post);
-    set(state => ({
-      feed: [newPost, ...state.feed]
-    }));
+    try {
+      const newPost = await socialService.createPost(userId, post);
+      set(state => ({
+        feed: [newPost, ...state.feed]
+      }));
+    } catch (error) {
+      console.error('Failed to add post:', error);
+    }
   },
 
   toggleLike: async (postId) => {
@@ -65,22 +71,61 @@ export const useSocialStore = create<SocialStore>()((set, get) => ({
     }));
 
     // Service call (the DB table remains social_kudos)
-    await socialService.toggleKudos(userId, postId, !hasLiked);
+    try {
+      await socialService.toggleKudos(userId, postId, !hasLiked);
+    } catch (error) {
+      console.error('Failed to toggle like:', error);
+      // Rollback optimistic update
+      set(state => ({
+        feed: state.feed.map(p => {
+          if (p.id === postId) {
+            return {
+              ...p,
+              kudos: hasLiked
+                ? [...p.kudos, userId]
+                : p.kudos.filter(id => id !== userId)
+            };
+          }
+          return p;
+        })
+      }));
+    }
   },
 
   addComment: async (postId, content) => {
     const userId = useProfileStore.getState().profile?.id;
     if (!userId) return;
 
-    const comment = await socialService.addComment(userId, postId, content);
-    
+    try {
+      const comment = await socialService.addComment(userId, postId, content);
+      
+      set(state => ({
+        feed: state.feed.map(p => {
+          if (p.id === postId) {
+            return {
+              ...p,
+              comments: [...p.comments, comment]
+            };
+          }
+          return p;
+        })
+      }));
+    } catch (error) {
+      console.error('Failed to add comment:', error);
+    }
+  },
+
+  deletePost: async (postId) => {
+    await socialService.deletePost(postId);
+    set(state => ({ feed: state.feed.filter(p => p.id !== postId) }));
+  },
+
+  deleteComment: async (postId, commentId) => {
+    await socialService.deleteComment(commentId);
     set(state => ({
       feed: state.feed.map(p => {
         if (p.id === postId) {
-          return {
-            ...p,
-            comments: [...p.comments, comment]
-          };
+          return { ...p, comments: p.comments.filter(c => c.id !== commentId) };
         }
         return p;
       })
@@ -94,7 +139,13 @@ export const useSocialStore = create<SocialStore>()((set, get) => ({
     if (get().following.includes(followingId)) return;
     
     set(state => ({ following: [...state.following, followingId] }));
-    await socialService.followUser(followerId, followingId);
+    try {
+      await socialService.followUser(followerId, followingId);
+    } catch (error) {
+      console.error('Failed to follow user:', error);
+      // Rollback
+      set(state => ({ following: state.following.filter(id => id !== followingId) }));
+    }
   },
 
   unfollowUser: async (followingId) => {
@@ -102,7 +153,13 @@ export const useSocialStore = create<SocialStore>()((set, get) => ({
     if (!followerId) return;
 
     set(state => ({ following: state.following.filter(id => id !== followingId) }));
-    await socialService.unfollowUser(followerId, followingId);
+    try {
+      await socialService.unfollowUser(followerId, followingId);
+    } catch (error) {
+      console.error('Failed to unfollow user:', error);
+      // Rollback
+      set(state => ({ following: [...state.following, followingId] }));
+    }
   },
 
   isFollowing: (userId) => {

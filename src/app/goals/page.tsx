@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Target, CheckCircle2, Trophy, Plus, Flame, Zap, Star, Award, TrendingUp, Calendar, Shield, Crown, Gem, X, Lock } from 'lucide-react';
 import { useGoalsStore, ACHIEVEMENT_DEFINITIONS } from '@/stores/goals-store';
 import { useSessionStore } from '@/stores/session-store';
@@ -42,8 +42,8 @@ export default function GoalsPage() {
   const activeGoals = useMemo(() => goals.filter(g => g.status === 'active'), [goals]);
   const completedGoals = useMemo(() => goals.filter(g => g.status === 'completed'), [goals]);
 
-  // Check achievements on mount
-  useMemo(() => { if (sessions.length > 0) checkAchievements(getStats()); }, [sessions, getStats, checkAchievements]);
+  // Check achievements on mount/session change
+  useEffect(() => { if (sessions.length > 0) checkAchievements(getStats()); }, [sessions.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const unlockedAchievements = useMemo(() => {
     return achievements
@@ -59,6 +59,15 @@ export default function GoalsPage() {
     const unlockedIds = new Set(achievements.filter(a => a.unlockedAt).map(a => a.id));
     return ACHIEVEMENT_DEFINITIONS.filter(d => !unlockedIds.has(d.id));
   }, [achievements]);
+
+  // M2: Escape key to close modal
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowModal(false);
+    };
+    if (showModal) window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [showModal]);
 
   const handleAddGoal = async (e?: React.FormEvent, template?: typeof GOAL_TEMPLATES[0]) => {
     if (e) e.preventDefault();

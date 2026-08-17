@@ -55,7 +55,7 @@ input:checked + .slider:before { transform: translateX(20px); background-color: 
 .deleteAccBtn:hover { background: var(--accent-red); color: white; }
 .deleteAccBtn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .layout { flex-direction: column; }
   .navSidebar { width: 100%; flex-direction: row; overflow-x: auto; padding-bottom: var(--space-2); }
   .navBtn { flex-shrink: 0; }
@@ -64,7 +64,6 @@ input:checked + .slider:before { transform: translateX(20px); background-color: 
   .stickySaveBar { left: 0; }
 }
 
-@keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
 .stickySaveBar {
   position: fixed;
@@ -78,7 +77,7 @@ input:checked + .slider:before { transform: translateX(20px); background-color: 
   display: flex;
   justify-content: space-between;
   align-items: center;
-  z-index: 100;
+  z-index: var(--z-sticky);
   animation: slideDown 0.3s ease;
   box-shadow: 0 4px 20px rgba(0,0,0,0.5);
 }

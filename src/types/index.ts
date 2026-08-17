@@ -205,10 +205,6 @@ export interface PlayerStats {
   totalHoursPlayed: number;
   /** Percentage of sessions that were profitable. */
   winRate: number;
-  /** Average finishing position percentile. */
-  avgFinishPercentile: number;
-  /** Percentage of events reaching the final table. */
-  finalTablePercent: number;
 }
 
 // ---------------------------------------------------------------------------

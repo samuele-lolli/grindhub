@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   Plus, Search, Calendar, Trash2, X, Clock,
   TrendingUp, Trophy, ChevronDown, BarChart3, Target,
@@ -170,6 +170,7 @@ export default function SessionsPage() {
     if (!form.eventCount || parseInt(form.eventCount) <= 0) errors.eventCount = 'Required';
     if (!form.cashesCount || parseInt(form.cashesCount) < 0) errors.cashesCount = 'Required';
     if (!form.date) errors.date = 'Required';
+    if (form.platforms.length === 0) errors.platforms = 'Required';
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -190,17 +191,23 @@ export default function SessionsPage() {
     setFormErrors({});
   }, []);
 
+  // M2: Escape key to close modal
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeModal();
+    };
+    if (showModal) window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [showModal, closeModal]);
+
   // ── Submit Handler ──
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
       if (!validateForm()) return;
-
-      const now = new Date().toISOString();
       const duration = parseInt(form.hours || '0') * 60 + parseInt(form.minutes || '0');
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const session: any = {
+      const session: Parameters<typeof addSession>[0] = {
         date: new Date(form.date).toISOString(),
         platforms: form.platforms,
         duration,
@@ -209,8 +216,6 @@ export default function SessionsPage() {
         totalBuyIns: parseFloat(form.totalBuyIns) || 0,
         totalCashes: parseFloat(form.totalCashes) || 0,
         notes: form.notes,
-        createdAt: now,
-        updatedAt: now,
       };
 
       addSession(session);

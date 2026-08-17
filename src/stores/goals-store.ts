@@ -40,24 +40,36 @@ export const useGoalsStore = create<GoalsStore>()(
     const userId = useProfileStore.getState().profile?.id;
     if (!userId) return;
 
-    const newGoal = await goalsService.createGoal(userId, goal);
-    set(state => ({
-      goals: [newGoal, ...state.goals].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    }));
+    try {
+      const newGoal = await goalsService.createGoal(userId, goal);
+      set(state => ({
+        goals: [newGoal, ...state.goals].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      }));
+    } catch (error) {
+      console.error('Failed to add goal:', error);
+    }
   },
 
   updateGoal: async (id, updates) => {
-    await goalsService.updateGoal(id, updates);
-    set(state => ({
-      goals: state.goals.map(g => g.id === id ? { ...g, ...updates } as Goal : g)
-    }));
+    try {
+      await goalsService.updateGoal(id, updates);
+      set(state => ({
+        goals: state.goals.map(g => g.id === id ? { ...g, ...updates } as Goal : g)
+      }));
+    } catch (error) {
+      console.error('Failed to update goal:', error);
+    }
   },
 
   deleteGoal: async (id) => {
-    await goalsService.deleteGoal(id);
-    set(state => ({
-      goals: state.goals.filter(g => g.id !== id)
-    }));
+    try {
+      await goalsService.deleteGoal(id);
+      set(state => ({
+        goals: state.goals.filter(g => g.id !== id)
+      }));
+    } catch (error) {
+      console.error('Failed to delete goal:', error);
+    }
   },
 
   setGoals: (goals) => set({ goals }),
@@ -80,70 +92,78 @@ export const useGoalsStore = create<GoalsStore>()(
       completedAt
     };
 
-    await goalsService.updateGoal(id, updates);
+    try {
+      await goalsService.updateGoal(id, updates);
 
-    // Auto-share to social if completed
-    if (newStatus === 'completed' && goal.status === 'active') {
-      const profile = useProfileStore.getState().profile;
-      if (profile && profile.privacy?.autoShareGoals) {
-        const { addPost } = useSocialStore.getState();
-        await addPost({
-          authorId: profile.id,
-          type: 'goal_completed',
-          content: `🎯 I just crushed my goal: "${goal.title}"! Hard work pays off.`,
-          data: { goalId: goal.id, goalTitle: goal.title, target: goal.targetValue },
-          isPublic: true
-        });
+      // Auto-share to social if completed
+      if (newStatus === 'completed' && goal.status === 'active') {
+        const profile = useProfileStore.getState().profile;
+        if (profile && profile.privacy?.autoShareGoals) {
+          const { addPost } = useSocialStore.getState();
+          await addPost({
+            authorId: profile.id,
+            type: 'goal_completed',
+            content: `🎯 I just crushed my goal: "${goal.title}"! Hard work pays off.`,
+            data: { goalId: goal.id, goalTitle: goal.title, target: goal.targetValue },
+            isPublic: true
+          });
+        }
       }
-    }
 
-    set(state => ({
-      goals: state.goals.map(g => g.id === id ? { ...g, ...updates } as Goal : g)
-    }));
+      set(state => ({
+        goals: state.goals.map(g => g.id === id ? { ...g, ...updates } as Goal : g)
+      }));
+    } catch (error) {
+      console.error('Failed to update progress:', error);
+    }
   },
 
   evaluateActiveGoals: async () => {
-    const { goals, updateProgress } = get();
-    const activeGoals = goals.filter(g => g.status === 'active');
-    
-    // Dynamically import to avoid circular dependency
-    const { useSessionStore } = await import('./session-store');
-    const allSessions = useSessionStore.getState().sessions;
-    
-    for (const goal of activeGoals) {
-      // Only count sessions that happened AFTER the goal was created (ignoring exact time)
-      let goalStartDate = goal.createdAt ? new Date(goal.createdAt) : new Date();
-      if (isNaN(goalStartDate.getTime()) || goalStartDate.getTime() < new Date('2020-01-01').getTime()) {
-        goalStartDate = new Date(); // fallback if date is invalid or ancient
-      }
-      goalStartDate.setHours(0,0,0,0);
-      const goalStartTime = goalStartDate.getTime();
-
-      const relevantSessions = allSessions.filter(s => {
-        const sessionDate = new Date(s.date);
-        sessionDate.setHours(0,0,0,0);
-        return sessionDate.getTime() >= goalStartTime;
-      });
-      const goalStats = useSessionStore.getState().getStats(relevantSessions);
+    try {
+      const { goals, updateProgress } = get();
+      const activeGoals = goals.filter(g => g.status === 'active');
       
-      let newValue = goal.currentValue;
+      // Dynamically import to avoid circular dependency
+      const { useSessionStore } = await import('./session-store');
+      const allSessions = useSessionStore.getState().sessions;
       
-      switch (goal.type) {
-        case 'profit':
-          newValue = goalStats.totalProfit;
-          break;
-        case 'volume':
-          newValue = goalStats.totalTournaments;
-          break;
-        case 'roi':
-          newValue = goalStats.roi;
-          break;
-        // time and custom logic could be added here
-      }
+      for (const goal of activeGoals) {
+        // Only count sessions that happened AFTER the goal was created (ignoring exact time)
+        let goalStartDate = goal.createdAt ? new Date(goal.createdAt) : new Date();
+        if (isNaN(goalStartDate.getTime()) || goalStartDate.getTime() < new Date('2020-01-01').getTime()) {
+          goalStartDate = new Date(); // fallback if date is invalid or ancient
+        }
+        goalStartDate.setHours(0,0,0,0);
+        const goalStartTime = goalStartDate.getTime();
 
-      if (newValue !== goal.currentValue) {
-        await updateProgress(goal.id, newValue);
+        const relevantSessions = allSessions.filter(s => {
+          const sessionDate = new Date(s.date);
+          sessionDate.setHours(0,0,0,0);
+          return sessionDate.getTime() >= goalStartTime;
+        });
+        const goalStats = useSessionStore.getState().getStats(relevantSessions);
+        
+        let newValue = goal.currentValue;
+        
+        switch (goal.type) {
+          case 'profit':
+            newValue = goalStats.totalProfit;
+            break;
+          case 'volume':
+            newValue = goalStats.totalTournaments;
+            break;
+          case 'roi':
+            newValue = goalStats.roi;
+            break;
+          // time and custom logic could be added here
+        }
+
+        if (newValue !== goal.currentValue) {
+          await updateProgress(goal.id, newValue);
+        }
       }
+    } catch (error) {
+      console.error('Failed to evaluate active goals:', error);
     }
   },
 

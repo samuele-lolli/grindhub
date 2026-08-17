@@ -796,7 +796,7 @@
   bottom: 0;
   background: rgba(0,0,0,0.6);
   backdrop-filter: blur(4px);
-  z-index: 1000;
+  z-index: var(--z-modal-backdrop);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -905,7 +905,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: var(--z-modal-backdrop);
   padding: var(--space-4);
   animation: fadeIn 0.2s ease forwards;
 }
@@ -1056,6 +1056,4 @@
   }
 }
 
-@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }

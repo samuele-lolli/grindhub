@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement,
   ArcElement, Tooltip, Legend, Filler
@@ -74,6 +74,22 @@ export default function BankrollPage() {
     danger: 'Your bankroll is critically low. Strict bankroll management required.'
   };
 
+  // M2: Escape key to close modals
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowTxModal(false);
+        setShowAccModal(false);
+        setShowTransferModal(false);
+        setShowSyncModal(false);
+      }
+    };
+    if (showTxModal || showAccModal || showTransferModal || showSyncModal) {
+      window.addEventListener('keydown', handleEsc);
+    }
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [showTxModal, showAccModal, showTransferModal, showSyncModal]);
+
   // Chart data
   const chartData = useMemo(() => {
     const playableAccountIds = new Set(accounts.filter(a => a.category === 'poker_room').map(a => a.id));
@@ -106,13 +122,12 @@ export default function BankrollPage() {
       const todayStr = format(new Date(), 'yyyy-MM-dd');
       
       const allDays: string[] = [];
-      const currentD = new Date(startDateStr + 'T12:00:00Z');
-      while (true) {
-        const dStr = currentD.toISOString().split('T')[0];
-        allDays.push(dStr);
-        if (dStr === todayStr) break;
-        currentD.setUTCDate(currentD.getUTCDate() + 1);
-        if (allDays.length > 3650) break; // Safety limit
+      const startD = new Date(startDateStr + 'T12:00:00Z');
+      const todayD = new Date(todayStr + 'T12:00:00Z');
+      const totalDays = Math.ceil((todayD.getTime() - startD.getTime()) / 86400000) + 1;
+      for (let i = 0; i < Math.min(totalDays, 3650); i++) {
+        const d = new Date(startD.getTime() + i * 86400000);
+        allDays.push(d.toISOString().split('T')[0]);
       }
       
       let runningBankroll = playableBankroll;

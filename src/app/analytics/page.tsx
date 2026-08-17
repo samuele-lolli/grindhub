@@ -97,13 +97,12 @@ export default function AnalyticsPage() {
       const todayStr = format(new Date(), 'yyyy-MM-dd');
       
       const allDays: string[] = [];
-      const currentD = new Date(startDateStr + 'T12:00:00Z');
-      while (true) {
-        const dStr = currentD.toISOString().split('T')[0];
-        allDays.push(dStr);
-        if (dStr === todayStr) break;
-        currentD.setUTCDate(currentD.getUTCDate() + 1);
-        if (allDays.length > 3650) break;
+      const startD = new Date(startDateStr + 'T12:00:00Z');
+      const todayD = new Date(todayStr + 'T12:00:00Z');
+      const totalDays = Math.ceil((todayD.getTime() - startD.getTime()) / 86400000) + 1;
+      for (let i = 0; i < Math.min(totalDays, 3650); i++) {
+        const d = new Date(startD.getTime() + i * 86400000);
+        allDays.push(d.toISOString().split('T')[0]);
       }
       
       let runningBankroll = totalBankroll;

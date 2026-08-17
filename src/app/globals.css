@@ -45,6 +45,7 @@
   --accent-blue: #3b82f6;
   --accent-blue-light: #60a5fa;
   --accent-blue-dark: #2563eb;
+  --accent-blue-hover: #2563eb;
   --accent-blue-bg: rgba(59, 130, 246, 0.1);
   --accent-blue-bg-hover: rgba(59, 130, 246, 0.2);
 
@@ -522,6 +523,11 @@ tr:hover td {
   }
 
   .hide-mobile { display: none !important; }
+
+  /* H4: Prevent iOS Safari auto-zoom on input focus */
+  input, select, textarea {
+    font-size: 16px;
+  }
 }
 
 @media (min-width: 769px) {

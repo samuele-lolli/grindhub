@@ -111,7 +111,7 @@
   transform: scale(1.1);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .topbar {
     left: 0;
     padding: 0 var(--space-3);
@@ -130,4 +130,3 @@
   }
 }
 
-@keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
