@@ -137,6 +137,10 @@
   background: rgba(239, 68, 68, 0.1);
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 
 @keyframes slideUp {
   from { transform: translateY(100%); }

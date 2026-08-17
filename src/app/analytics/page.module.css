@@ -45,3 +45,4 @@
 @media (max-width: 1024px) { .statsGrid { grid-template-columns: repeat(2, 1fr); } .chartsGrid { grid-template-columns: 1fr; } }
 @media (max-width: 768px) { .statsGrid { grid-template-columns: 1fr 1fr; } .monthlyHeader, .monthlyRow { grid-template-columns: 1fr 1fr 1fr; } .monthWinRate { display: none; } }
 
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
