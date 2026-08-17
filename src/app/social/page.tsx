@@ -399,7 +399,7 @@ export default function SocialPage() {
                                     <span className={styles.commentText}>{c.content}</span>
                                     <span className={styles.commentTime}>{formatRelativeTime(c.createdAt)}</span>
                                   </div>
-                                  {c.authorId === profile?.id && (
+                                  {((c.authorId === profile?.id) || (post.authorId === profile?.id)) && (
                                     <button className={styles.deleteCommentBtn} onClick={() => deleteComment(post.id, c.id)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '2px', marginLeft: 'auto' }} title="Delete comment">
                                       <Trash2 size={12} />
                                     </button>
@@ -416,6 +416,7 @@ export default function SocialPage() {
                               type="text"
                               className={styles.commentInput}
                               placeholder={t.social.writeComment}
+                              maxLength={500}
                               value={commentInputs[post.id] || ''}
                               onChange={e => setCommentInputs(prev => ({ ...prev, [post.id]: e.target.value }))}
                               onKeyDown={e => {

@@ -407,7 +407,16 @@ export default function BankrollPage() {
             <form className={styles.form} onSubmit={handleAddTx}>
               <div className={styles.formGroup}>
                 <label>Amount (EUR) *</label>
-                <input type="number" step="0.01" min="0" value={txForm.amount} onChange={e => setTxForm({...txForm, amount: e.target.value})} placeholder="e.g. 500" required />
+                <input 
+                  type="number" 
+                  step="0.01" 
+                  min="0" 
+                  max={txForm.type === 'withdrawal' && txForm.accountId ? accounts.find(a => a.id === txForm.accountId)?.balance : undefined}
+                  value={txForm.amount} 
+                  onChange={e => setTxForm({...txForm, amount: e.target.value})} 
+                  placeholder="e.g. 500" 
+                  required 
+                />
               </div>
               <div className={styles.formGroup}>
                 <label>Account *</label>
@@ -422,7 +431,13 @@ export default function BankrollPage() {
               </div>
               <div className={styles.modalFooter}>
                 <button type="button" className={styles.cancelBtn} onClick={() => setShowTxModal(false)}>Cancel</button>
-                <button type="submit" className={styles.saveBtn}>Save</button>
+                <button 
+                  type="submit" 
+                  className={styles.saveBtn}
+                  disabled={txForm.type === 'withdrawal' && txForm.accountId && parseFloat(txForm.amount) > (accounts.find(a => a.id === txForm.accountId)?.balance || 0)}
+                >
+                  Save
+                </button>
               </div>
             </form>
           </div>
@@ -490,7 +505,16 @@ export default function BankrollPage() {
               </div>
               <div className={styles.formGroup}>
                 <label>Amount (EUR) *</label>
-                <input type="number" step="0.01" min="0.01" value={transferForm.amount} onChange={e => setTransferForm({...transferForm, amount: e.target.value})} placeholder="0.00" required />
+                <input 
+                  type="number" 
+                  step="0.01" 
+                  min="0.01" 
+                  max={transferForm.fromId ? accounts.find(a => a.id === transferForm.fromId)?.balance : undefined}
+                  value={transferForm.amount} 
+                  onChange={e => setTransferForm({...transferForm, amount: e.target.value})} 
+                  placeholder="0.00" 
+                  required 
+                />
               </div>
               <div className={styles.formGroup}>
                 <label>Notes</label>
@@ -498,7 +522,13 @@ export default function BankrollPage() {
               </div>
               <div className={styles.modalFooter}>
                 <button type="button" className={styles.cancelBtn} onClick={() => setShowTransferModal(false)}>Cancel</button>
-                <button type="submit" className={styles.saveBtn}>Save</button>
+                <button 
+                  type="submit" 
+                  className={styles.saveBtn}
+                  disabled={transferForm.fromId && parseFloat(transferForm.amount) > (accounts.find(a => a.id === transferForm.fromId)?.balance || 0)}
+                >
+                  Transfer
+                </button>
               </div>
             </form>
           </div>

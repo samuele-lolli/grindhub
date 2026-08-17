@@ -38,17 +38,30 @@ export const useBankrollStore = create<BankrollStore>()((set, get) => ({
 
   /**
    * Creates a new bankroll account.
-   * If the initial balance > 0, the service already stores balance in the DB.
-   * We do NOT create an extra "Initial Balance" transaction to avoid double-counting.
+   * If the initial balance > 0, we create the account with 0 balance
+   * and then generate an "Initial Balance" deposit to ensure charts calculate history correctly.
    */
   addAccount: async (acc) => {
     const userId = useProfileStore.getState().profile?.id;
     if (!userId) return;
 
-    const newAcc = await bankrollService.createAccount(userId, acc);
+    const initialBalance = acc.balance;
+    const accountToCreate = { ...acc, balance: 0 };
+    const newAcc = await bankrollService.createAccount(userId, accountToCreate);
+    
     set(state => ({
       accounts: [...state.accounts, newAcc]
     }));
+
+    if (initialBalance > 0) {
+      await get().addTransaction({
+        accountId: newAcc.id,
+        type: 'deposit',
+        amount: initialBalance,
+        date: new Date().toISOString(),
+        notes: 'Initial Balance'
+      });
+    }
   },
 
   deleteAccount: async (id) => {

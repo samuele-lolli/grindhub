@@ -165,26 +165,28 @@ export default function SessionsPage() {
   const validateForm = useCallback((): boolean => {
     const errors: Record<string, string> = {};
 
-    if (form.totalBuyIns === '' || parseFloat(form.totalBuyIns) < 0) errors.totalBuyIns = 'Must be ≥ 0';
-    if (form.totalCashes === '' || parseFloat(form.totalCashes) < 0) errors.totalCashes = 'Must be ≥ 0';
-    if (!form.eventCount || parseInt(form.eventCount) <= 0) errors.eventCount = 'Must be > 0';
-    
-    const cashes = parseInt(form.cashesCount);
-    const events = parseInt(form.eventCount);
-    if (form.cashesCount === '' || cashes < 0) {
-      errors.cashesCount = 'Must be ≥ 0';
-    } else if (events > 0 && cashes > events) {
-      errors.cashesCount = 'Cannot exceed events';
-    }
-
     if (!form.date) errors.date = 'Required';
     if (form.platforms.length === 0) errors.platforms = 'Required';
     
-    const duration = parseInt(form.hours || '0') * 60 + parseInt(form.minutes || '0');
-    if (duration <= 0) {
-      errors.hours = 'Duration > 0';
-      errors.minutes = 'Duration > 0';
+    const h = parseInt(form.hours || '0');
+    const m = parseInt(form.minutes || '0');
+    if (isNaN(h) || isNaN(m) || (h === 0 && m === 0) || h < 0 || m < 0) {
+      errors.hours = 'Invalid duration';
+      errors.minutes = 'Invalid duration';
     }
+
+    const events = parseInt(form.eventCount);
+    if (isNaN(events) || events <= 0) errors.eventCount = 'Must be > 0';
+
+    const cashes = parseInt(form.cashesCount);
+    if (isNaN(cashes) || cashes < 0) errors.cashesCount = 'Invalid';
+    if (cashes > events) errors.cashesCount = 'Cannot exceed events';
+
+    const buyIns = parseFloat(form.totalBuyIns);
+    if (isNaN(buyIns) || buyIns < 0) errors.totalBuyIns = 'Invalid';
+
+    const totCashes = parseFloat(form.totalCashes);
+    if (isNaN(totCashes) || totCashes < 0) errors.totalCashes = 'Invalid';
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;

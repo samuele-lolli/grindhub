@@ -115,7 +115,6 @@ export default function SettingsPage() {
       platforms: localProfile.platforms
     });
     
-    setIsDirty(false);
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 3000);
   };
