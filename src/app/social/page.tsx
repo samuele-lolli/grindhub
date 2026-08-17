@@ -116,7 +116,7 @@ export default function SocialPage() {
     return () => window.removeEventListener('keydown', handleEsc);
   }, [showSessionPicker]);
 
-  const handlePostSubmit = useCallback(async (e: React.FormEvent) => {
+  const handlePostSubmit = useCallback(async () => {
     if (!newPost.trim() && !attachedSession) return;
     if (newPost.length > MAX_POST_LENGTH) return;
     
@@ -246,7 +246,7 @@ export default function SocialPage() {
                 </span>
                 <button
                   className={styles.postBtn}
-                  onClick={handlePostSubmit as any}
+                  onClick={handlePostSubmit}
                   disabled={(!newPost.trim() && !attachedSession) || charOverLimit}
                 >
                   <Send size={14} />

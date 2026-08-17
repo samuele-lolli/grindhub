@@ -94,26 +94,9 @@ export default function SettingsPage() {
     setLocalProfile(profile);
   }, [profile]);
 
-  const [isDirty, setIsDirty] = useState(false);
-
-  useEffect(() => {
-    if (!localProfile || !profile) return;
-    
-    // Compare essential fields to avoid infinite loops on reference changes
-    const profileChanged = 
-      localProfile.displayName !== profile.displayName ||
-      localProfile.bio !== profile.bio ||
-      localProfile.avatar !== profile.avatar ||
-      localProfile.yearsPlaying !== profile.yearsPlaying ||
-      localProfile.primaryGameType !== profile.primaryGameType ||
-      localProfile.preferredStakes !== profile.preferredStakes ||
-      JSON.stringify(localProfile.platforms) !== JSON.stringify(profile.platforms) ||
-      JSON.stringify(localProfile.privacy) !== JSON.stringify(profile.privacy);
-
-    const settingsChanged = JSON.stringify(localSettings) !== JSON.stringify(settings);
-
-    setIsDirty(profileChanged || settingsChanged);
-  }, [localProfile, localSettings, profile, settings]);
+  const profileChanged = JSON.stringify(localProfile) !== JSON.stringify(profile);
+  const settingsChanged = JSON.stringify(localSettings) !== JSON.stringify(settings);
+  const isDirty = profileChanged || settingsChanged;
 
   const handleSave = () => {
     if (!localProfile) return;
