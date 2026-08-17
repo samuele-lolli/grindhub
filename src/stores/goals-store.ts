@@ -157,6 +157,10 @@ export const useGoalsStore = create<GoalsStore>()(
             break;
           // time and custom logic could be added here
         }
+        
+        if (typeof newValue !== 'number' || isNaN(newValue) || !isFinite(newValue)) {
+          newValue = 0;
+        }
 
         if (newValue !== goal.currentValue) {
           await updateProgress(goal.id, newValue);

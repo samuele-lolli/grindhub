@@ -294,6 +294,8 @@ export function getBankrollHealth(
   avgBuyIn: number,
   gameType: GameType,
 ): BankrollHealthStatus {
+  if (avgBuyIn <= 0) return 'healthy';
+
   const recommendedBuyIns: Record<GameType, number> = {
     mtt: 100,
     cash: 30,

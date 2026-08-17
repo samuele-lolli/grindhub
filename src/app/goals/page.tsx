@@ -85,11 +85,16 @@ export default function GoalsPage() {
         status: 'active' as const,
       };
     } else {
+      const parsedTarget = parseFloat(form.targetValue);
+      if (isNaN(parsedTarget) || parsedTarget <= 0) {
+        alert('Target value must be greater than 0');
+        return;
+      }
       goalData = {
         title: form.title,
         description: form.description,
         type: form.type,
-        targetValue: parseFloat(form.targetValue),
+        targetValue: parsedTarget,
         currentValue: 0,
         deadline: form.deadline ? new Date(form.deadline).toISOString() : new Date(now + 30 * 86400000).toISOString(),
         status: 'active' as const,

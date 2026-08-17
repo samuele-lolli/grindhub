@@ -165,12 +165,26 @@ export default function SessionsPage() {
   const validateForm = useCallback((): boolean => {
     const errors: Record<string, string> = {};
 
-    if (!form.totalBuyIns || parseFloat(form.totalBuyIns) < 0) errors.totalBuyIns = 'Required';
-    if (!form.totalCashes || parseFloat(form.totalCashes) < 0) errors.totalCashes = 'Required';
-    if (!form.eventCount || parseInt(form.eventCount) <= 0) errors.eventCount = 'Required';
-    if (!form.cashesCount || parseInt(form.cashesCount) < 0) errors.cashesCount = 'Required';
+    if (form.totalBuyIns === '' || parseFloat(form.totalBuyIns) < 0) errors.totalBuyIns = 'Must be ≥ 0';
+    if (form.totalCashes === '' || parseFloat(form.totalCashes) < 0) errors.totalCashes = 'Must be ≥ 0';
+    if (!form.eventCount || parseInt(form.eventCount) <= 0) errors.eventCount = 'Must be > 0';
+    
+    const cashes = parseInt(form.cashesCount);
+    const events = parseInt(form.eventCount);
+    if (form.cashesCount === '' || cashes < 0) {
+      errors.cashesCount = 'Must be ≥ 0';
+    } else if (events > 0 && cashes > events) {
+      errors.cashesCount = 'Cannot exceed events';
+    }
+
     if (!form.date) errors.date = 'Required';
     if (form.platforms.length === 0) errors.platforms = 'Required';
+    
+    const duration = parseInt(form.hours || '0') * 60 + parseInt(form.minutes || '0');
+    if (duration <= 0) {
+      errors.hours = 'Duration > 0';
+      errors.minutes = 'Duration > 0';
+    }
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -618,7 +632,9 @@ export default function SessionsPage() {
                     value={form.hours}
                     onChange={(e) => updateField('hours', e.target.value)}
                     placeholder="2"
+                    className={formErrors.hours ? styles.inputError : ''}
                   />
+                  {formErrors.hours && <span className={styles.fieldError}>{formErrors.hours}</span>}
                 </div>
                 <div className={styles.formGroup}>
                   <label>Minutes</label>
@@ -629,7 +645,9 @@ export default function SessionsPage() {
                     value={form.minutes}
                     onChange={(e) => updateField('minutes', e.target.value)}
                     placeholder="30"
+                    className={formErrors.minutes ? styles.inputError : ''}
                   />
+                  {formErrors.minutes && <span className={styles.fieldError}>{formErrors.minutes}</span>}
                 </div>
 
                 {/* ── Notes ── */}
