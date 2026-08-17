@@ -434,7 +434,7 @@ export default function BankrollPage() {
                 <button 
                   type="submit" 
                   className={styles.saveBtn}
-                  disabled={txForm.type === 'withdrawal' && txForm.accountId && parseFloat(txForm.amount) > (accounts.find(a => a.id === txForm.accountId)?.balance || 0)}
+                  disabled={!!(txForm.type === 'withdrawal' && txForm.accountId && parseFloat(txForm.amount) > (accounts.find(a => a.id === txForm.accountId)?.balance || 0))}
                 >
                   Save
                 </button>
@@ -525,7 +525,7 @@ export default function BankrollPage() {
                 <button 
                   type="submit" 
                   className={styles.saveBtn}
-                  disabled={transferForm.fromId && parseFloat(transferForm.amount) > (accounts.find(a => a.id === transferForm.fromId)?.balance || 0)}
+                  disabled={!!(transferForm.fromId && parseFloat(transferForm.amount) > (accounts.find(a => a.id === transferForm.fromId)?.balance || 0))}
                 >
                   Transfer
                 </button>
