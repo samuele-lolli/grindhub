@@ -123,7 +123,20 @@ export const profileService = {
         currentStreak: data.currentStreak,
       } : null;
 
-      return { profile, stats };
+      let achievements: string[] = [];
+      try {
+        const { useProfileStore } = await import('@/stores/profile-store');
+        const { useGoalsStore } = await import('@/stores/goals-store');
+        const currentUser = useProfileStore.getState().profile;
+        if (currentUser && currentUser.id === id) {
+          achievements = useGoalsStore.getState().achievements.map((a: { id: string }) => a.id);
+        }
+      } catch {
+        // Ignore store errors in SSR or if unavailable
+      }
+
+      const profileWithAchievements = { ...profile, achievements };
+      return { profile: profileWithAchievements, stats };
     } catch (err) {
       console.error('Unexpected error fetching public stats:', err);
       return { profile, stats: null };

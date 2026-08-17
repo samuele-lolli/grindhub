@@ -175,6 +175,8 @@ export interface PlayerProfile {
   joinedAt: string;
   /** Privacy toggles for profile stats. */
   privacy: PlayerPrivacySettings;
+  /** Unlocked achievement IDs. */
+  achievements?: string[];
   /** `true` when this profile represents the authenticated user. */
   isCurrentUser?: boolean;
 }

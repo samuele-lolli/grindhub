@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { MessageCircle, Send, Share2, Users, TrendingUp, Trophy, X, Heart, Trash2 } from 'lucide-react';
+import { MessageCircle, Send, Share2, Users, TrendingUp, Trophy, X, Heart, Trash2, Target } from 'lucide-react';
 import { useSocialStore } from '@/stores/social-store';
 import { useProfileStore } from '@/stores/profile-store';
 import { useSessionStore } from '@/stores/session-store';
@@ -338,6 +338,24 @@ export default function SocialPage() {
                             ))}
                           </div>
                         )}
+                      </div>
+                    )}
+
+                    {/* Action Bar */}
+                    {post.type === 'goal_completed' && post.data && (
+                      <div className={styles.sessionEmbed} style={{ background: 'linear-gradient(to right, rgba(234, 179, 8, 0.1), rgba(234, 179, 8, 0.05))', borderColor: 'rgba(234, 179, 8, 0.2)' }}>
+                        <div className={styles.sessionEmbedHeader}>
+                          <span className={styles.sessionEmbedTitle}>
+                            <Target size={16} className="text-gold" />
+                            Goal Completed
+                          </span>
+                        </div>
+                        <div className={styles.sessionEmbedMetrics}>
+                          <div className={styles.embedMetric} style={{ width: '100%' }}>
+                            <span className={styles.embedMetricValue} style={{ fontSize: '18px', color: 'var(--text-primary)' }}>{String(post.data.goalTitle || '')}</span>
+                            <span className={styles.embedMetricLabel} style={{ marginTop: '4px' }}>Target: {String(post.data.target || '')}</span>
+                          </div>
+                        </div>
                       </div>
                     )}
 

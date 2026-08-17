@@ -6,6 +6,7 @@ import { DollarSign, TrendingUp, Target, BarChart3, CreditCard, Clock, ChevronRi
 import { useSessionStore } from '@/stores/session-store';
 import { useBankrollStore } from '@/stores/bankroll-store';
 import { useProfileStore } from '@/stores/profile-store';
+import { useGoalsStore } from '@/stores/goals-store';
 import { useI18n } from '@/i18n';
 import {
   formatCurrency, formatPercent, formatDate, formatDuration, formatNumber,
@@ -24,6 +25,9 @@ export default function DashboardPage() {
   const accounts = useBankrollStore(s => s.accounts);
   const getTotalBankroll = useBankrollStore(s => s.getTotalBankroll);
   const profile = useProfileStore(s => s.profile);
+  const goals = useGoalsStore(s => s.goals);
+  
+  const activeGoals = useMemo(() => goals.filter(g => g.status === 'active').slice(0, 2), [goals]);
 
   const stats = useMemo(() => getStats(), [getStats]);
   const totalBankroll = useMemo(() => getTotalBankroll(), [getTotalBankroll]);
@@ -147,6 +151,37 @@ export default function DashboardPage() {
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+
+          {/* Active Goals */}
+          <div className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.sectionTitle}>Active Goals</h2>
+              <Link href="/goals" className={styles.viewAllLink}>Manage <ChevronRight size={14} /></Link>
+            </div>
+            <div className={styles.quickActions} style={{ flexDirection: 'column', gap: '12px' }}>
+              {activeGoals.length === 0 ? (
+                <div className={styles.actionCard} style={{ cursor: 'default', justifyContent: 'center' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>No active goals. Set one up!</span>
+                </div>
+              ) : activeGoals.map(goal => (
+                <div key={goal.id} className={styles.actionCard} style={{ flexDirection: 'column', alignItems: 'stretch', gap: '8px', cursor: 'default' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontWeight: 'var(--font-semibold)' }}>{goal.title}</span>
+                    <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                      {goal.currentValue} / {goal.targetValue}
+                    </span>
+                  </div>
+                  <div style={{ width: '100%', height: '6px', background: 'var(--surface-light)', borderRadius: '3px', overflow: 'hidden' }}>
+                    <div style={{ 
+                      height: '100%', 
+                      background: 'var(--accent-primary)', 
+                      width: `${Math.min(100, Math.max(0, (goal.currentValue / goal.targetValue) * 100))}%`
+                    }} />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 

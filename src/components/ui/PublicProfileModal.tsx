@@ -127,6 +127,33 @@ export function PublicProfileModal({ selectedProfile, onClose }: PublicProfileMo
             This user has chosen to keep their statistics private.
           </div>
         )}
+
+        {selectedProfile.profile.achievements && selectedProfile.profile.achievements.length > 0 && (
+          <>
+            <h4 style={{ margin: '20px 0 12px', fontSize: '14px', color: 'var(--text-secondary)' }}>Trophy Cabinet</h4>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {selectedProfile.profile.achievements.map((achId) => {
+                // Determine icon/name based on ID
+                let icon = '🏆';
+                if (achId.includes('streak')) icon = '🔥';
+                if (achId.includes('volume')) icon = '⚡';
+                if (achId.includes('roi')) icon = '👑';
+                if (achId.includes('1k')) icon = '💰';
+                
+                return (
+                  <div key={achId} title={achId.replace(/_/g, ' ')} style={{
+                    background: 'var(--surface)', border: '1px solid var(--border)', 
+                    borderRadius: '50%', width: '40px', height: '40px', 
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '18px'
+                  }}>
+                    {icon}
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
