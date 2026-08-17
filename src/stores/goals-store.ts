@@ -84,6 +84,10 @@ export const useGoalsStore = create<GoalsStore>()(
     if (value >= goal.targetValue && goal.status === 'active') {
       newStatus = 'completed';
       completedAt = new Date().toISOString();
+    } else if (value < goal.targetValue && goal.status === 'completed') {
+      // De-complete: value dropped below target (e.g., session deleted)
+      newStatus = 'active';
+      completedAt = undefined;
     }
 
     const updates = {
@@ -121,13 +125,14 @@ export const useGoalsStore = create<GoalsStore>()(
   evaluateActiveGoals: async () => {
     try {
       const { goals, updateProgress } = get();
-      const activeGoals = goals.filter(g => g.status === 'active');
+      // Re-evaluate both active AND completed goals (in case sessions are deleted)
+      const evaluableGoals = goals.filter(g => g.status === 'active' || g.status === 'completed');
       
       // Dynamically import to avoid circular dependency
       const { useSessionStore } = await import('./session-store');
       const allSessions = useSessionStore.getState().sessions;
       
-      for (const goal of activeGoals) {
+      for (const goal of evaluableGoals) {
         // Only count sessions that happened AFTER the goal was created (ignoring exact time)
         let goalStartDate = goal.createdAt ? new Date(goal.createdAt) : new Date();
         if (isNaN(goalStartDate.getTime()) || goalStartDate.getTime() < new Date('2020-01-01').getTime()) {

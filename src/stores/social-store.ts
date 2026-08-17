@@ -6,6 +6,7 @@ import { useProfileStore } from './profile-store';
 interface SocialState {
   feed: SocialPost[];
   following: string[];
+  hasMore: boolean;
   trendingDiscussions: { postId: string, authorName: string, content: string, score: number }[];
 }
 
@@ -23,6 +24,7 @@ interface SocialActions {
   setPosts: (posts: SocialPost[]) => void;
   setFollowing: (userIds: string[]) => void;
   loadTrending: () => Promise<void>;
+  loadMore: () => Promise<void>;
 }
 
 type SocialStore = SocialState & SocialActions;
@@ -30,6 +32,7 @@ type SocialStore = SocialState & SocialActions;
 export const useSocialStore = create<SocialStore>()((set, get) => ({
   feed: [],
   following: [],
+  hasMore: true,
   trendingDiscussions: [],
 
   addPost: async (post) => {
@@ -166,11 +169,26 @@ export const useSocialStore = create<SocialStore>()((set, get) => ({
     return get().following.includes(userId);
   },
 
-  setPosts: (posts) => set({ feed: posts }),
+  setPosts: (posts) => set({ feed: posts, hasMore: posts.length >= 20 }),
   setFollowing: (userIds) => set({ following: userIds }),
   
   loadTrending: async () => {
     const trends = await socialService.fetchTrendingDiscussions();
     set({ trendingDiscussions: trends });
+  },
+
+  loadMore: async () => {
+    const currentFeed = get().feed;
+    try {
+      const morePosts = await socialService.fetchFeed(20, currentFeed.length);
+      if (morePosts.length < 20) {
+        set({ hasMore: false });
+      }
+      set(state => ({
+        feed: [...state.feed, ...morePosts.filter(p => !state.feed.some(existing => existing.id === p.id))]
+      }));
+    } catch (error) {
+      console.error('Failed to load more posts:', error);
+    }
   }
 }));

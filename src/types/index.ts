@@ -286,36 +286,8 @@ export interface Goal {
   completedAt?: string;
 }
 
-/** All possible achievement identifiers. */
-export type AchievementId =
-  | 'first_cash'
-  | 'win_streak_5'
-  | 'win_streak_10'
-  | 'big_score_1k'
-  | 'big_score_5k'
-  | 'big_score_10k'
-  | 'roi_month_20'
-  | 'volume_100'
-  | 'volume_500'
-  | 'volume_1000'
-  | 'grind_streak_7'
-  | 'grind_streak_30'
-  | 'final_table_king'
-  | 'leaderboard_top';
-
-/** An unlockable achievement badge. */
-export interface Achievement {
-  /** Machine identifier for this achievement. */
-  id: AchievementId;
-  /** Display title. */
-  title: string;
-  /** Description shown in the achievement panel. */
-  description: string;
-  /** Emoji or icon identifier. */
-  icon: string;
-  /** ISO 8601 timestamp when unlocked, or `undefined` if locked. */
-  unlockedAt?: string;
-}
+// Achievement IDs and definitions are managed in goals-store.ts
+// (ACHIEVEMENT_DEFINITIONS is the single source of truth)
 
 // ---------------------------------------------------------------------------
 // App Settings

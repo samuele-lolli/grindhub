@@ -425,6 +425,7 @@ export function getTimeFilterDate(filter: TimeFilter): Date {
  */
 export function filterSessionsByTime(sessions: Session[], filter: TimeFilter): Session[] {
   const cutoff = getTimeFilterDate(filter);
+  cutoff.setHours(0, 0, 0, 0);
   return sessions.filter((s) => new Date(s.date) >= cutoff);
 }
 

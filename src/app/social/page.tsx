@@ -57,6 +57,8 @@ export default function SocialPage() {
   const addComment = useSocialStore(s => s.addComment);
   const deletePost = useSocialStore(s => s.deletePost);
   const deleteComment = useSocialStore(s => s.deleteComment);
+  const hasMore = useSocialStore(s => s.hasMore);
+  const loadMore = useSocialStore(s => s.loadMore);
   const follow = useSocialStore(s => s.followUser);
   const loadTrending = useSocialStore(s => s.loadTrending);
   const trendingTopics = useSocialStore(s => s.trendingDiscussions);
@@ -437,6 +439,13 @@ export default function SocialPage() {
                   </article>
                 );
               })
+            )}
+            {hasMore && feedPosts.length > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '1.5rem 0' }}>
+                <button className={styles.actionBtn} style={{ padding: '8px 24px', fontSize: '13px' }} onClick={() => loadMore()}>
+                  Load More
+                </button>
+              </div>
             )}
           </div>
         </main>

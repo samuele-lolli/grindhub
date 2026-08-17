@@ -9,7 +9,7 @@ export const socialService = {
    * Retrieves the global or personalized social feed.
    * @returns A promise resolving to an array of SocialPost objects.
    */
-  async fetchFeed(): Promise<SocialPost[]> {
+  async fetchFeed(limit = 20, offset = 0): Promise<SocialPost[]> {
     const { data, error } = await supabase
       .from('social_posts')
       .select(`
@@ -17,7 +17,8 @@ export const socialService = {
         social_kudos ( user_id ),
         social_comments ( * )
       `)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
 
     if (error || !data) return [];
 
@@ -26,6 +27,7 @@ export const socialService = {
       authorId: d.author_id,
       type: d.type as PostType,
       content: d.content,
+      data: d.data || undefined,
       sessionData: d.session_data || undefined,
       isPublic: d.is_public,
       kudos: (d.social_kudos as { user_id: string }[] || []).map(k => k.user_id),

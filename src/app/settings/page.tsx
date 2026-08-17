@@ -196,13 +196,6 @@ export default function SettingsPage() {
                       <option value="GBP">British Pound (£)</option>
                     </select>
                   </div>
-                  <div className={styles.formGroup}>
-                    <label>Language</label>
-                    <select value={localSettings.locale} onChange={e => handleSettingChange('locale', e.target.value as 'en'|'it')}>
-                      <option value="en">English (US)</option>
-                      <option value="it">Italiano (IT)</option>
-                    </select>
-                  </div>
                 </div>
 
                 <div className={styles.divider} />
@@ -311,9 +304,9 @@ export default function SettingsPage() {
                       onChange={e => setLocalProfile(p => p ? {...p, primaryGameType: e.target.value as GameType} : p)}
                     >
                       <option value="mtt">MTT (Tournaments)</option>
-                      <option value="cash">Cash Game</option>
-                      <option value="sng">Sit & Go</option>
-                      <option value="spin">Spin & Go</option>
+                      <option value="cash" disabled>Cash Game (Coming Soon)</option>
+                      <option value="sng" disabled>Sit &amp; Go (Coming Soon)</option>
+                      <option value="spin" disabled>Spin &amp; Go (Coming Soon)</option>
                     </select>
                   </div>
                 </div>

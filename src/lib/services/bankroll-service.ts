@@ -128,30 +128,50 @@ export const bankrollService = {
 
     if (error) throw error;
 
-    // Sign-aware balance update: deposits add, withdrawals subtract
-    const { data: account } = await supabase
-      .from('bankroll_accounts')
-      .select('balance')
-      .eq('id', transaction.accountId)
-      .single();
+    // Atomic balance update via RPC (prevents race conditions)
+    let delta = 0;
+    if (transaction.type === 'withdrawal') {
+      delta = -transaction.amount;
+    } else {
+      delta = transaction.amount;
+    }
 
-    let newBalance = 0;
-    if (account) {
-      const currentBalance = Number(account.balance);
-      let delta = 0;
-      if (transaction.type === 'withdrawal') {
-        delta = -transaction.amount;
-      } else {
-        // deposit, session_result, transfer all add their exact amount
-        // (note: session_result can be negative for losses)
-        delta = transaction.amount;
-      }
-      newBalance = currentBalance + delta;
+    const { data: rpcResult, error: rpcError } = await supabase
+      .rpc('update_account_balance', {
+        p_account_id: transaction.accountId,
+        p_delta: delta,
+      });
+
+    if (rpcError) {
+      // Fallback: try the old way if RPC doesn't exist yet
+      console.warn('RPC fallback:', rpcError.message);
+      const { data: account } = await supabase
+        .from('bankroll_accounts')
+        .select('balance')
+        .eq('id', transaction.accountId)
+        .single();
+      
+      const newBalance = account ? Number(account.balance) + delta : delta;
       await supabase
         .from('bankroll_accounts')
         .update({ balance: newBalance })
         .eq('id', transaction.accountId);
+      
+      return {
+        transaction: {
+          id: data.id,
+          accountId: data.account_id,
+          type: data.type as BankrollTransaction['type'],
+          amount: Number(data.amount),
+          date: data.date,
+          notes: data.notes || '',
+          createdAt: data.created_at,
+        },
+        newBalance,
+      };
     }
+
+    const newBalance = Number(rpcResult);
 
     return {
       transaction: {
@@ -181,30 +201,32 @@ export const bankrollService = {
 
     if (error) throw error;
 
-    // Reverse the balance change
-    const { data: account } = await supabase
-      .from('bankroll_accounts')
-      .select('balance')
-      .eq('id', transaction.accountId)
-      .single();
-
-    let newBalance = 0;
-    if (account) {
-      const currentBalance = Number(account.balance);
-      // Reversing: withdrawal adds back, others (deposit, session_result) subtract the exact amount
-      let delta = 0;
-      if (transaction.type === 'withdrawal') {
-        delta = transaction.amount;
-      } else {
-        delta = -transaction.amount;
-      }
-      newBalance = currentBalance + delta;
-      await supabase
-        .from('bankroll_accounts')
-        .update({ balance: newBalance })
-        .eq('id', transaction.accountId);
+    // Reverse the balance change atomically
+    let delta = 0;
+    if (transaction.type === 'withdrawal') {
+      delta = transaction.amount; // reversing a withdrawal = add back
+    } else {
+      delta = -transaction.amount; // reversing a deposit = subtract
     }
 
-    return newBalance;
+    const { data: rpcResult, error: rpcError } = await supabase
+      .rpc('update_account_balance', {
+        p_account_id: transaction.accountId,
+        p_delta: delta,
+      });
+
+    if (rpcError) {
+      // Fallback
+      console.warn('RPC fallback:', rpcError.message);
+      const { data: account } = await supabase
+        .from('bankroll_accounts')
+        .select('balance')
+        .eq('id', transaction.accountId)
+        .single();
+      
+      return account ? Number(account.balance) + delta : delta;
+    }
+
+    return Number(rpcResult);
   },
 };
