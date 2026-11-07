@@ -1,161 +1,260 @@
-import React from 'react';
-import { X, CalendarDays, Gamepad2, Layers, Monitor } from 'lucide-react';
+'use client';
+
+import React, { useEffect, useCallback } from 'react';
+import { X, CalendarDays, Gamepad2, Layers, Monitor, Trophy, UserPlus, UserCheck, Flame } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, platformLabels } from '@/lib/utils';
+import { useSettingsStore } from '@/stores/settings-store';
+import { useSocialStore } from '@/stores/social-store';
+import { useProfileStore } from '@/stores/profile-store';
+import { useI18n } from '@/i18n';
+import { ACHIEVEMENT_DEFINITIONS } from '@/stores/goals-store';
 import styles from './PublicProfileModal.module.css';
 import { PlayerProfile, PlayerStats } from '@/types';
 
 interface PublicProfileModalProps {
-  selectedProfile: { profile: PlayerProfile, stats: Partial<PlayerStats> | null };
+  selectedProfile: { profile: PlayerProfile; stats: Partial<PlayerStats> | null };
   onClose: () => void;
 }
 
 export function PublicProfileModal({ selectedProfile, onClose }: PublicProfileModalProps) {
+  const { t } = useI18n();
+  const settings = useSettingsStore(s => s.settings);
+  const currency = settings?.currency || 'EUR';
+
+  const myProfile = useProfileStore(s => s.profile);
+  const isFollowing = useSocialStore(s => s.isFollowing);
+  const follow = useSocialStore(s => s.followUser);
+  const unfollow = useSocialStore(s => s.unfollowUser);
+
+  const targetId = selectedProfile?.profile?.id;
+  const isMe = myProfile?.id === targetId;
+  const following = targetId ? isFollowing(targetId) : false;
+
+  // Escape key handler
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  const handleToggleFollow = useCallback(async () => {
+    if (!targetId || isMe) return;
+    try {
+      if (following) {
+        await unfollow(targetId);
+      } else {
+        await follow(targetId);
+      }
+    } catch (err) {
+      console.error('Failed to toggle follow status:', err);
+    }
+  }, [targetId, isMe, following, unfollow, follow]);
+
   if (!selectedProfile) return null;
 
+  const { profile, stats } = selectedProfile;
+
   return (
-    <div className={styles.profileModalOverlay} onClick={onClose}>
+    <div className={styles.profileModalOverlay} onClick={onClose} role="dialog" aria-modal="true">
       <div className={styles.profileModal} onClick={e => e.stopPropagation()}>
-        <button className={styles.modalClose} onClick={onClose}>
+        <button className={styles.modalClose} onClick={onClose} aria-label="Close modal">
           <X size={16} />
         </button>
+
         <div className={styles.profileModalHeader}>
-          <Avatar 
-            name={selectedProfile.profile.displayName} 
-            src={selectedProfile.profile.avatar}
-            size="lg" 
+          <Avatar
+            name={profile.displayName}
+            src={profile.avatar}
+            size="lg"
           />
-          <div>
-            <span className={styles.profileModalName}>{selectedProfile.profile.displayName}</span>
-            <span className={styles.profileModalUser}>@{selectedProfile.profile.username} • {selectedProfile.profile.country || 'Global'}</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
+              <span className={styles.profileModalName}>{profile.displayName}</span>
+              {!isMe && targetId && (
+                <button
+                  type="button"
+                  onClick={handleToggleFollow}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '5px 12px',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    background: following ? 'var(--bg-tertiary)' : 'var(--accent-blue)',
+                    color: following ? 'var(--text-secondary)' : '#fff',
+                    border: `1px solid ${following ? 'var(--border-primary)' : 'var(--accent-blue)'}`,
+                  }}
+                >
+                  {following ? (
+                    <>
+                      <UserCheck size={13} /> {t.profile.unfollow}
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus size={13} /> {t.profile.follow}
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+            <span className={styles.profileModalUser}>@{profile.username} • {profile.country || 'Global'}</span>
           </div>
         </div>
-        
-        {selectedProfile.profile.bio && (
+
+        {profile.bio && (
           <div className={styles.profileModalBio}>
-            {selectedProfile.profile.bio}
+            {profile.bio}
           </div>
         )}
 
         <div className={styles.profileDetailsList}>
           <div className={styles.profileDetailItem}>
             <span className={styles.profileDetailLabel}>
-              <CalendarDays size={14} /> Experience
+              <CalendarDays size={14} /> {t.profile.experienceLabel}
             </span>
             <span className={styles.profileDetailValue}>
-              {selectedProfile.profile.yearsPlaying ? `${selectedProfile.profile.yearsPlaying} years` : 'Not specified'}
+              {profile.yearsPlaying ? `${profile.yearsPlaying} ${t.profile.yearsPlaying}` : t.profile.notSpecified}
             </span>
           </div>
-          
+
           <div className={styles.profileDetailItem}>
             <span className={styles.profileDetailLabel}>
-              <Gamepad2 size={14} /> Main Game
+              <Gamepad2 size={14} /> {t.profile.mainGameLabel}
             </span>
             <span className={styles.profileDetailValue} style={{ textTransform: 'uppercase' }}>
-              {selectedProfile.profile.primaryGameType || 'Mixed'}
+              {profile.primaryGameType || 'MTT'}
             </span>
           </div>
 
           <div className={styles.profileDetailItem}>
             <span className={styles.profileDetailLabel}>
-              <Layers size={14} /> Stakes
+              <Layers size={14} /> {t.profile.stakesLabel}
             </span>
             <span className={styles.profileDetailValue}>
-              {selectedProfile.profile.preferredStakes || 'Any'}
+              {profile.preferredStakes || 'Any'}
             </span>
           </div>
 
-          {selectedProfile.profile.platforms && selectedProfile.profile.platforms.length > 0 && (
+          {profile.platforms && profile.platforms.length > 0 && (
             <div className={styles.profileDetailItem} style={{ alignItems: 'flex-start', marginTop: '4px' }}>
               <span className={styles.profileDetailLabel}>
-                <Monitor size={14} /> Platforms
+                <Monitor size={14} /> {t.profile.platformsLabel}
               </span>
               <div className={styles.platformBadges}>
-                {selectedProfile.profile.platforms.map((p: string) => (
-                  <span key={p} className={styles.platformBadge}>{p}</span>
+                {profile.platforms.map((p: string) => (
+                  <span key={p} className={styles.platformBadge}>
+                    {platformLabels[p as keyof typeof platformLabels] || p}
+                  </span>
                 ))}
               </div>
             </div>
           )}
         </div>
 
-        <h4 style={{ marginBottom: '12px', fontSize: '14px', color: 'var(--text-secondary)' }}>Public Statistics</h4>
-        
+        <h4 style={{ marginBottom: '12px', fontSize: '14px', color: 'var(--text-secondary)' }}>
+          {t.profile.publicStatsTitle}
+        </h4>
+
         <div className={styles.publicStatsGrid}>
-          {selectedProfile.stats?.totalTournaments != null && (
+          {stats?.totalTournaments != null && (
             <div className={styles.publicStatCard}>
               <span className={styles.embedMetricLabel}>Volume</span>
-              <span className={styles.embedMetricValue}>{selectedProfile.stats.totalTournaments} MTTs</span>
+              <span className={styles.embedMetricValue}>{stats.totalTournaments} MTTs</span>
             </div>
           )}
-          {selectedProfile.stats?.totalProfit != null && (
+          {stats?.totalProfit != null && (
             <div className={styles.publicStatCard}>
-              <span className={styles.embedMetricLabel}>Profit</span>
-              <span className={`${styles.embedMetricValue} ${selectedProfile.stats.totalProfit >= 0 ? styles.profitPos : styles.profitNeg}`}>
-                {formatCurrency(selectedProfile.stats.totalProfit, 'EUR', true)}
+              <span className={styles.embedMetricLabel}>{t.analytics.totalProfit}</span>
+              <span className={`${styles.embedMetricValue} ${stats.totalProfit >= 0 ? styles.profitPos : styles.profitNeg}`}>
+                {formatCurrency(stats.totalProfit, currency, true)}
               </span>
             </div>
           )}
-          {selectedProfile.stats?.roi != null && (
+          {stats?.roi != null && (
             <div className={styles.publicStatCard}>
-              <span className={styles.embedMetricLabel}>ROI</span>
-              <span className={styles.embedMetricValue}>{selectedProfile.stats.roi.toFixed(1)}%</span>
+              <span className={styles.embedMetricLabel}>{t.analytics.roi}</span>
+              <span className={styles.embedMetricValue}>{stats.roi.toFixed(1)}%</span>
             </div>
           )}
-          {selectedProfile.stats?.itm != null && (
+          {stats?.itm != null && (
             <div className={styles.publicStatCard}>
-              <span className={styles.embedMetricLabel}>ITM</span>
-              <span className={styles.embedMetricValue}>{selectedProfile.stats.itm.toFixed(1)}%</span>
+              <span className={styles.embedMetricLabel}>{t.analytics.itm}</span>
+              <span className={styles.embedMetricValue}>{stats.itm.toFixed(1)}%</span>
             </div>
           )}
-          {selectedProfile.stats?.avgBuyIn != null && (
+          {stats?.avgBuyIn != null && (
             <div className={styles.publicStatCard}>
-              <span className={styles.embedMetricLabel}>Avg Buy-in</span>
-              <span className={styles.embedMetricValue}>{formatCurrency(selectedProfile.stats.avgBuyIn, 'EUR')}</span>
+              <span className={styles.embedMetricLabel}>{t.analytics.avgBuyIn}</span>
+              <span className={styles.embedMetricValue}>{formatCurrency(stats.avgBuyIn, currency)}</span>
             </div>
           )}
-          {selectedProfile.stats?.hourlyRate != null && (
+          {stats?.hourlyRate != null && (
             <div className={styles.publicStatCard}>
-              <span className={styles.embedMetricLabel}>Hourly Rate</span>
-              <span className={`${styles.embedMetricValue} ${selectedProfile.stats.hourlyRate >= 0 ? styles.profitPos : styles.profitNeg}`}>
-                {formatCurrency(selectedProfile.stats.hourlyRate, 'EUR', true)}/h
+              <span className={styles.embedMetricLabel}>{t.analytics.hourlyRate}</span>
+              <span className={`${styles.embedMetricValue} ${stats.hourlyRate >= 0 ? styles.profitPos : styles.profitNeg}`}>
+                {formatCurrency(stats.hourlyRate, currency, true)}/h
               </span>
             </div>
           )}
-          {selectedProfile.stats?.biggestWin != null && (
+          {stats?.biggestWin != null && (
             <div className={styles.publicStatCard}>
-              <span className={styles.embedMetricLabel}>Biggest Win</span>
-              <span className={`${styles.embedMetricValue} ${styles.profitPos}`}>{formatCurrency(selectedProfile.stats.biggestWin, 'EUR')}</span>
+              <span className={styles.embedMetricLabel}>{t.analytics.biggestWin}</span>
+              <span className={`${styles.embedMetricValue} ${styles.profitPos}`}>
+                {formatCurrency(stats.biggestWin, currency, true)}
+              </span>
+            </div>
+          )}
+          {stats?.currentStreak != null && (
+            <div className={styles.publicStatCard}>
+              <span className={styles.embedMetricLabel}>{t.analytics.currentStreak}</span>
+              <span className={`${styles.embedMetricValue} ${stats.currentStreak >= 0 ? styles.profitPos : styles.profitNeg}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <Flame size={14} />
+                {stats.currentStreak > 0 ? `+${stats.currentStreak}` : stats.currentStreak}
+              </span>
             </div>
           )}
         </div>
-        
-        {(!selectedProfile.stats || Object.values(selectedProfile.stats).every(v => v === null)) && (
-          <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '14px', padding: '20px 0' }}>
-            This user has chosen to keep their statistics private.
+
+        {(!stats || Object.values(stats).every(v => v === null || v === undefined)) && (
+          <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px', padding: '20px 0' }}>
+            {t.profile.allStatsPrivate}
           </div>
         )}
 
-        {selectedProfile.profile.achievements && selectedProfile.profile.achievements.length > 0 && (
+        {profile.achievements && profile.achievements.length > 0 && (
           <>
-            <h4 style={{ margin: '20px 0 12px', fontSize: '14px', color: 'var(--text-secondary)' }}>Trophy Cabinet</h4>
+            <h4 style={{ margin: '20px 0 12px', fontSize: '14px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Trophy size={14} style={{ color: 'var(--accent-gold)' }} /> {t.profile.trophyCabinet} ({profile.achievements.length})
+            </h4>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {selectedProfile.profile.achievements.map((achId) => {
-                // Determine icon/name based on ID
-                let icon = '🏆';
-                if (achId.includes('streak')) icon = '🔥';
-                if (achId.includes('volume')) icon = '⚡';
-                if (achId.includes('roi')) icon = '👑';
-                if (achId.includes('1k')) icon = '💰';
-                
+              {profile.achievements.map((achId) => {
+                const def = ACHIEVEMENT_DEFINITIONS.find(d => d.id === achId);
                 return (
-                  <div key={achId} title={achId.replace(/_/g, ' ')} style={{
-                    background: 'var(--surface)', border: '1px solid var(--border)', 
-                    borderRadius: '50%', width: '40px', height: '40px', 
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '18px'
-                  }}>
-                    {icon}
+                  <div
+                    key={achId}
+                    title={def ? `${def.name}: ${def.description}` : achId.replace(/_/g, ' ')}
+                    style={{
+                      background: 'var(--accent-gold-bg)',
+                      border: '1px solid rgba(255, 184, 0, 0.3)',
+                      borderRadius: 'var(--radius-md)',
+                      padding: '6px 10px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      color: 'var(--accent-gold)'
+                    }}
+                  >
+                    <span>🏅</span>
+                    <span>{def ? def.name : achId.replace(/_/g, ' ')}</span>
                   </div>
                 );
               })}

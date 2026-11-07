@@ -117,7 +117,7 @@ export interface BankrollTransaction {
   accountId: string;
   /** Transaction type. */
   type: 'deposit' | 'withdrawal' | 'session_result' | 'transfer';
-  /** Transaction amount (negative for withdrawals). */
+  /** Transaction amount (negative for withdrawals or outgoing transfers). */
   amount: number;
   /** ISO 8601 date of the transaction. */
   date: string;
@@ -125,6 +125,8 @@ export interface BankrollTransaction {
   notes: string;
   /** Session that triggered this transaction, if applicable. */
   sessionId?: string;
+  /** Paired transfer group UUID (`[tid:<uuid>]`), if applicable. */
+  transferGroupId?: string;
   /** ISO 8601 creation timestamp. */
   createdAt: string;
 }
@@ -161,7 +163,7 @@ export interface PlayerProfile {
   avatar: string;
   /** Short biography / tagline. */
   bio: string;
-  /** ISO 3166-1 alpha-2 country code. */
+  /** ISO 3166-1 alpha-2 country code or name. */
   country: string;
   /** Number of years playing poker. */
   yearsPlaying: number;
@@ -175,8 +177,12 @@ export interface PlayerProfile {
   joinedAt: string;
   /** Privacy toggles for profile stats. */
   privacy: PlayerPrivacySettings;
+  /** Synced cross-device application preferences. */
+  preferences?: Partial<AppSettings>;
   /** Unlocked achievement IDs. */
   achievements?: string[];
+  /** Onboarding demo data lifecycle state. */
+  demoStatus?: 'uninitialized' | 'active' | 'cleared';
   /** `true` when this profile represents the authenticated user. */
   isCurrentUser?: boolean;
 }
@@ -197,9 +203,13 @@ export interface PlayerStats {
   avgBuyIn: number;
   /** Hourly profit rate. */
   hourlyRate: number;
-  /** Largest single-session profit. */
+  /** Best single-session net profit. */
   biggestWin: number;
-  /** Length of the current winning streak. */
+  /** Worst single-session net loss (0 or negative). */
+  worstLoss?: number;
+  /** Maximum peak-to-trough cumulative drawdown (0 or positive magnitude). */
+  maxDrawdown?: number;
+  /** Signed current session streak (+N winning streak, -N losing downswing, 0 neutral). */
   currentStreak: number;
   /** Length of the best (longest) winning streak. */
   bestStreak: number;
@@ -213,8 +223,16 @@ export interface PlayerStats {
 // Social Types
 // ---------------------------------------------------------------------------
 
+/** Embedded author summary resolved directly from `public.profiles`. */
+export interface SocialAuthorSummary {
+  id: string;
+  username: string;
+  displayName: string;
+  avatar: string;
+}
+
 /** Types of posts that can appear in the social feed. */
-export type PostType = 'session_result' | 'milestone' | 'goal_completed' | 'text' | 'stats_share';
+export type PostType = 'session_result' | 'milestone' | 'goal_completed' | 'text';
 
 /** A post in the social feed. */
 export interface SocialPost {
@@ -222,6 +240,8 @@ export interface SocialPost {
   id: string;
   /** Player ID of the post author. */
   authorId: string;
+  /** Resolved author details from DB join. */
+  author?: SocialAuthorSummary;
   /** Category of the post. */
   type: PostType;
   /** Main text content of the post. */
@@ -246,10 +266,25 @@ export interface PostComment {
   id: string;
   /** Player ID of the comment author. */
   authorId: string;
+  /** Resolved author details from DB join. */
+  author?: SocialAuthorSummary;
   /** Text content of the comment. */
   content: string;
   /** ISO 8601 creation timestamp. */
   createdAt: string;
+}
+
+/** Community leaderboard row returned by `get_community_leaderboard()`. */
+export interface CommunityLeaderboardEntry {
+  id: string;
+  name: string;
+  username: string;
+  avatar?: string;
+  sessionsLogged: number;
+  mttsLogged: number;
+  netProfit: number | null;
+  roi: number | null;
+  kudosReceived: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -257,7 +292,7 @@ export interface PostComment {
 // ---------------------------------------------------------------------------
 
 /** Goal metric categories. */
-export type GoalType = 'volume' | 'profit' | 'roi' | 'time' | 'custom';
+export type GoalType = 'volume' | 'profit' | 'roi' | 'time' | 'bankroll' | 'custom';
 
 /** Lifecycle status of a goal. */
 export type GoalStatus = 'active' | 'completed' | 'failed' | 'paused';
@@ -286,19 +321,19 @@ export interface Goal {
   completedAt?: string;
 }
 
-// Achievement IDs and definitions are managed in goals-store.ts
-// (ACHIEVEMENT_DEFINITIONS is the single source of truth)
-
 // ---------------------------------------------------------------------------
 // App Settings
 // ---------------------------------------------------------------------------
+
+/** Supported UI locales. */
+export type Locale = 'en' | 'it';
 
 /** Global application settings persisted per user. */
 export interface AppSettings {
   /** Preferred display currency. */
   currency: Currency;
   /** UI locale. */
-  locale: 'en' | 'it';
+  locale: Locale;
   /** Color theme — currently only dark mode is supported. */
   theme: 'dark';
   /** Default game type for new sessions. */

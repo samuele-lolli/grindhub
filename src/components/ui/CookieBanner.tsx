@@ -2,6 +2,7 @@
 
 import React, { useSyncExternalStore } from 'react';
 import Link from 'next/link';
+import { useI18n } from '@/i18n';
 import styles from './CookieBanner.module.css';
 
 function subscribe(callback: () => void) {
@@ -10,7 +11,7 @@ function subscribe(callback: () => void) {
 }
 
 function getSnapshot() {
-  return typeof window !== 'undefined' && !localStorage.getItem('cookie-consent');
+  return typeof window !== 'undefined' && !localStorage.getItem('grindhub-cookie-consent');
 }
 
 function getServerSnapshot() {
@@ -18,38 +19,39 @@ function getServerSnapshot() {
 }
 
 export function CookieBanner() {
+  const { t } = useI18n();
   const isVisible = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   const handleAccept = () => {
-    localStorage.setItem('cookie-consent', 'accepted');
+    localStorage.setItem('grindhub-cookie-consent', 'accepted');
     window.dispatchEvent(new Event('storage'));
   };
 
   const handleDecline = () => {
-    localStorage.setItem('cookie-consent', 'declined');
+    localStorage.setItem('grindhub-cookie-consent', 'declined');
     window.dispatchEvent(new Event('storage'));
   };
 
   if (!isVisible) return null;
 
   return (
-    <div className={styles.banner}>
+    <div className={styles.banner} role="region" aria-label="Cookie Consent">
       <div className={styles.content}>
-        <h3 className={styles.title}>We use cookies</h3>
+        <h3 className={styles.title}>{t.cookies.title}</h3>
         <p className={styles.text}>
-          GrindHub uses cookies to ensure you get the best experience on our website, keep you logged in securely, and analyze our traffic. 
-          By clicking &quot;Accept All&quot;, you consent to our use of cookies. Read more in our{' '}
+          {t.cookies.text}{' '}
           <Link href="/privacy" className={styles.link}>
-            Privacy Policy
-          </Link>.
+            {t.cookies.privacyLink}
+          </Link>
+          .
         </p>
       </div>
       <div className={styles.actions}>
-        <button onClick={handleDecline} className={styles.declineBtn}>
-          Decline Optional
+        <button onClick={handleDecline} className={styles.declineBtn} type="button">
+          {t.cookies.declineOptional}
         </button>
-        <button onClick={handleAccept} className={styles.acceptBtn}>
-          Accept All
+        <button onClick={handleAccept} className={styles.acceptBtn} type="button">
+          {t.cookies.acceptAll}
         </button>
       </div>
     </div>

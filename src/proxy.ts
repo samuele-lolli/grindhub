@@ -1,26 +1,29 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 /**
- * Supabase SSR Middleware
+ * Next.js 16 Proxy for Supabase SSR Session Refresh & OAuth PKCE Routing.
  *
- * Refreshes the user's session token on every server request to prevent
- * silent expiration. This is **required** for any Supabase app using the
- * Next.js App Router with server-side rendering.
- *
- * Without this middleware, the access token delivered via cookies will
- * expire after ~1 hour, and all server-side Supabase calls will fail
- * silently with 401 errors.
+ * 1. Forwards root OAuth PKCE redirects (`/?code=...`) to `/auth/callback` so
+ *    session cookies are exchanged cleanly on the server even when only the
+ *    root origin URL is whitelisted in Supabase Auth.
+ * 2. Refreshes `sb-*` auth cookies using the modern `getAll`/`setAll` API and
+ *    applies `@supabase/ssr` anti-caching headers whenever tokens rotate.
  */
 export async function proxy(request: NextRequest) {
+  const { pathname, searchParams } = request.nextUrl;
+
+  // Forward PKCE code landing on '/' to '/auth/callback' for server-side cookie exchange
+  if (pathname === '/' && searchParams.has('code')) {
+    const callbackUrl = request.nextUrl.clone();
+    callbackUrl.pathname = '/auth/callback';
+    return NextResponse.redirect(callbackUrl);
+  }
+
   let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
+    request,
   });
 
-  // Only invoke Supabase SSR token refresh if an auth cookie is actually present.
-  // Avoids an unnecessary round-trip to Supabase Auth on every request when session lives in client storage.
   const hasSupabaseCookie = request.cookies.getAll().some(c => c.name.startsWith('sb-'));
   if (!hasSupabaseCookie) {
     return response;
@@ -31,50 +34,44 @@ export async function proxy(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
+        getAll() {
+          return request.cookies.getAll();
         },
-        set(name: string, value: string, options: CookieOptions) {
-          // Set the cookie on the request for downstream server components
-          request.cookies.set({ name, value, ...options });
-          // Also set it on the response so the browser receives the update
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
+        setAll(cookiesToSet, headers) {
+          cookiesToSet.forEach(({ name, value }) => {
+            request.cookies.set(name, value);
           });
-          response.cookies.set({ name, value, ...options });
-        },
-        remove(name: string, options: CookieOptions) {
-          request.cookies.set({ name, value: '', ...options });
           response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
+            request,
           });
-          response.cookies.set({ name, value: '', ...options });
+          cookiesToSet.forEach(({ name, value, options }) => {
+            response.cookies.set(name, value, options);
+          });
+          Object.entries(headers).forEach(([key, value]) => {
+            response.headers.set(key, value);
+          });
         },
       },
     }
   );
 
-  // Refresh the session — this is the critical call.
-  // It reads the auth cookies, validates them, and refreshes
-  // the access token if it has expired.
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Redirect already-authenticated users away from /login
+  if (user && pathname === '/login') {
+    const dashboardUrl = request.nextUrl.clone();
+    dashboardUrl.pathname = '/';
+    dashboardUrl.search = '';
+    return NextResponse.redirect(dashboardUrl);
+  }
 
   return response;
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public assets (images, svgs, etc.)
-     */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
   ],
 };

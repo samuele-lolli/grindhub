@@ -1,52 +1,86 @@
 import { supabase } from '../supabase';
-import type { SocialPost, PostComment, PostType } from '@/types';
+import type {
+  SocialPost,
+  PostComment,
+  PostType,
+  SocialAuthorSummary,
+  CommunityLeaderboardEntry,
+} from '@/types';
+
+interface RawJoinedProfile {
+  id: string;
+  username: string;
+  display_name: string;
+  avatar_url: string | null;
+}
+
+function mapJoinedAuthor(raw: unknown): SocialAuthorSummary | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const p = Array.isArray(raw) ? (raw[0] as RawJoinedProfile | undefined) : (raw as RawJoinedProfile);
+  if (!p || !p.id) return undefined;
+  return {
+    id: p.id,
+    username: p.username || 'player',
+    displayName: p.display_name || 'Grinder',
+    avatar: p.avatar_url || '',
+  };
+}
 
 /**
- * Service for managing social posts, feed, kudos, and follows via Supabase.
+ * Service for managing social posts, feed, kudos, leaderboard, and follows via Supabase.
+ * Joins author metadata directly from `public.profiles` so author identity is always exact.
  */
 export const socialService = {
-  /**
-   * Retrieves the global or personalized social feed.
-   * @returns A promise resolving to an array of SocialPost objects.
-   */
   async fetchFeed(limit = 20, offset = 0): Promise<SocialPost[]> {
     const { data, error } = await supabase
       .from('social_posts')
       .select(`
         *,
+        author:profiles!social_posts_author_id_fkey ( id, username, display_name, avatar_url ),
         social_kudos ( user_id ),
-        social_comments ( * )
+        social_comments (
+          id,
+          author_id,
+          content,
+          created_at,
+          author:profiles!social_comments_author_id_fkey ( id, username, display_name, avatar_url )
+        )
       `)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
-    if (error || !data) return [];
+    if (error) throw error;
+    if (!data) return [];
 
     return data.map(d => ({
       id: d.id,
       authorId: d.author_id,
+      author: mapJoinedAuthor(d.author),
       type: d.type as PostType,
       content: d.content,
       data: d.data || undefined,
       sessionData: d.session_data || undefined,
       isPublic: d.is_public,
-      kudos: (d.social_kudos as { user_id: string }[] || []).map(k => k.user_id),
-      comments: (d.social_comments as { id: string, author_id: string, content: string, created_at: string }[] || []).map(c => ({
-        id: c.id,
-        authorId: c.author_id,
-        content: c.content,
-        createdAt: c.created_at,
-      })).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()),
+      kudos: ((d.social_kudos as { user_id: string }[]) || []).map(k => k.user_id),
+      comments: ((d.social_comments as Array<{
+        id: string;
+        author_id: string;
+        content: string;
+        created_at: string;
+        author?: unknown;
+      }>) || [])
+        .map(c => ({
+          id: c.id,
+          authorId: c.author_id,
+          author: mapJoinedAuthor(c.author),
+          content: c.content,
+          createdAt: c.created_at,
+        }))
+        .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()),
       createdAt: d.created_at,
     }));
   },
 
-  /**
-   * Creates a new social post.
-   * @param userId - The UUID of the author.
-   * @param post - The post details.
-   * @returns A promise resolving to the created SocialPost.
-   */
   async createPost(userId: string, post: Omit<SocialPost, 'id' | 'createdAt' | 'kudos' | 'comments'>): Promise<SocialPost> {
     const { data, error } = await supabase
       .from('social_posts')
@@ -58,7 +92,10 @@ export const socialService = {
         session_data: post.sessionData || null,
         is_public: post.isPublic,
       })
-      .select()
+      .select(`
+        *,
+        author:profiles!social_posts_author_id_fkey ( id, username, display_name, avatar_url )
+      `)
       .single();
 
     if (error) throw error;
@@ -66,6 +103,7 @@ export const socialService = {
     return {
       id: data.id,
       authorId: data.author_id,
+      author: mapJoinedAuthor(data.author),
       type: data.type as PostType,
       content: data.content,
       data: data.data || undefined,
@@ -77,36 +115,28 @@ export const socialService = {
     };
   },
 
-  /**
-   * Toggles a 'kudo' (like) on a specific post.
-   * @param userId - The UUID of the user giving/removing the kudo.
-   * @param postId - The UUID of the post.
-   * @param isAdding - Whether the kudo is being added or removed.
-   */
   async toggleKudos(userId: string, postId: string, isAdding: boolean): Promise<void> {
     if (isAdding) {
-      await supabase.from('social_kudos').insert({ post_id: postId, user_id: userId });
+      const { error } = await supabase.from('social_kudos').insert({ post_id: postId, user_id: userId });
+      if (error) throw error;
     } else {
-      await supabase.from('social_kudos').delete().match({ post_id: postId, user_id: userId });
+      const { error } = await supabase.from('social_kudos').delete().match({ post_id: postId, user_id: userId });
+      if (error) throw error;
     }
   },
 
-  /**
-   * Adds a comment to a specific post.
-   * @param userId - The UUID of the user authoring the comment.
-   * @param postId - The UUID of the post.
-   * @param content - The textual content of the comment.
-   * @returns A promise resolving to the created PostComment.
-   */
   async addComment(userId: string, postId: string, content: string): Promise<PostComment> {
     const { data, error } = await supabase
       .from('social_comments')
       .insert({
         post_id: postId,
         author_id: userId,
-        content: content,
+        content,
       })
-      .select()
+      .select(`
+        *,
+        author:profiles!social_comments_author_id_fkey ( id, username, display_name, avatar_url )
+      `)
       .single();
 
     if (error) throw error;
@@ -114,32 +144,22 @@ export const socialService = {
     return {
       id: data.id,
       authorId: data.author_id,
+      author: mapJoinedAuthor(data.author),
       content: data.content,
       createdAt: data.created_at,
     };
   },
 
-  /**
-   * Deletes a social post.
-   */
   async deletePost(postId: string): Promise<void> {
     const { error } = await supabase.from('social_posts').delete().eq('id', postId);
     if (error) throw error;
   },
-  
-  /**
-   * Deletes a comment.
-   */
+
   async deleteComment(commentId: string): Promise<void> {
     const { error } = await supabase.from('social_comments').delete().eq('id', commentId);
     if (error) throw error;
   },
 
-  /**
-   * Retrieves the list of user IDs that the current user is following.
-   * @param userId - The UUID of the current user.
-   * @returns A promise resolving to an array of followed UUIDs.
-   */
   async fetchFollowing(userId: string): Promise<string[]> {
     const { data, error } = await supabase
       .from('social_follows')
@@ -150,9 +170,6 @@ export const socialService = {
     return data.map(d => d.following_id);
   },
 
-  /**
-   * Retrieves the number of followers for a specific user.
-   */
   async fetchFollowersCount(userId: string): Promise<number> {
     const { count, error } = await supabase
       .from('social_follows')
@@ -163,38 +180,45 @@ export const socialService = {
     return count;
   },
 
-  /**
-   * Follows another user.
-   * @param followerId - The UUID of the user who is following.
-   * @param followingId - The UUID of the user being followed.
-   */
   async followUser(followerId: string, followingId: string): Promise<void> {
-    await supabase.from('social_follows').insert({ follower_id: followerId, following_id: followingId });
+    const { error } = await supabase.from('social_follows').insert({ follower_id: followerId, following_id: followingId });
+    if (error) throw error;
   },
 
-  /**
-   * Unfollows another user.
-   * @param followerId - The UUID of the user who is unfollowing.
-   * @param followingId - The UUID of the user to unfollow.
-   */
   async unfollowUser(followerId: string, followingId: string): Promise<void> {
-    await supabase.from('social_follows').delete().match({ follower_id: followerId, following_id: followingId });
+    const { error } = await supabase.from('social_follows').delete().match({ follower_id: followerId, following_id: followingId });
+    if (error) throw error;
   },
 
-  /**
-   * Fetches trending discussions from the Supabase RPC.
-   */
-  async fetchTrendingDiscussions(): Promise<{ postId: string, authorName: string, content: string, score: number }[]> {
-    const { data, error } = await supabase.rpc('get_trending_discussions');
+  async fetchCommunityLeaderboard(): Promise<CommunityLeaderboardEntry[]> {
+    const { data, error } = await supabase.rpc('get_community_leaderboard');
     if (error || !data) {
-      console.error('Failed to fetch trending discussions:', error);
+      if (error) console.error('Failed to fetch community leaderboard:', error);
       return [];
     }
-    return (data as Array<{post_id: string, author_name: string, content: string, score: number}>).map(d => ({
+    return (data as CommunityLeaderboardEntry[]).map(row => ({
+      id: row.id,
+      name: row.name,
+      username: row.username,
+      avatar: row.avatar || '',
+      sessionsLogged: Number(row.sessionsLogged || 0),
+      mttsLogged: Number(row.mttsLogged || 0),
+      netProfit: row.netProfit !== null && row.netProfit !== undefined ? Number(row.netProfit) : null,
+      roi: row.roi !== null && row.roi !== undefined ? Number(row.roi) : null,
+      kudosReceived: Number(row.kudosReceived || 0),
+    }));
+  },
+
+  async fetchTrendingDiscussions(): Promise<{ postId: string; authorName: string; content: string; score: number }[]> {
+    const { data, error } = await supabase.rpc('get_trending_discussions');
+    if (error || !data) {
+      return [];
+    }
+    return (data as Array<{ post_id: string; author_name: string; content: string; score: number }>).map(d => ({
       postId: d.post_id,
       authorName: d.author_name,
       content: d.content,
-      score: d.score
+      score: d.score,
     }));
-  }
+  },
 };

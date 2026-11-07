@@ -1,23 +1,21 @@
 // ============================================================
-// GrindHub — Settings Store (Zustand + Persist)
+// GrindHub — Settings Store (Zustand + Persist + Supabase Sync)
 // ============================================================
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { AppSettings } from '@/types';
-
-// --- Default Settings ---
+import { profileService } from '@/lib/services/profile-service';
+import { useProfileStore } from './profile-store';
 
 const DEFAULT_SETTINGS: AppSettings = {
   currency: 'EUR',
-  locale: 'en',
+  locale: 'it',
   theme: 'dark',
   defaultGameType: 'mtt',
   defaultPlatform: 'pokerstars',
   autoShareSessions: false,
 };
-
-// --- Store Interface ---
 
 interface SettingsState {
   settings: AppSettings;
@@ -25,27 +23,49 @@ interface SettingsState {
 
 interface SettingsActions {
   updateSettings: (updates: Partial<AppSettings>) => void;
+  hydrateSettings: (prefs?: Partial<AppSettings>) => void;
   resetSettings: () => void;
 }
 
 type SettingsStore = SettingsState & SettingsActions;
 
-// --- Store ---
-
 export const useSettingsStore = create<SettingsStore>()(
   persist(
-    (set) => ({
-      // ── State ──
+    (set, get) => ({
       settings: { ...DEFAULT_SETTINGS },
 
-      // ── Actions ──
-      updateSettings: (updates) =>
-        set((state) => ({
-          settings: { ...state.settings, ...updates },
-        })),
+      updateSettings: (updates) => {
+        const nextSettings = { ...get().settings, ...updates };
+        set({ settings: nextSettings });
 
-      resetSettings: () =>
-        set({ settings: { ...DEFAULT_SETTINGS } }),
+        const profile = useProfileStore.getState().profile;
+        if (profile?.id) {
+          profileService
+            .updateProfile(profile.id, { preferences: nextSettings })
+            .then(() => {
+              const latestProfile = useProfileStore.getState().profile;
+              if (latestProfile && latestProfile.id === profile.id) {
+                useProfileStore.getState().setupProfile({
+                  ...latestProfile,
+                  preferences: nextSettings,
+                });
+              }
+            })
+            .catch((err) => console.error('Failed to sync preferences to profile:', err));
+        }
+      },
+
+      hydrateSettings: (prefs) => {
+        if (!prefs) return;
+        set((state) => ({
+          settings: {
+            ...state.settings,
+            ...prefs,
+          },
+        }));
+      },
+
+      resetSettings: () => set({ settings: { ...DEFAULT_SETTINGS } }),
     }),
     {
       name: 'grindhub-settings',

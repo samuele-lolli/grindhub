@@ -16,7 +16,7 @@ export default function manifest(): MetadataRoute.Manifest {
         type: 'image/png',
       },
       {
-        src: '/opengraph-image.png',
+        src: '/icon.png',
         sizes: '512x512',
         type: 'image/png',
       },

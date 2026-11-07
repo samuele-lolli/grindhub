@@ -1,16 +1,64 @@
 import { supabase } from '../supabase';
 import type { BankrollAccount, BankrollTransaction, Platform, Currency, BankrollCategory } from '@/types';
 
+const SID_REGEX = /\s*\[sid:([a-f0-9-]+)\]/i;
+const TID_REGEX = /\[tid:([a-f0-9-]+)\]\s*/i;
+
+function parseNotesMetadata(rawNotes: string | null | undefined): {
+  notes: string;
+  sessionId?: string;
+  transferGroupId?: string;
+} {
+  if (!rawNotes) return { notes: '' };
+  let clean = rawNotes;
+  let sessionId: string | undefined;
+  let transferGroupId: string | undefined;
+
+  const sidMatch = clean.match(SID_REGEX);
+  if (sidMatch) {
+    sessionId = sidMatch[1];
+    clean = clean.replace(SID_REGEX, '');
+  }
+
+  const tidMatch = clean.match(TID_REGEX);
+  if (tidMatch) {
+    transferGroupId = tidMatch[1];
+    clean = clean.replace(TID_REGEX, '');
+  }
+
+  return {
+    notes: clean.trim(),
+    sessionId,
+    transferGroupId,
+  };
+}
+
+function serializeNotesWithSessionId(notes: string, sessionId?: string): string {
+  const clean = (notes || '').replace(SID_REGEX, '').trim();
+  return sessionId ? `${clean} [sid:${sessionId}]`.trim() : clean;
+}
+
+function mapRawTx(d: Record<string, unknown>): BankrollTransaction {
+  const parsed = parseNotesMetadata(d.notes as string | null);
+  return {
+    id: String(d.id),
+    accountId: String(d.account_id),
+    type: d.type as BankrollTransaction['type'],
+    amount: Number(d.amount),
+    date: String(d.date),
+    notes: parsed.notes,
+    sessionId: parsed.sessionId,
+    transferGroupId: parsed.transferGroupId,
+    createdAt: String(d.created_at),
+  };
+}
+
 /**
  * Service for managing user bankroll accounts and transactions via Supabase.
- * Connects directly to the 'bankroll_accounts' and 'bankroll_transactions' tables.
+ * Uses atomic server-side PostgreSQL RPCs so transaction ledger and account
+ * balances never drift out of sync.
  */
 export const bankrollService = {
-  /**
-   * Retrieves all bankroll accounts for a specific user.
-   * @param userId - The UUID of the user.
-   * @returns A promise resolving to an array of BankrollAccount objects.
-   */
   async fetchAccounts(userId: string): Promise<BankrollAccount[]> {
     const { data, error } = await supabase
       .from('bankroll_accounts')
@@ -18,7 +66,8 @@ export const bankrollService = {
       .eq('user_id', userId)
       .order('created_at', { ascending: true });
 
-    if (error || !data) return [];
+    if (error) throw error;
+    if (!data) return [];
 
     return data.map(d => ({
       id: d.id,
@@ -32,12 +81,6 @@ export const bankrollService = {
     }));
   },
 
-  /**
-   * Creates a new bankroll account.
-   * @param userId - The UUID of the user owning the account.
-   * @param account - The account details excluding ID and timestamps.
-   * @returns A promise resolving to the created BankrollAccount.
-   */
   async createAccount(userId: string, account: Omit<BankrollAccount, 'id' | 'createdAt' | 'updatedAt'>): Promise<BankrollAccount> {
     const { data, error } = await supabase
       .from('bankroll_accounts')
@@ -66,10 +109,6 @@ export const bankrollService = {
     };
   },
 
-  /**
-   * Deletes a bankroll account by ID. Note: Transactions associated with this account may be cascaded or orphaned depending on DB constraints.
-   * @param id - The UUID of the account to delete.
-   */
   async deleteAccount(id: string): Promise<void> {
     const { error } = await supabase
       .from('bankroll_accounts')
@@ -79,11 +118,6 @@ export const bankrollService = {
     if (error) throw error;
   },
 
-  /**
-   * Retrieves all bankroll transactions for a specific user.
-   * @param userId - The UUID of the user.
-   * @returns A promise resolving to an array of BankrollTransaction objects.
-   */
   async fetchTransactions(userId: string): Promise<BankrollTransaction[]> {
     const { data, error } = await supabase
       .from('bankroll_transactions')
@@ -91,142 +125,119 @@ export const bankrollService = {
       .eq('user_id', userId)
       .order('date', { ascending: false });
 
-    if (error || !data) return [];
+    if (error) throw error;
+    if (!data) return [];
 
-    return data.map(d => ({
-      id: d.id,
-      accountId: d.account_id,
-      type: d.type as BankrollTransaction['type'],
-      amount: Number(d.amount),
-      date: d.date,
-      notes: d.notes || '',
-      createdAt: d.created_at,
-    }));
+    return data.map(d => mapRawTx(d as Record<string, unknown>));
   },
 
   /**
-   * Creates a new bankroll transaction and updates the associated account's balance.
-   * The balance change is sign-aware: deposits ADD, withdrawals SUBTRACT.
-   * Returns the created transaction AND the updated account balance.
+   * Atomically records a single transaction and updates the account balance in one PostgreSQL RPC.
    */
   async createTransaction(
-    userId: string,
+    _userId: string,
     transaction: Omit<BankrollTransaction, 'id' | 'createdAt'>
   ): Promise<{ transaction: BankrollTransaction; newBalance: number }> {
-    const { data, error } = await supabase
-      .from('bankroll_transactions')
-      .insert({
-        user_id: userId,
-        account_id: transaction.accountId,
-        type: transaction.type,
-        amount: transaction.amount,
-        date: transaction.date,
-        notes: transaction.notes,
-      })
-      .select()
-      .single();
+    const dbNotes = serializeNotesWithSessionId(transaction.notes, transaction.sessionId);
+
+    const { data, error } = await supabase.rpc('record_bankroll_transaction', {
+      p_account_id: transaction.accountId,
+      p_type: transaction.type,
+      p_amount: transaction.amount,
+      p_date: transaction.date,
+      p_notes: dbNotes || null,
+    });
 
     if (error) throw error;
 
-    // Atomic balance update via RPC (prevents race conditions)
-    let delta = 0;
-    if (transaction.type === 'withdrawal') {
-      delta = -transaction.amount;
-    } else {
-      delta = transaction.amount;
-    }
-
-    const { data: rpcResult, error: rpcError } = await supabase
-      .rpc('update_account_balance', {
-        p_account_id: transaction.accountId,
-        p_delta: delta,
-      });
-
-    if (rpcError) {
-      // Fallback: try the old way if RPC doesn't exist yet
-      console.warn('RPC fallback:', rpcError.message);
-      const { data: account } = await supabase
-        .from('bankroll_accounts')
-        .select('balance')
-        .eq('id', transaction.accountId)
-        .single();
-      
-      const newBalance = account ? Number(account.balance) + delta : delta;
-      await supabase
-        .from('bankroll_accounts')
-        .update({ balance: newBalance })
-        .eq('id', transaction.accountId);
-      
-      return {
-        transaction: {
-          id: data.id,
-          accountId: data.account_id,
-          type: data.type as BankrollTransaction['type'],
-          amount: Number(data.amount),
-          date: data.date,
-          notes: data.notes || '',
-          createdAt: data.created_at,
-        },
-        newBalance,
-      };
-    }
-
-    const newBalance = Number(rpcResult);
-
+    const payload = data as { transaction: Record<string, unknown>; newBalance: number };
     return {
-      transaction: {
-        id: data.id,
-        accountId: data.account_id,
-        type: data.type as BankrollTransaction['type'],
-        amount: Number(data.amount),
-        date: data.date,
-        notes: data.notes || '',
-        createdAt: data.created_at,
-      },
-      newBalance,
+      transaction: mapRawTx(payload.transaction),
+      newBalance: Number(payload.newBalance),
     };
   },
 
   /**
-   * Deletes a transaction and reverses its effect on the account balance.
+   * Atomically executes a 2-leg internal transfer (`type = 'transfer'`) tagged with `[tid:<uuid>]`
+   * and updates both source and destination balances in one PostgreSQL RPC.
    */
-  async deleteTransaction(
-    transaction: { id: string; accountId: string; type: string; amount: number }
-  ): Promise<number> {
-    // Delete the transaction row
-    const { error } = await supabase
-      .from('bankroll_transactions')
-      .delete()
-      .eq('id', transaction.id);
+  async createTransfer(
+    fromAccountId: string,
+    toAccountId: string,
+    amount: number,
+    date: string,
+    notes?: string
+  ): Promise<{
+    outTx: BankrollTransaction;
+    inTx: BankrollTransaction;
+    fromBalance: number;
+    toBalance: number;
+  }> {
+    const { data, error } = await supabase.rpc('record_bankroll_transfer', {
+      p_from_account_id: fromAccountId,
+      p_to_account_id: toAccountId,
+      p_amount: Math.abs(amount),
+      p_date: date,
+      p_notes: notes || null,
+    });
 
     if (error) throw error;
 
-    // Reverse the balance change atomically
-    let delta = 0;
-    if (transaction.type === 'withdrawal') {
-      delta = transaction.amount; // reversing a withdrawal = add back
+    const payload = data as {
+      outTx: Record<string, unknown>;
+      inTx: Record<string, unknown>;
+      fromBalance: number;
+      toBalance: number;
+    };
+
+    return {
+      outTx: mapRawTx(payload.outTx),
+      inTx: mapRawTx(payload.inTx),
+      fromBalance: Number(payload.fromBalance),
+      toBalance: Number(payload.toBalance),
+    };
+  },
+
+  /**
+   * Deletes a transaction (or both legs if it belongs to a `[tid:<uuid>]` transfer pair)
+   * and reconciles all account balances directly from the PostgreSQL ledger (`0.00` drift guarantee).
+   */
+  async deleteTransaction(
+    userId: string,
+    transaction: { id: string; transferGroupId?: string }
+  ): Promise<{ deletedIds: string[]; reconciledBalances: { id: string; balance: number }[] }> {
+    let deletedIds: string[] = [transaction.id];
+
+    if (transaction.transferGroupId) {
+      const { data: deletedRows, error: delErr } = await supabase
+        .from('bankroll_transactions')
+        .delete()
+        .eq('user_id', userId)
+        .ilike('notes', `%[tid:${transaction.transferGroupId}]%`)
+        .select('id');
+
+      if (delErr) throw delErr;
+      if (deletedRows && deletedRows.length > 0) {
+        deletedIds = deletedRows.map(r => r.id);
+      }
     } else {
-      delta = -transaction.amount; // reversing a deposit = subtract
+      const { error: delErr } = await supabase
+        .from('bankroll_transactions')
+        .delete()
+        .eq('id', transaction.id)
+        .eq('user_id', userId);
+
+      if (delErr) throw delErr;
     }
 
-    const { data: rpcResult, error: rpcError } = await supabase
-      .rpc('update_account_balance', {
-        p_account_id: transaction.accountId,
-        p_delta: delta,
-      });
+    const { data: recData, error: recErr } = await supabase.rpc('reconcile_user_account_balances');
+    if (recErr) throw recErr;
 
-    if (rpcError) {
-      // Fallback
-      console.warn('RPC fallback:', rpcError.message);
-      const { data: account } = await supabase
-        .from('bankroll_accounts')
-        .select('balance')
-        .eq('id', transaction.accountId)
-        .single();
-      
-      return account ? Number(account.balance) + delta : delta;
-    }
+    const reconciledBalances = ((recData as Array<{ id: string; balance: number }>) || []).map(r => ({
+      id: r.id,
+      balance: Number(r.balance),
+    }));
 
-    return Number(rpcResult);
+    return { deletedIds, reconciledBalances };
   },
 };

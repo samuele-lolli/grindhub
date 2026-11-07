@@ -5,30 +5,34 @@ import { usePathname } from 'next/navigation';
 import { Globe } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { useProfileStore } from '@/stores/profile-store';
+import { useSettingsStore } from '@/stores/settings-store';
 import { Avatar } from '@/components/ui/Avatar';
 import styles from './TopBar.module.css';
 
-const routeTitles: Record<string, string> = {
-  '/': 'Dashboard',
-  '/bankroll': 'Bankroll',
-  '/sessions': 'Sessions',
-  '/analytics': 'Analytics',
-  '/social': 'Social',
-  '/profile': 'Profile',
-  '/leaderboard': 'Leaderboard',
-  '/goals': 'Goals',
-  '/settings': 'Settings',
-};
-
 export function TopBar() {
   const pathname = usePathname();
-  const { locale, setLocale } = useI18n();
+  const { t, locale, setLocale } = useI18n();
   const profile = useProfileStore((s) => s.profile);
+  const updateSettings = useSettingsStore((s) => s.updateSettings);
+
+  const routeTitles: Record<string, string> = {
+    '/': t.nav.dashboard,
+    '/bankroll': t.nav.bankroll,
+    '/sessions': t.nav.sessions,
+    '/analytics': t.nav.analytics,
+    '/social': t.nav.social,
+    '/profile': t.nav.profile,
+    '/leaderboard': t.nav.leaderboard,
+    '/goals': t.nav.goals,
+    '/settings': t.nav.settings,
+  };
 
   const pageTitle = routeTitles[pathname] || 'GrindHub';
 
   const toggleLocale = () => {
-    setLocale(locale === 'en' ? 'it' : 'en');
+    const next = locale === 'en' ? 'it' : 'en';
+    setLocale(next);
+    updateSettings({ locale: next });
   };
 
   return (

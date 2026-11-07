@@ -1,14 +1,16 @@
 'use client';
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { MessageCircle, Send, Share2, Users, TrendingUp, Trophy, X, Heart, Trash2, Target } from 'lucide-react';
+import { MessageCircle, Send, Share2, Users, Trophy, X, Heart, Trash2, Target, Globe, UserCheck, Flame, Lock } from 'lucide-react';
 import { useSocialStore } from '@/stores/social-store';
 import { useProfileStore } from '@/stores/profile-store';
+import { useSettingsStore } from '@/stores/settings-store';
 import { useSessionStore } from '@/stores/session-store';
 import { Tooltip as UITooltip } from '@/components/ui/Tooltip';
+import { useToast } from '@/components/ui/Toast';
 import { useI18n } from '@/i18n';
 import { formatRelativeTime, formatCurrency, getSessionProfit, formatDate, formatDuration, platformLabels } from '@/lib/utils';
-import type { PostType, AggregatedMTTSession, PlayerProfile, PlayerStats } from '@/types';
+import type { PostType, AggregatedMTTSession, PlayerProfile, PlayerStats, SocialPost, SocialAuthorSummary, PostComment } from '@/types';
 import { Avatar } from '@/components/ui/Avatar';
 import { PublicProfileModal } from '@/components/ui/PublicProfileModal';
 import { profileService } from '@/lib/services/profile-service';
@@ -17,18 +19,12 @@ import styles from './page.module.css';
 // ── Constants ──
 const MAX_POST_LENGTH = 500;
 
-
-// ── Helpers ──
-
-
 const POST_TYPE_BADGES: Record<string, { emoji: string; label: string }> = {
   session_result: { emoji: '🏆', label: 'Session Result' },
   milestone: { emoji: '🚀', label: 'Milestone' },
   goal_completed: { emoji: '🎯', label: 'Goal Completed' },
   text: { emoji: '💬', label: 'Discussion' },
 };
-
-// ── Sub-Components ──
 
 function PostTypeBadge({ type }: { type: PostType }) {
   const badge = POST_TYPE_BADGES[type];
@@ -41,17 +37,18 @@ function PostTypeBadge({ type }: { type: PostType }) {
   );
 }
 
-// ── Main Page Component ──
-
 /**
- * SocialPage — Social feed and discovery interface.
- * Renders a post composer, feed/discover tabs, session sharing, kudos, comments,
- * trending topics sidebar, and suggested players to follow.
+ * SocialPage — Community feed, discussions, leaderboard, and profile discovery.
+ * Prevents identity spoofing by reading joined author metadata, validates submission locks,
+ * and uses real database community leaderboard stats.
  */
 export default function SocialPage() {
   const { t } = useI18n();
+  const { toast } = useToast();
   const posts = useSocialStore(s => s.feed);
   const following = useSocialStore(s => s.following);
+  const leaderboard = useSocialStore(s => s.leaderboard);
+  const loadLeaderboard = useSocialStore(s => s.loadLeaderboard);
   const addPost = useSocialStore(s => s.addPost);
   const toggleLike = useSocialStore(s => s.toggleLike);
   const addComment = useSocialStore(s => s.addComment);
@@ -60,56 +57,121 @@ export default function SocialPage() {
   const hasMore = useSocialStore(s => s.hasMore);
   const loadMore = useSocialStore(s => s.loadMore);
   const follow = useSocialStore(s => s.followUser);
-  const loadTrending = useSocialStore(s => s.loadTrending);
-  const trendingTopics = useSocialStore(s => s.trendingDiscussions);
-  
+
   const players = useProfileStore(s => s.players);
   const profile = useProfileStore(s => s.profile);
+  const settings = useSettingsStore(s => s.settings);
+  const currency = settings?.currency || 'EUR';
   const mySessions = useSessionStore(s => s.sessions);
 
-
+  const [feedMode, setFeedMode] = useState<'community' | 'following'>('community');
   const [newPost, setNewPost] = useState('');
   const [composerFocused, setComposerFocused] = useState(false);
   const [showSessionPicker, setShowSessionPicker] = useState(false);
+  const [isSubmittingPost, setIsSubmittingPost] = useState(false);
+  const [submittingCommentPostId, setSubmittingCommentPostId] = useState<string | null>(null);
 
-  React.useEffect(() => {
-    loadTrending();
-  }, [loadTrending]);
-  
-  // Attach session state
+  // Attached session state
   const [attachedSession, setAttachedSession] = useState<AggregatedMTTSession | null>(null);
 
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
 
-  // ── Public Profile Modal State ──
-  const [selectedProfile, setSelectedProfile] = useState<{ profile: PlayerProfile, stats: Partial<PlayerStats> | null } | null>(null);
+  // Public Profile Modal State
+  const [selectedProfile, setSelectedProfile] = useState<{ profile: PlayerProfile; stats: Partial<PlayerStats> | null } | null>(null);
 
+  // Load verified community leaderboard on mount
+  useEffect(() => {
+    loadLeaderboard().catch(err => console.error('Failed to load leaderboard:', err));
+  }, [loadLeaderboard]);
 
-  // ── Player lookup ──
-  const getPlayer = useCallback(
-    (id: string) => {
-      if (id === 'current-user' || id === profile?.id) return profile;
-      return players.find(p => p.id === id) || profile;
-    },
-    [players, profile]
-  );
+  // Robust Author Resolution (Fixes D4.1 — Never fall back to active profile for other users)
+  const getPostAuthor = useCallback((post: SocialPost): SocialAuthorSummary => {
+    if (post.author) return post.author;
+    if (post.authorId === profile?.id) {
+      return {
+        id: profile.id,
+        username: profile.username,
+        displayName: profile.displayName,
+        avatar: profile.avatar,
+      };
+    }
+    const match = players.find(p => p.id === post.authorId);
+    if (match) {
+      return {
+        id: match.id,
+        username: match.username,
+        displayName: match.displayName,
+        avatar: match.avatar,
+      };
+    }
+    return {
+      id: post.authorId,
+      username: 'grinder',
+      displayName: 'Grinder',
+      avatar: '',
+    };
+  }, [profile, players]);
 
-  // ── Feed filtering ──
+  const getCommentAuthor = useCallback((comment: PostComment): SocialAuthorSummary => {
+    if (comment.author) return comment.author;
+    if (comment.authorId === profile?.id) {
+      return {
+        id: profile.id,
+        username: profile.username,
+        displayName: profile.displayName,
+        avatar: profile.avatar,
+      };
+    }
+    const match = players.find(p => p.id === comment.authorId);
+    if (match) {
+      return {
+        id: match.id,
+        username: match.username,
+        displayName: match.displayName,
+        avatar: match.avatar,
+      };
+    }
+    return {
+      id: comment.authorId,
+      username: 'grinder',
+      displayName: 'Grinder',
+      avatar: '',
+    };
+  }, [profile, players]);
+
+  // Feed filtering
   const feedPosts = useMemo(() => {
-    const list = posts.filter(p => following.includes(p.authorId) || p.authorId === 'current-user' || p.authorId === profile?.id);
-    return list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [posts, following, profile?.id]);
+    const list = feedMode === 'community'
+      ? posts
+      : posts.filter(p => following.includes(p.authorId) || p.authorId === profile?.id);
+    return [...list].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }, [posts, following, profile?.id, feedMode]);
 
-  // ── Suggested players ──
+  const handleSharePost = useCallback(async (post: SocialPost) => {
+    const author = getPostAuthor(post);
+    let summary = `${author.displayName} (@${author.username}) on GrindHub:\n`;
+    if (post.content) summary += `"${post.content}"\n`;
+    if (post.sessionData) {
+      const profit = getSessionProfit(post.sessionData as AggregatedMTTSession);
+      summary += `Session: ${formatCurrency(profit, currency, true)} (${post.sessionData.eventCount || 0} MTTs · ${post.sessionData.cashesCount || 0} ITM)`;
+    }
+    try {
+      await navigator.clipboard.writeText(summary.trim());
+      toast.success(t.social.copiedPostToast || 'Post summary copied to clipboard!');
+    } catch {
+      toast.error(t.social.copyErrorToast || 'Could not copy to clipboard.');
+    }
+  }, [getPostAuthor, currency, toast, t.social]);
+
+  // Suggested players
   const suggestedPlayers = useMemo(() => {
     return players
-      .filter(p => !following.includes(p.id) && p.id !== 'current-user' && !p.isCurrentUser)
+      .filter(p => !following.includes(p.id) && p.id !== profile?.id && !p.isCurrentUser)
       .slice(0, 5);
-  }, [players, following]);
+  }, [players, following, profile?.id]);
 
-  // ── Create post ──
-  // M2: Escape key to close modal
+  // Modal Escape key listener
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setShowSessionPicker(false);
@@ -118,25 +180,50 @@ export default function SocialPage() {
     return () => window.removeEventListener('keydown', handleEsc);
   }, [showSessionPicker]);
 
+  // Handle open session picker with demo mode safety
+  const handleOpenSessionPicker = () => {
+    if (profile?.demoStatus === 'active') {
+      toast.info(t.social.demoShareBlocked || 'Session sharing is disabled while in Demo Mode. Clear demo data in Dashboard to share real sessions with the community.');
+      return;
+    }
+    setShowSessionPicker(true);
+  };
+
   const handlePostSubmit = useCallback(async () => {
+    if (isSubmittingPost) return;
     if (!newPost.trim() && !attachedSession) return;
     if (newPost.length > MAX_POST_LENGTH) return;
-    
-    const postType: PostType = attachedSession ? 'session_result' : 'text';
 
-    addPost({
-      authorId: profile?.id || 'current-user',
-      type: postType,
-      content: newPost.trim(),
-      sessionData: attachedSession || undefined,
-      isPublic: true,
-    });
-    setNewPost('');
-    setAttachedSession(null);
-    setComposerFocused(false);
-  }, [newPost, attachedSession, addPost, profile?.id]);
+    if (attachedSession && profile?.demoStatus === 'active') {
+      toast.info(t.social.demoShareBlocked || 'Cannot share demo sessions to the public feed.');
+      return;
+    }
 
-  // ── View Public Profile ──
+    setIsSubmittingPost(true);
+    try {
+      const postType: PostType = attachedSession ? 'session_result' : 'text';
+
+      await addPost({
+        authorId: profile?.id || '',
+        type: postType,
+        content: newPost.trim(),
+        sessionData: attachedSession || undefined,
+        isPublic: true,
+      });
+
+      setNewPost('');
+      setAttachedSession(null);
+      setComposerFocused(false);
+      toast.success('Post published!');
+    } catch (err) {
+      console.error('Failed to submit post:', err);
+      toast.error(t.social.postErrorToast || 'Failed to publish post. Please try again.');
+    } finally {
+      setIsSubmittingPost(false);
+    }
+  }, [isSubmittingPost, newPost, attachedSession, profile, addPost, toast, t.social]);
+
+  // View Public Profile
   const handleViewProfile = useCallback(async (userId: string) => {
     try {
       const data = await profileService.fetchPublicProfile(userId);
@@ -148,16 +235,22 @@ export default function SocialPage() {
     }
   }, []);
 
-  // ── Comment ──
-  const handleComment = useCallback(
-    (postId: string) => {
-      const text = commentInputs[postId];
-      if (!text?.trim()) return;
-      addComment(postId, text.trim());
+  // Comment
+  const handleComment = useCallback(async (postId: string) => {
+    const text = commentInputs[postId]?.trim();
+    if (!text || submittingCommentPostId === postId) return;
+
+    setSubmittingCommentPostId(postId);
+    try {
+      await addComment(postId, text);
       setCommentInputs(prev => ({ ...prev, [postId]: '' }));
-    },
-    [commentInputs, addComment]
-  );
+    } catch (err) {
+      console.error('Error submitting comment:', err);
+      toast.error(t.social.commentErrorToast || 'Failed to post comment. Please try again.');
+    } finally {
+      setSubmittingCommentPostId(null);
+    }
+  }, [commentInputs, submittingCommentPostId, addComment, toast, t.social]);
 
   const toggleComments = useCallback((postId: string) => {
     setExpandedComments(prev => ({ ...prev, [postId]: !prev[postId] }));
@@ -170,9 +263,9 @@ export default function SocialPage() {
     <div className="page-container">
       {/* Header */}
       <div className="page-header">
-        <h1 className="page-title" style={{ display: 'flex', alignItems: 'center' }}>
+        <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {t.social.title}
-          <UITooltip content={t.tooltips?.socialFeed || 'Posts are visible to anyone who follows you. Your exact bankroll is ALWAYS private.'} position="right" />
+          <UITooltip content={t.tooltips?.socialFeed || 'Posts are visible to the community. Your private ledger balance is never shared.'} position="right" />
         </h1>
       </div>
 
@@ -197,14 +290,14 @@ export default function SocialPage() {
                   onBlur={() => { if (!newPost.trim() && !attachedSession) setComposerFocused(false); }}
                   rows={composerFocused || attachedSession ? 3 : 1}
                 />
-                
+
                 {/* Attached Session Preview inside Composer */}
                 {attachedSession && (
                   <div className={styles.sessionEmbed} style={{ marginTop: '12px' }}>
                     <div className={styles.sessionEmbedHeader}>
                       <span className={styles.sessionEmbedTitle}>
                         <Trophy size={16} className="text-gold" />
-                        Aggregated Session
+                        {t.social.aggregatedSession}
                       </span>
                       <button className={styles.modalClose} onClick={() => setAttachedSession(null)}>
                         <X size={14} />
@@ -212,17 +305,17 @@ export default function SocialPage() {
                     </div>
                     <div className={styles.sessionEmbedMetrics}>
                       <div className={styles.embedMetric}>
-                        <span className={styles.embedMetricLabel}>Profit</span>
+                        <span className={styles.embedMetricLabel}>{t.sessions.profit}</span>
                         <span className={`${styles.embedMetricValue} ${getSessionProfit(attachedSession) >= 0 ? styles.profitPos : styles.profitNeg}`}>
-                          {formatCurrency(getSessionProfit(attachedSession), 'EUR', true)}
+                          {formatCurrency(getSessionProfit(attachedSession), currency, true)}
                         </span>
                       </div>
                       <div className={styles.embedMetric}>
-                        <span className={styles.embedMetricLabel}>Events</span>
+                        <span className={styles.embedMetricLabel}>{t.social.eventsPlayed}</span>
                         <span className={styles.embedMetricValue}>{attachedSession.eventCount}</span>
                       </div>
                       <div className={styles.embedMetric}>
-                        <span className={styles.embedMetricLabel}>ITM</span>
+                        <span className={styles.embedMetricLabel}>{t.social.itmCashes}</span>
                         <span className={styles.embedMetricValue}>{attachedSession.cashesCount}</span>
                       </div>
                     </div>
@@ -230,18 +323,19 @@ export default function SocialPage() {
                 )}
               </div>
             </div>
-            
+
             <div className={styles.composerBottom}>
               <div className={styles.composerTools}>
-                <button 
+                <button
+                  type="button"
                   className={`${styles.composerToolBtn} ${attachedSession ? styles.composerToolBtnActive : ''}`}
-                  onClick={() => setShowSessionPicker(true)}
+                  onClick={handleOpenSessionPicker}
                 >
                   <Share2 size={14} />
-                  Share Session
+                  {t.social.shareSession}
                 </button>
               </div>
-              
+
               <div className={styles.composerRight}>
                 <span className={`${styles.charCount} ${charOverLimit ? styles.charCountOver : ''}`}>
                   {charCount}/{MAX_POST_LENGTH}
@@ -249,13 +343,45 @@ export default function SocialPage() {
                 <button
                   className={styles.postBtn}
                   onClick={handlePostSubmit}
-                  disabled={(!newPost.trim() && !attachedSession) || charOverLimit}
+                  disabled={(!newPost.trim() && !attachedSession) || charOverLimit || isSubmittingPost}
                 >
                   <Send size={14} />
-                  {t.social.post}
+                  {isSubmittingPost ? 'Posting...' : t.social.post}
                 </button>
               </div>
             </div>
+          </div>
+
+          {/* ── Feed Mode Tabs (Community vs Following) ── */}
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+            <button
+              type="button"
+              onClick={() => setFeedMode('community')}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                padding: '8px 16px', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: 600,
+                cursor: 'pointer', transition: 'all 0.15s ease',
+                background: feedMode === 'community' ? 'var(--accent-blue-bg)' : 'var(--bg-glass)',
+                color: feedMode === 'community' ? 'var(--accent-blue)' : 'var(--text-secondary)',
+                border: `1px solid ${feedMode === 'community' ? 'var(--accent-blue)' : 'var(--border-primary)'}`
+              }}
+            >
+              <Globe size={14} /> {t.social.communityFeedTab} ({posts.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setFeedMode('following')}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                padding: '8px 16px', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: 600,
+                cursor: 'pointer', transition: 'all 0.15s ease',
+                background: feedMode === 'following' ? 'var(--accent-purple-bg)' : 'var(--bg-glass)',
+                color: feedMode === 'following' ? 'var(--accent-purple)' : 'var(--text-secondary)',
+                border: `1px solid ${feedMode === 'following' ? 'var(--accent-purple)' : 'var(--border-primary)'}`
+              }}
+            >
+              <UserCheck size={14} /> {t.social.followingTab} ({following.length})
+            </button>
           </div>
 
           {/* ── Feed ── */}
@@ -268,29 +394,29 @@ export default function SocialPage() {
               </div>
             ) : (
               feedPosts.map((post, i) => {
-                const author = getPlayer(post.authorId);
-                const isLiked = post.kudos.includes(profile?.id || 'current-user');
+                const author = getPostAuthor(post);
+                const isLiked = post.kudos.includes(profile?.id || '');
                 const isCommentsOpen = expandedComments[post.id] ?? false;
-
+                const isAuthor = post.authorId === profile?.id;
 
                 return (
                   <article key={post.id} id={`post-${post.id}`} className={styles.postCard} style={{ animationDelay: `${i * 50}ms` }}>
                     {/* Header */}
                     <div className={styles.postHeader}>
                       <div className={styles.authorAvatarWrap} style={{ cursor: 'pointer' }} onClick={() => handleViewProfile(post.authorId)}>
-                        <Avatar name={author?.displayName || 'Unknown'} src={author?.avatar} size="md" />
+                        <Avatar name={author.displayName} src={author.avatar} size="md" />
                       </div>
                       <div className={styles.postMeta}>
                         <div className={styles.postMetaTop}>
                           <span className={styles.authorName} style={{ cursor: 'pointer' }} onClick={() => handleViewProfile(post.authorId)}>
-                            {author?.displayName || 'Unknown'}
+                            {author.displayName}
                           </span>
-                          <span className={styles.authorUsername}>@{author?.username || 'user'}</span>
+                          <span className={styles.authorUsername}>@{author.username}</span>
                           <PostTypeBadge type={post.type} />
                         </div>
                         <span className={styles.postTime}>{formatRelativeTime(post.createdAt)}</span>
                       </div>
-                      {post.authorId === profile?.id && (
+                      {isAuthor && (
                         <button className={styles.actionBtn} onClick={() => deletePost(post.id)} title="Delete post" style={{ marginLeft: 'auto' }}>
                           <Trash2 size={14} />
                         </button>
@@ -308,7 +434,7 @@ export default function SocialPage() {
                         <div className={styles.sessionEmbedHeader}>
                           <span className={styles.sessionEmbedTitle}>
                             <Trophy size={16} className="text-gold" />
-                            Session Results
+                            {t.social.sessionResultsTitle}
                           </span>
                           <span className={styles.sessionPickerMeta}>
                             {formatDate(post.sessionData.date || new Date().toISOString())}
@@ -317,17 +443,17 @@ export default function SocialPage() {
                         </div>
                         <div className={styles.sessionEmbedMetrics}>
                           <div className={styles.embedMetric}>
-                            <span className={styles.embedMetricLabel}>Profit</span>
+                            <span className={styles.embedMetricLabel}>{t.sessions.profit}</span>
                             <span className={`${styles.embedMetricValue} ${getSessionProfit(post.sessionData as AggregatedMTTSession) >= 0 ? styles.profitPos : styles.profitNeg}`}>
-                              {formatCurrency(getSessionProfit(post.sessionData as AggregatedMTTSession), 'EUR', true)}
+                              {formatCurrency(getSessionProfit(post.sessionData as AggregatedMTTSession), currency, true)}
                             </span>
                           </div>
                           <div className={styles.embedMetric}>
-                            <span className={styles.embedMetricLabel}>Events Played</span>
+                            <span className={styles.embedMetricLabel}>{t.social.eventsPlayed}</span>
                             <span className={styles.embedMetricValue}>{post.sessionData.eventCount || 0}</span>
                           </div>
                           <div className={styles.embedMetric}>
-                            <span className={styles.embedMetricLabel}>ITM (Cashes)</span>
+                            <span className={styles.embedMetricLabel}>{t.social.itmCashes}</span>
                             <span className={styles.embedMetricValue}>{post.sessionData.cashesCount || 0}</span>
                           </div>
                         </div>
@@ -343,18 +469,18 @@ export default function SocialPage() {
                       </div>
                     )}
 
-                    {/* Action Bar */}
+                    {/* Goal Completed Embed */}
                     {post.type === 'goal_completed' && post.data && (
                       <div className={styles.sessionEmbed} style={{ background: 'linear-gradient(to right, rgba(234, 179, 8, 0.1), rgba(234, 179, 8, 0.05))', borderColor: 'rgba(234, 179, 8, 0.2)' }}>
                         <div className={styles.sessionEmbedHeader}>
                           <span className={styles.sessionEmbedTitle}>
                             <Target size={16} className="text-gold" />
-                            Goal Completed
+                            {POST_TYPE_BADGES.goal_completed.label}
                           </span>
                         </div>
                         <div className={styles.sessionEmbedMetrics}>
                           <div className={styles.embedMetric} style={{ width: '100%' }}>
-                            <span className={styles.embedMetricValue} style={{ fontSize: '18px', color: 'var(--text-primary)' }}>{String(post.data.goalTitle || '')}</span>
+                            <span className={styles.embedMetricValue} style={{ fontSize: '16px', color: 'var(--text-primary)' }}>{String(post.data.goalTitle || '')}</span>
                             <span className={styles.embedMetricLabel} style={{ marginTop: '4px' }}>Target: {String(post.data.target || '')}</span>
                           </div>
                         </div>
@@ -369,7 +495,7 @@ export default function SocialPage() {
                       >
                         <Heart size={16} className={styles.actionIcon} fill={isLiked ? "currentColor" : "none"} />
                         <span className={styles.actionLabel}>
-                          {post.kudos.length > 0 ? post.kudos.length : ''} {post.kudos.length === 1 ? 'Like' : 'Likes'}
+                          {post.kudos.length > 0 ? post.kudos.length : ''} {post.kudos.length === 1 ? t.social.likeSingular : t.social.likePlural}
                         </span>
                       </button>
                       <button
@@ -381,7 +507,12 @@ export default function SocialPage() {
                           {post.comments.length > 0 ? post.comments.length : ''} {t.social.comment}
                         </span>
                       </button>
-                      <button className={styles.actionBtn} style={{ marginLeft: 'auto' }}>
+                      <button
+                        className={styles.actionBtn}
+                        style={{ marginLeft: 'auto' }}
+                        onClick={() => handleSharePost(post)}
+                        title="Copy post summary"
+                      >
                         <Share2 size={16} className={styles.actionIcon} />
                       </button>
                     </div>
@@ -392,17 +523,23 @@ export default function SocialPage() {
                         {post.comments.length > 0 && (
                           <div className={styles.commentsList}>
                             {post.comments.map(c => {
-                              const cAuthor = getPlayer(c.authorId);
+                              const cAuthor = getCommentAuthor(c);
+                              const isCommentAuthor = c.authorId === profile?.id;
                               return (
                                 <div key={c.id} className={styles.commentItem}>
-                                  <Avatar name={cAuthor?.displayName || 'Unknown'} src={cAuthor?.avatar} size="sm" />
+                                  <Avatar name={cAuthor.displayName} src={cAuthor.avatar} size="sm" />
                                   <div className={styles.commentBubble}>
-                                    <span className={styles.commentAuthorName}>{cAuthor?.displayName || 'Unknown'}</span>
+                                    <span className={styles.commentAuthorName}>{cAuthor.displayName}</span>
                                     <span className={styles.commentText}>{c.content}</span>
                                     <span className={styles.commentTime}>{formatRelativeTime(c.createdAt)}</span>
                                   </div>
-                                  {((c.authorId === profile?.id) || (post.authorId === profile?.id)) && (
-                                    <button className={styles.deleteCommentBtn} onClick={() => deleteComment(post.id, c.id)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '2px', marginLeft: 'auto' }} title="Delete comment">
+                                  {(isCommentAuthor || isAuthor) && (
+                                    <button
+                                      className={styles.deleteCommentBtn}
+                                      onClick={() => deleteComment(post.id, c.id)}
+                                      style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '2px', marginLeft: 'auto' }}
+                                      title="Delete comment"
+                                    >
                                       <Trash2 size={12} />
                                     </button>
                                   )}
@@ -428,7 +565,7 @@ export default function SocialPage() {
                             <button
                               className={styles.commentSendBtn}
                               onClick={() => handleComment(post.id)}
-                              disabled={!(commentInputs[post.id]?.trim())}
+                              disabled={!(commentInputs[post.id]?.trim()) || submittingCommentPostId === post.id}
                             >
                               <Send size={12} />
                             </button>
@@ -443,7 +580,7 @@ export default function SocialPage() {
             {hasMore && feedPosts.length > 0 && (
               <div style={{ display: 'flex', justifyContent: 'center', padding: '1.5rem 0' }}>
                 <button className={styles.actionBtn} style={{ padding: '8px 24px', fontSize: '13px' }} onClick={() => loadMore()}>
-                  Load More
+                  {t.social.loadMore}
                 </button>
               </div>
             )}
@@ -453,49 +590,63 @@ export default function SocialPage() {
         {/* ── Sidebar ── */}
         <aside className={styles.sidebar}>
           <div className={styles.sidebarCard}>
-            <h3 className={styles.sidebarTitle}><TrendingUp size={16} /> Top Discussions</h3>
+            <h3 className={styles.sidebarTitle}>
+              <Flame size={16} style={{ color: 'var(--accent-gold)' }} />
+              {t.social.grindersLeaderboard}
+            </h3>
             <div className={styles.trendingList}>
-              {trendingTopics.map((topic, i) => (
-                <div key={i} className={styles.trendingItem} style={{ flexDirection: 'column', alignItems: 'flex-start', cursor: 'pointer', position: 'relative' }} onClick={() => {
-                  const element = document.getElementById(`post-${topic.postId}`);
-                  if (element) {
-                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    element.animate([
-                      { transform: 'scale(1)', boxShadow: 'none' },
-                      { transform: 'scale(1.02)', boxShadow: '0 0 20px var(--accent-primary)' },
-                      { transform: 'scale(1)', boxShadow: 'none' }
-                    ], { duration: 1500, easing: 'ease-in-out' });
-                  }
-                }}>
-                  <div className={styles.trendingTag} style={{ fontSize: '13px', marginBottom: '4px', color: 'var(--accent-blue)', fontWeight: 'var(--font-semibold)' }}>
-                    {topic.authorName || '#GrindHub'}
-                  </div>
-                  {topic.content && (
-                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px', lineHeight: 1.4, fontStyle: 'italic' }}>
-                      &quot;{topic.content.length > 50 ? topic.content.substring(0, 50) + '...' : topic.content}&quot;
-                    </div>
-                  )}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                    {topic.score !== undefined && (
-                      <div className={styles.trendingCount} style={{ color: 'var(--accent-red)' }}>
-                        <TrendingUp size={12} style={{ marginRight: '4px', display: 'inline', verticalAlign: 'text-bottom' }} />
-                        Hot Score: {Math.round(topic.score * 10) / 10}
+              {leaderboard.length === 0 ? (
+                <div className={styles.sidebarEmpty}>No active rankings yet</div>
+              ) : (
+                leaderboard.slice(0, 5).map((entry, i) => (
+                  <div
+                    key={entry.id}
+                    className={styles.trendingItem}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', cursor: 'pointer' }}
+                    onClick={() => handleViewProfile(entry.id)}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                      <span style={{
+                        width: '20px', fontSize: '12px', fontFamily: 'var(--font-mono)', fontWeight: 800,
+                        color: i === 0 ? 'var(--accent-gold)' : i === 1 ? 'var(--accent-blue)' : 'var(--text-muted)'
+                      }}>
+                        #{i + 1}
+                      </span>
+                      <Avatar name={entry.name} src={entry.avatar} size="sm" />
+                      <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                        <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {entry.name} {entry.id === profile?.id && <small style={{ color: 'var(--accent-blue)' }}>{t.social.youBadge}</small>}
+                        </span>
+                        <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+                          {entry.mttsLogged} {t.social.mttsLabel} · {entry.sessionsLogged} {t.social.sessionsLabel}
+                        </span>
                       </div>
+                    </div>
+                    {entry.netProfit !== null ? (
+                      <span style={{
+                        fontSize: '12px', fontFamily: 'var(--font-mono)', fontWeight: 700,
+                        color: entry.netProfit >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'
+                      }}>
+                        {formatCurrency(entry.netProfit, currency, true)}
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                        <Lock size={10} /> {t.social.privateProfit}
+                      </span>
                     )}
-                    <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)' }}>View Post →</span>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
 
           <div className={styles.sidebarCard}>
             <h3 className={styles.sidebarTitle}>
               <Users size={16} className="text-purple" />
-              Suggested Players
+              {t.social.suggestedPlayers}
             </h3>
             {suggestedPlayers.length === 0 ? (
-              <div className={styles.sidebarEmpty}>No new players to follow</div>
+              <div className={styles.sidebarEmpty}>{t.social.noNewPlayers}</div>
             ) : (
               <div className={styles.suggestedList}>
                 {suggestedPlayers.map(p => (
@@ -508,7 +659,7 @@ export default function SocialPage() {
                       <span className={styles.suggestedUsername} style={{ cursor: 'pointer' }} onClick={() => handleViewProfile(p.id)}>@{p.username}</span>
                     </div>
                     <button className={styles.followBtn} onClick={() => follow(p.id)}>
-                      {t.profile?.follow || 'Follow'}
+                      {t.profile.follow}
                     </button>
                   </div>
                 ))}
@@ -523,25 +674,25 @@ export default function SocialPage() {
         <div className={styles.modalOverlay} onClick={() => setShowSessionPicker(false)}>
           <div className={styles.modal} onClick={e => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h2>Select a Session to Share</h2>
+              <h2>{t.social.selectSessionModal}</h2>
               <button className={styles.modalClose} onClick={() => setShowSessionPicker(false)}>
                 <X size={20} />
               </button>
             </div>
             <div className={styles.sessionListPicker}>
               {mySessions.length === 0 ? (
-                <p className={styles.sidebarEmpty}>You have no sessions recorded yet.</p>
+                <p className={styles.sidebarEmpty}>{t.social.noSessionsToShare}</p>
               ) : (
-                [...mySessions].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0,10).map(s => {
+                [...mySessions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 10).map(s => {
                   const prof = getSessionProfit(s);
                   return (
                     <div key={s.id} className={styles.sessionPickerItem} onClick={() => { setAttachedSession(s); setShowSessionPicker(false); }}>
                       <div className={styles.sessionPickerLeft}>
                         <span className={styles.sessionPickerDate}>{formatDate(s.date)}</span>
-                        <span className={styles.sessionPickerMeta}>{s.eventCount} events · {s.platforms.map(p => platformLabels[p as keyof typeof platformLabels] || p).join(', ')}</span>
+                        <span className={styles.sessionPickerMeta}>{s.eventCount} MTTs · {s.platforms.map(p => platformLabels[p as keyof typeof platformLabels] || p).join(', ')}</span>
                       </div>
                       <span className={`${styles.sessionPickerRight} ${prof >= 0 ? styles.profitPos : styles.profitNeg}`}>
-                        {formatCurrency(prof, 'EUR', true)}
+                        {formatCurrency(prof, currency, true)}
                       </span>
                     </div>
                   );
@@ -553,9 +704,9 @@ export default function SocialPage() {
       )}
 
       {selectedProfile && (
-        <PublicProfileModal 
-          selectedProfile={selectedProfile} 
-          onClose={() => setSelectedProfile(null)} 
+        <PublicProfileModal
+          selectedProfile={selectedProfile}
+          onClose={() => setSelectedProfile(null)}
         />
       )}
     </div>

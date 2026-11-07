@@ -73,7 +73,7 @@ export function formatCurrency(
         })
       : absAmount.toFixed(2);
 
-  const sign = amount >= 0 ? (showSign ? '+' : '') : '-';
+  const sign = amount > 0 ? (showSign ? '+' : '') : amount < 0 ? '-' : '';
   return `${sign}${symbol}${formatted}`;
 }
 
@@ -114,7 +114,7 @@ export function getAvatarColor(id: string): string {
  * @returns A string such as `"+12.3%"` or `"-4.0%"`.
  */
 export function formatPercent(value: number, decimals = 1): string {
-  return `${value >= 0 ? '+' : ''}${value.toFixed(decimals)}%`;
+  return `${value > 0 ? '+' : ''}${value.toFixed(decimals)}%`;
 }
 
 /**
@@ -131,8 +131,33 @@ export function formatNumber(value: number, decimals = 0): string {
 }
 
 // ---------------------------------------------------------------------------
-// Date Formatting
+// Date Formatting & Timezone-Safe Normalization
 // ---------------------------------------------------------------------------
+
+/**
+ * Converts a `'yyyy-MM-dd'` date input string to a noon-UTC ISO timestamp
+ * (`YYYY-MM-DDT12:00:00.000Z`) so local-date rendering never shifts across
+ * midnight boundaries in Americas/Europe/Asia timezones.
+ */
+export function dateInputToIso(yyyyMmDd: string): string {
+  if (!yyyyMmDd) return new Date().toISOString();
+  const clean = yyyyMmDd.split('T')[0];
+  if (/^\d{4}-\d{2}-\d{2}$/.test(clean)) {
+    return `${clean}T12:00:00.000Z`;
+  }
+  const parsed = new Date(yyyyMmDd);
+  return isValid(parsed) ? parsed.toISOString() : new Date().toISOString();
+}
+
+/**
+ * Extracts a timezone-safe `'yyyy-MM-dd'` calendar date string from an ISO date.
+ */
+export function isoToDateInput(iso: string): string {
+  if (!iso) return format(new Date(), 'yyyy-MM-dd');
+  const date = parseISO(iso);
+  if (!isValid(date)) return format(new Date(), 'yyyy-MM-dd');
+  return format(date, 'yyyy-MM-dd');
+}
 
 /**
  * Formats an ISO date string as a short date (e.g. "Jun 7, 2026").
@@ -248,7 +273,7 @@ export function getSessionProfit(session: Session): number {
 }
 
 /**
- * Computes the average buy-in per event within a session.
+ * Computes the average buy-in per event within a session (Session ABI).
  * Falls back to `totalBuyIns` when the event count is unavailable.
  * @param session - The session to evaluate.
  * @returns Average buy-in per event.
@@ -269,6 +294,28 @@ export function isSessionProfitable(session: Session): boolean {
   return getSessionProfit(session) > 0;
 }
 
+/**
+ * Deterministic comparator sorting sessions newest-first (`date DESC, createdAt DESC`).
+ */
+export function sortSessionsDesc(sessions: Session[]): Session[] {
+  return [...sessions].sort((a, b) => {
+    const diff = new Date(b.date).getTime() - new Date(a.date).getTime();
+    if (diff !== 0) return diff;
+    return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+  });
+}
+
+/**
+ * Deterministic comparator sorting sessions oldest-first (`date ASC, createdAt ASC`).
+ */
+export function sortSessionsAsc(sessions: Session[]): Session[] {
+  return [...sessions].sort((a, b) => {
+    const diff = new Date(a.date).getTime() - new Date(b.date).getTime();
+    if (diff !== 0) return diff;
+    return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Bankroll Health
 // ---------------------------------------------------------------------------
@@ -276,18 +323,6 @@ export function isSessionProfitable(session: Session): boolean {
 /**
  * Evaluates bankroll health based on how many average buy-ins the
  * player can afford, compared to game-type-specific recommendations.
- *
- * | Game Type | Recommended buy-ins |
- * |-----------|---------------------|
- * | MTT       | 100                 |
- * | Cash      | 30                  |
- * | SNG       | 50                  |
- * | Spin      | 50                  |
- *
- * @param bankroll - Current bankroll amount.
- * @param avgBuyIn - Average buy-in for the game type.
- * @param gameType - The type of game being played.
- * @returns `'healthy'` (≥ 100%), `'caution'` (≥ 50%), or `'danger'` (< 50%).
  */
 export function getBankrollHealth(
   bankroll: number,
@@ -370,22 +405,12 @@ export const tournamentTypeLabels: Record<TournamentType, string> = {
 // Color / CSS Helpers
 // ---------------------------------------------------------------------------
 
-/**
- * Returns a CSS custom-property color based on profit sign.
- * @param amount - The profit amount.
- * @returns A CSS `var(--…)` expression for green, red, or muted.
- */
 export function getProfitColor(amount: number): string {
   if (amount > 0) return 'var(--accent-green)';
   if (amount < 0) return 'var(--accent-red)';
   return 'var(--text-muted)';
 }
 
-/**
- * Returns a CSS class name based on profit sign.
- * @param amount - The profit amount.
- * @returns `'profit-positive'`, `'profit-negative'`, or `'profit-neutral'`.
- */
 export function getProfitClass(amount: number): string {
   if (amount > 0) return 'profit-positive';
   if (amount < 0) return 'profit-negative';
@@ -396,11 +421,6 @@ export function getProfitClass(amount: number): string {
 // Time Filter Helpers
 // ---------------------------------------------------------------------------
 
-/**
- * Converts a `TimeFilter` preset into a cutoff `Date`.
- * @param filter - The time-range filter to apply.
- * @returns A `Date` representing the start of the time window.
- */
 export function getTimeFilterDate(filter: TimeFilter): Date {
   const now = new Date();
   switch (filter) {
@@ -417,36 +437,39 @@ export function getTimeFilterDate(filter: TimeFilter): Date {
   }
 }
 
-/**
- * Filters an array of sessions to only those on or after the cutoff date.
- * @param sessions - The full list of sessions.
- * @param filter   - The time-range preset.
- * @returns Sessions whose date is ≥ the cutoff.
- */
 export function filterSessionsByTime(sessions: Session[], filter: TimeFilter): Session[] {
+  if (filter === 'all') return sessions;
   const cutoff = getTimeFilterDate(filter);
   cutoff.setHours(0, 0, 0, 0);
-  return sessions.filter((s) => new Date(s.date) >= cutoff);
+  const cutoffStr = format(cutoff, 'yyyy-MM-dd');
+  return sessions.filter((s) => isoToDateInput(s.date) >= cutoffStr);
 }
 
 // ---------------------------------------------------------------------------
-// Streak Calculations
+// Streak & Drawdown Calculations
 // ---------------------------------------------------------------------------
 
 /**
- * Calculates the current winning streak — the number of consecutive
- * profitable sessions starting from the most recent.
- * @param sessions - All sessions (order does not matter; sorted internally).
- * @returns Length of the current winning streak.
+ * Calculates the signed current session streak starting from the most recent session:
+ * - `+N` for N consecutive profitable sessions (`profit > 0`)
+ * - `-N` for N consecutive losing sessions (`profit < 0`)
+ * - `0` when empty or when the most recent session broke even (`profit === 0`).
  */
 export function calculateCurrentStreak(sessions: Session[]): number {
-  const sorted = [...sessions].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-  );
+  if (sessions.length === 0) return 0;
+  const sorted = sortSessionsDesc(sessions);
+  const firstProfit = getSessionProfit(sorted[0]);
+  if (firstProfit === 0) return 0;
+
+  const direction = firstProfit > 0 ? 1 : -1;
   let streak = 0;
+
   for (const session of sorted) {
-    if (getSessionProfit(session) > 0) {
+    const p = getSessionProfit(session);
+    if (direction === 1 && p > 0) {
       streak++;
+    } else if (direction === -1 && p < 0) {
+      streak--;
     } else {
       break;
     }
@@ -456,14 +479,9 @@ export function calculateCurrentStreak(sessions: Session[]): number {
 
 /**
  * Finds the longest winning streak across all sessions.
- * Sessions are evaluated in chronological (oldest-first) order.
- * @param sessions - All sessions (order does not matter; sorted internally).
- * @returns Length of the best (longest) winning streak.
  */
 export function calculateBestStreak(sessions: Session[]): number {
-  const sorted = [...sessions].sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
-  );
+  const sorted = sortSessionsAsc(sessions);
   let best = 0;
   let current = 0;
   for (const session of sorted) {
@@ -477,26 +495,85 @@ export function calculateBestStreak(sessions: Session[]): number {
   return best;
 }
 
+/**
+ * Calculates the maximum peak-to-trough cumulative drawdown (returned as a non-negative amount).
+ */
+export function calculateMaxDrawdown(sessions: Session[]): number {
+  if (sessions.length === 0) return 0;
+  const sorted = sortSessionsAsc(sessions);
+  let cumProfit = 0;
+  let peak = 0;
+  let maxDd = 0;
+
+  for (const s of sorted) {
+    cumProfit += getSessionProfit(s);
+    if (cumProfit > peak) {
+      peak = cumProfit;
+    }
+    const dd = peak - cumProfit;
+    if (dd > maxDd) {
+      maxDd = dd;
+    }
+  }
+  return Math.round(maxDd * 100) / 100;
+}
+
+// ---------------------------------------------------------------------------
+// Data Export Utilities (CSV / JSON)
+// ---------------------------------------------------------------------------
+
+/**
+ * Triggers a browser download of an RFC-4180 CSV file with UTF-8 BOM for Excel.
+ */
+export function downloadCsv(filename: string, headers: string[], rows: (string | number | null | undefined)[][]): void {
+  if (typeof window === 'undefined') return;
+  const escapeCell = (val: string | number | null | undefined): string => {
+    if (val === null || val === undefined) return '';
+    const str = String(val);
+    if (/[",\n\r]/.test(str)) {
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
+  };
+  const lines = [
+    headers.map(escapeCell).join(','),
+    ...rows.map((r) => r.map(escapeCell).join(',')),
+  ];
+  const blob = new Blob(['\uFEFF' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * Triggers a browser download of a pretty-printed JSON backup file.
+ */
+export function downloadJson(filename: string, payload: unknown): void {
+  if (typeof window === 'undefined') return;
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
 // ---------------------------------------------------------------------------
 // General Utilities
 // ---------------------------------------------------------------------------
 
-/**
- * Clamps a numeric value between a minimum and maximum bound.
- * @param value - The value to clamp.
- * @param min   - Lower bound (inclusive).
- * @param max   - Upper bound (inclusive).
- * @returns The clamped value.
- */
 export function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
-/**
- * Extracts up to two uppercase initials from a display name.
- * @param name - A person's display name (e.g. "Marco Rinaldi").
- * @returns Up to two uppercase initials, e.g. `"MR"`.
- */
 export function getInitials(name: string): string {
   return name
     .split(' ')
@@ -506,23 +583,11 @@ export function getInitials(name: string): string {
     .substring(0, 2);
 }
 
-/**
- * Truncates a string to `maxLength` characters, appending `"…"` if needed.
- * @param str       - The input string.
- * @param maxLength - Maximum allowed length (including ellipsis).
- * @returns The original or truncated string.
- */
 export function truncate(str: string, maxLength: number): string {
   if (str.length <= maxLength) return str;
   return str.substring(0, maxLength - 3) + '...';
 }
 
-/**
- * Joins CSS class names, filtering out falsy values.
- * Lightweight alternative to libraries like `clsx`.
- * @param classes - Class name strings or falsy values.
- * @returns A single space-separated class string.
- */
 export function cn(...classes: (string | undefined | null | false)[]): string {
   return classes.filter(Boolean).join(' ');
 }

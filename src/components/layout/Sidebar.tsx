@@ -17,23 +17,25 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useProfileStore } from '@/stores/profile-store';
+import { useI18n } from '@/i18n';
 import { Avatar } from '@/components/ui/Avatar';
 import styles from './Sidebar.module.css';
 
-const navItems = [
-  { href: '/', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/bankroll', icon: Wallet, label: 'Bankroll' },
-  { href: '/sessions', icon: ListTodo, label: 'Sessions' },
-  { href: '/analytics', icon: BarChart3, label: 'Analytics' },
-  { href: '/social', icon: Users, label: 'Social' },
-  { href: '/profile', icon: User, label: 'Profile' },
-  { href: '/goals', icon: Target, label: 'Goals' },
-  { href: '/settings', icon: Settings, label: 'Settings' },
-];
-
 export function Sidebar() {
   const pathname = usePathname();
+  const { t } = useI18n();
   const profile = useProfileStore((s) => s.profile);
+
+  const navItems = [
+    { href: '/', icon: LayoutDashboard, label: t.nav.dashboard },
+    { href: '/bankroll', icon: Wallet, label: t.nav.bankroll },
+    { href: '/sessions', icon: ListTodo, label: t.nav.sessions },
+    { href: '/analytics', icon: BarChart3, label: t.nav.analytics },
+    { href: '/social', icon: Users, label: t.nav.social },
+    { href: '/profile', icon: User, label: t.nav.profile },
+    { href: '/goals', icon: Target, label: t.nav.goals },
+    { href: '/settings', icon: Settings, label: t.nav.settings },
+  ];
 
   return (
     <aside className={styles.sidebar}>

@@ -16,9 +16,11 @@ export const sessionService = {
       .from('sessions')
       .select('*')
       .eq('user_id', userId)
-      .order('date', { ascending: false });
+      .order('date', { ascending: false })
+      .order('created_at', { ascending: false });
 
-    if (error || !data) return [];
+    if (error) throw error;
+    if (!data) return [];
 
     return data.map(d => ({
       id: d.id,

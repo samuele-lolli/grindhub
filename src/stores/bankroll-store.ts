@@ -1,13 +1,13 @@
 // ============================================================
 // GrindHub — Bankroll Store (Zustand)
-// All balance logic is handled by bankrollService (single source of truth).
-// The store only updates local state to match what the service returns.
+// All balance mutations go through atomic PostgreSQL RPCs via bankrollService.
 // ============================================================
 
 import { create } from 'zustand';
 import type { BankrollAccount, BankrollTransaction } from '@/types';
 import { bankrollService } from '@/lib/services/bankroll-service';
 import { useProfileStore } from './profile-store';
+import { useGoalsStore } from './goals-store';
 
 interface BankrollState {
   accounts: BankrollAccount[];
@@ -32,26 +32,34 @@ interface BankrollActions {
 
 type BankrollStore = BankrollState & BankrollActions;
 
+function sortTransactionsDesc(txs: BankrollTransaction[]): BankrollTransaction[] {
+  return [...txs].sort((a, b) => {
+    const d = new Date(b.date).getTime() - new Date(a.date).getTime();
+    if (d !== 0) return d;
+    return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+  });
+}
+
 export const useBankrollStore = create<BankrollStore>()((set, get) => ({
   accounts: [],
   transactions: [],
 
   /**
    * Creates a new bankroll account.
-   * If the initial balance > 0, we create the account with 0 balance
-   * and then generate an "Initial Balance" deposit to ensure charts calculate history correctly.
+   * If initial balance > 0, creates the account at 0 and records an atomic
+   * "Initial Balance" deposit so historical bankroll charts remain 100% exact.
    */
   addAccount: async (acc) => {
     const userId = useProfileStore.getState().profile?.id;
-    if (!userId) return;
+    if (!userId) throw new Error('User not authenticated');
 
     try {
       const initialBalance = acc.balance;
       const accountToCreate = { ...acc, balance: 0 };
       const newAcc = await bankrollService.createAccount(userId, accountToCreate);
-      
-      set(state => ({
-        accounts: [...state.accounts, newAcc]
+
+      set((state) => ({
+        accounts: [...state.accounts, newAcc],
       }));
 
       if (initialBalance > 0) {
@@ -60,7 +68,7 @@ export const useBankrollStore = create<BankrollStore>()((set, get) => ({
           type: 'deposit',
           amount: initialBalance,
           date: new Date().toISOString(),
-          notes: 'Initial Balance'
+          notes: 'Initial Balance',
         });
       }
     } catch (error) {
@@ -72,10 +80,11 @@ export const useBankrollStore = create<BankrollStore>()((set, get) => ({
   deleteAccount: async (id) => {
     try {
       await bankrollService.deleteAccount(id);
-      set(state => ({
-        accounts: state.accounts.filter(a => a.id !== id),
-        transactions: state.transactions.filter(t => t.accountId !== id)
+      set((state) => ({
+        accounts: state.accounts.filter((a) => a.id !== id),
+        transactions: state.transactions.filter((t) => t.accountId !== id),
       }));
+      useGoalsStore.getState().evaluateActiveGoals().catch(console.error);
     } catch (error) {
       console.error('Failed to delete bankroll account:', error);
       throw error;
@@ -83,31 +92,25 @@ export const useBankrollStore = create<BankrollStore>()((set, get) => ({
   },
 
   /**
-   * Adds a transaction. The service handles BOTH:
-   * 1. Inserting the transaction row in DB
-   * 2. Updating the account balance in DB (sign-aware)
-   *
-   * We then sync local state with the returned values.
-   * NO local optimistic balance update — single source of truth.
+   * Atomically records a transaction and updates the account balance in PostgreSQL.
    */
   addTransaction: async (tx) => {
     const userId = useProfileStore.getState().profile?.id;
-    if (!userId) return;
+    if (!userId) throw new Error('User not authenticated');
 
     try {
       const result = await bankrollService.createTransaction(userId, tx);
 
-      set(state => ({
-        // Add the new transaction to local state
-        transactions: [result.transaction, ...state.transactions]
-          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
-        // Sync the account balance with what the DB says
-        accounts: state.accounts.map(a =>
+      set((state) => ({
+        transactions: sortTransactionsDesc([result.transaction, ...state.transactions]),
+        accounts: state.accounts.map((a) =>
           a.id === tx.accountId
             ? { ...a, balance: result.newBalance, updatedAt: new Date().toISOString() }
             : a
         ),
       }));
+
+      useGoalsStore.getState().evaluateActiveGoals().catch(console.error);
     } catch (error) {
       console.error('Failed to add transaction:', error);
       throw error;
@@ -115,29 +118,36 @@ export const useBankrollStore = create<BankrollStore>()((set, get) => ({
   },
 
   /**
-   * Deletes a transaction and reverses its balance effect in the DB.
-   * The service handles the DB deletion and balance reversal.
+   * Deletes a transaction (or both legs of a `[tid:<uuid>]` transfer pair) and
+   * reconciles all account balances from the PostgreSQL ledger.
    */
   deleteTransaction: async (id) => {
-    const tx = get().transactions.find(t => t.id === id);
+    const userId = useProfileStore.getState().profile?.id;
+    if (!userId) throw new Error('User not authenticated');
+
+    const tx = get().transactions.find((t) => t.id === id);
     if (!tx) return;
 
     try {
-      const newBalance = await bankrollService.deleteTransaction({
+      const { deletedIds, reconciledBalances } = await bankrollService.deleteTransaction(userId, {
         id: tx.id,
-        accountId: tx.accountId,
-        type: tx.type,
-        amount: tx.amount,
+        transferGroupId: tx.transferGroupId,
       });
 
-      set(state => ({
-        transactions: state.transactions.filter(t => t.id !== id),
-        accounts: state.accounts.map(a =>
-          a.id === tx.accountId
-            ? { ...a, balance: newBalance, updatedAt: new Date().toISOString() }
+      const deletedSet = new Set(deletedIds);
+      const balanceMap = new Map(reconciledBalances.map((r) => [r.id, r.balance]));
+      const nowIso = new Date().toISOString();
+
+      set((state) => ({
+        transactions: state.transactions.filter((t) => !deletedSet.has(t.id)),
+        accounts: state.accounts.map((a) =>
+          balanceMap.has(a.id)
+            ? { ...a, balance: balanceMap.get(a.id)!, updatedAt: nowIso }
             : a
         ),
       }));
+
+      useGoalsStore.getState().evaluateActiveGoals().catch(console.error);
     } catch (error) {
       console.error('Failed to delete transaction:', error);
       throw error;
@@ -145,36 +155,28 @@ export const useBankrollStore = create<BankrollStore>()((set, get) => ({
   },
 
   /**
-   * Transfers funds between two accounts.
-   * Creates a withdrawal from source + deposit to destination.
-   * Each addTransaction call handles its own balance update correctly.
+   * Atomically transfers funds between two accounts via `record_bankroll_transfer` RPC
+   * (`type = 'transfer'`, linked via `[tid:<uuid>]`).
    */
   transferFunds: async (fromAccountId, toAccountId, amount, notes = 'Transfer') => {
     const userId = useProfileStore.getState().profile?.id;
-    if (!userId) return;
+    if (!userId) throw new Error('User not authenticated');
 
     try {
-      const fromName = get().accounts.find(a => a.id === fromAccountId)?.name || 'Account';
-      const toName = get().accounts.find(a => a.id === toAccountId)?.name || 'Account';
       const date = new Date().toISOString();
+      const res = await bankrollService.createTransfer(fromAccountId, toAccountId, amount, date, notes);
+      const nowIso = new Date().toISOString();
 
-      // Withdraw from source
-      await get().addTransaction({
-        accountId: fromAccountId,
-        type: 'withdrawal',
-        amount,
-        date,
-        notes: `${notes} → ${toName}`
-      });
+      set((state) => ({
+        transactions: sortTransactionsDesc([res.inTx, res.outTx, ...state.transactions]),
+        accounts: state.accounts.map((a) => {
+          if (a.id === fromAccountId) return { ...a, balance: res.fromBalance, updatedAt: nowIso };
+          if (a.id === toAccountId) return { ...a, balance: res.toBalance, updatedAt: nowIso };
+          return a;
+        }),
+      }));
 
-      // Deposit to destination
-      await get().addTransaction({
-        accountId: toAccountId,
-        type: 'deposit',
-        amount,
-        date,
-        notes: `${notes} ← ${fromName}`
-      });
+      useGoalsStore.getState().evaluateActiveGoals().catch(console.error);
     } catch (error) {
       console.error('Failed to transfer funds:', error);
       throw error;
@@ -182,15 +184,15 @@ export const useBankrollStore = create<BankrollStore>()((set, get) => ({
   },
 
   getTotalBankroll: (excludeRealLife = true) => {
-    return get().accounts
-      .filter(a => excludeRealLife ? a.category === 'poker_room' : true)
+    return get()
+      .accounts.filter((a) => (excludeRealLife ? a.category === 'poker_room' : true))
       .reduce((sum, a) => sum + a.balance, 0);
   },
 
   getAccountBalance: (id) => {
-    return get().accounts.find(a => a.id === id)?.balance || 0;
+    return get().accounts.find((a) => a.id === id)?.balance || 0;
   },
 
   setAccounts: (accounts) => set({ accounts }),
-  setTransactions: (transactions) => set({ transactions })
+  setTransactions: (transactions) => set({ transactions: sortTransactionsDesc(transactions) }),
 }));

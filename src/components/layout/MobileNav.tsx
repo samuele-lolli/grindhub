@@ -3,22 +3,22 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ListTodo, BarChart3, Users, User, Wallet } from 'lucide-react';
-import styles from './MobileNav.module.css';
-
-const tabs = [
-  { href: '/', icon: LayoutDashboard, label: 'Home' },
-  { href: '/bankroll', icon: Wallet, label: 'Bankroll' },
-  { href: '/sessions', icon: ListTodo, label: 'Sessions' },
-  { href: '/social', icon: Users, label: 'Social' },
-];
-
-import { Target, Settings, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, ListTodo, BarChart3, Users, User, Wallet, Target, Settings, LogOut, Menu, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { useI18n } from '@/i18n';
+import styles from './MobileNav.module.css';
 
 export function MobileNav() {
   const pathname = usePathname();
+  const { t, locale } = useI18n();
   const [menuOpen, setMenuOpen] = React.useState(false);
+
+  const tabs = [
+    { href: '/', icon: LayoutDashboard, label: t.nav.dashboard },
+    { href: '/bankroll', icon: Wallet, label: t.nav.bankroll },
+    { href: '/sessions', icon: ListTodo, label: t.nav.sessions },
+    { href: '/social', icon: Users, label: t.nav.social },
+  ];
 
   // Close menu when route changes
   React.useEffect(() => {
@@ -40,19 +40,19 @@ export function MobileNav() {
             </div>
             <div className={styles.menuLinks}>
               <Link href="/analytics" className={styles.menuLink}>
-                <BarChart3 size={20} /> <span>Analytics</span>
+                <BarChart3 size={20} /> <span>{t.nav.analytics}</span>
               </Link>
               <Link href="/profile" className={styles.menuLink}>
-                <User size={20} /> <span>Profile</span>
+                <User size={20} /> <span>{t.nav.profile}</span>
               </Link>
               <Link href="/goals" className={styles.menuLink}>
-                <Target size={20} /> <span>Goals</span>
+                <Target size={20} /> <span>{t.nav.goals}</span>
               </Link>
               <Link href="/settings" className={styles.menuLink}>
-                <Settings size={20} /> <span>Settings</span>
+                <Settings size={20} /> <span>{t.nav.settings}</span>
               </Link>
               <button onClick={() => supabase.auth.signOut()} className={`${styles.menuLink} ${styles.logoutLink}`}>
-                <LogOut size={20} /> <span>Log Out</span>
+                <LogOut size={20} /> <span>{locale === 'it' ? 'Esci' : 'Log Out'}</span>
               </button>
             </div>
           </div>
