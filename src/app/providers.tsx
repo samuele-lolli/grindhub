@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { I18nProvider } from '@/i18n';
 import { ToastProvider } from '@/components/ui/Toast';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -31,7 +32,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** Routes that must be accessible without authentication (GDPR, legal) */
+const PUBLIC_ROUTES = ['/privacy', '/terms', '/login'];
+
 function RootContent({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const [session, setSession] = useState<import('@supabase/supabase-js').Session | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [dataLoaded, setDataLoaded] = useState(false);
@@ -43,7 +48,9 @@ function RootContent({ children }: { children: React.ReactNode }) {
   const setTransactions = useBankrollStore(s => s.setTransactions);
   const setPosts = useSocialStore(s => s.setPosts);
   const setFollowing = useSocialStore(s => s.setFollowing);
+  const setFollowersCount = useSocialStore(s => s.setFollowersCount);
   const setGoals = useGoalsStore(s => s.setGoals);
+  const setAchievements = useGoalsStore(s => s.setAchievements);
   const setLoggedIn = useProfileStore(s => s.setLoggedIn);
   const setPlayers = useProfileStore(s => s.setPlayers);
 
@@ -65,7 +72,18 @@ function RootContent({ children }: { children: React.ReactNode }) {
       setSession(session);
       setLoggedIn(!!session);
       setLoadingAuth(false);
-      if (!session) setDataLoaded(false); // Reset on logout
+      if (!session) {
+        setDataLoaded(false); // Reset on logout
+        setupProfile(null);
+        setSessions([]);
+        setAccounts([]);
+        setTransactions([]);
+        setPosts([]);
+        setFollowing([]);
+        setFollowersCount(0);
+        setGoals([]);
+        setPlayers([]);
+      }
       
       if (session && window.location.hash.includes('access_token')) {
         window.history.replaceState(null, '', window.location.pathname);
@@ -73,7 +91,7 @@ function RootContent({ children }: { children: React.ReactNode }) {
     });
 
     return () => subscription.unsubscribe();
-  }, [setLoggedIn]);
+  }, [setLoggedIn, setupProfile, setSessions, setAccounts, setTransactions, setPosts, setFollowing, setFollowersCount, setGoals, setPlayers]);
 
   useEffect(() => {
     async function loadData() {
@@ -100,6 +118,7 @@ function RootContent({ children }: { children: React.ReactNode }) {
           transactions,
           feed,
           following,
+          followersCount,
           goals,
           playersData
         ] = await Promise.all([
@@ -108,16 +127,30 @@ function RootContent({ children }: { children: React.ReactNode }) {
           bankrollService.fetchTransactions(userId),
           socialService.fetchFeed(),
           socialService.fetchFollowing(userId),
+          socialService.fetchFollowersCount(userId),
           goalsService.fetchGoals(userId),
           profileService.searchPlayers('')
         ]);
 
-        if (profile) setupProfile(profile);
+        if (profile) {
+          setupProfile(profile);
+          if (profile.achievements && profile.achievements.length > 0) {
+            const currentAchievements = useGoalsStore.getState().achievements;
+            const merged = [...currentAchievements];
+            for (const achId of profile.achievements) {
+              if (!merged.some(a => a.id === achId)) {
+                merged.push({ id: achId, unlockedAt: profile.joinedAt || new Date().toISOString() });
+              }
+            }
+            setAchievements(merged);
+          }
+        }
         setSessions(sessionsData);
         setAccounts(accounts);
         setTransactions(transactions);
         setPosts(feed);
         setFollowing(following);
+        setFollowersCount(followersCount);
         setGoals(goals);
         setPlayers(playersData);
 
@@ -130,7 +163,14 @@ function RootContent({ children }: { children: React.ReactNode }) {
     if (session?.user && !dataLoaded) {
       loadData();
     }
-  }, [session, dataLoaded, setupProfile, setSessions, setAccounts, setTransactions, setPosts, setFollowing, setGoals, setPlayers]);
+  }, [session, dataLoaded, setupProfile, setSessions, setAccounts, setTransactions, setPosts, setFollowing, setFollowersCount, setGoals, setAchievements, setPlayers]);
+
+  // Allow public routes (privacy, terms, login) to render without auth
+  const isPublicRoute = PUBLIC_ROUTES.some(route => pathname.startsWith(route));
+
+  if (isPublicRoute && !session) {
+    return <>{children}</>;
+  }
 
   if (loadingAuth || (session && !dataLoaded)) {
     return (

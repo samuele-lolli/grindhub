@@ -50,7 +50,7 @@ export default function BankrollPage() {
 
   const getStats = useSessionStore(s => s.getStats);
   const sessions = useSessionStore(s => s.sessions);
-  const stats = useMemo(() => getStats(), [getStats]);
+  const stats = useMemo(() => getStats(sessions), [getStats, sessions]);
 
   const [showTxModal, setShowTxModal] = useState(false);
   const [showAccModal, setShowAccModal] = useState(false);

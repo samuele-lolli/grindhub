@@ -436,6 +436,40 @@ export default function SettingsPage() {
 
                 <div className={styles.toggleRow}>
                   <div>
+                    <span className={styles.toggleLabel}>Show Hourly Rate</span>
+                    <span className={styles.toggleDesc}>Display your hourly profit rate on your profile.</span>
+                  </div>
+                  <label className={styles.switch}>
+                    <input 
+                      type="checkbox" 
+                      checked={localProfile.privacy.showHourlyRate ?? false} 
+                      onChange={e => setLocalProfile(p => p ? {...p, privacy: {...p.privacy, showHourlyRate: e.target.checked}} : p)} 
+                    />
+                    <span className={styles.slider}></span>
+                  </label>
+                </div>
+
+                <div className={styles.divider} />
+
+                <div className={styles.toggleRow}>
+                  <div>
+                    <span className={styles.toggleLabel}>Show Current Streak</span>
+                    <span className={styles.toggleDesc}>Display your current winning session streak.</span>
+                  </div>
+                  <label className={styles.switch}>
+                    <input 
+                      type="checkbox" 
+                      checked={localProfile.privacy.showCurrentStreak ?? false} 
+                      onChange={e => setLocalProfile(p => p ? {...p, privacy: {...p.privacy, showCurrentStreak: e.target.checked}} : p)} 
+                    />
+                    <span className={styles.slider}></span>
+                  </label>
+                </div>
+
+                <div className={styles.divider} />
+
+                <div className={styles.toggleRow}>
+                  <div>
                     <span className={styles.toggleLabel}>Show Biggest Win</span>
                     <span className={styles.toggleDesc}>Display your largest single-session profit.</span>
                   </div>

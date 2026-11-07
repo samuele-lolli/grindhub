@@ -21,6 +21,8 @@ import {
 import { sessionService } from '@/lib/services/session-service';
 import { useProfileStore } from './profile-store';
 import { useGoalsStore } from './goals-store';
+import { useSettingsStore } from './settings-store';
+import { useSocialStore } from './social-store';
 
 export interface SessionFilter {
   dateRange?: DateRange;
@@ -51,10 +53,24 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
 
     try {
       const newSession = await sessionService.createSession(userId, session);
-      set((state) => ({ sessions: [newSession, ...state.sessions] }));
+      const updatedSessions = [newSession, ...get().sessions];
+      set({ sessions: updatedSessions });
       
-      await useGoalsStore.getState().evaluateActiveGoals().catch(console.error);
-      useGoalsStore.getState().checkAchievements(get().getStats());
+      await useGoalsStore.getState().evaluateActiveGoals(updatedSessions).catch(console.error);
+      useGoalsStore.getState().checkAchievements(get().getStats(updatedSessions));
+
+      // Auto-share profitable session if enabled in settings
+      const { autoShareSessions } = useSettingsStore.getState().settings;
+      const profit = getSessionProfit(newSession);
+      if (autoShareSessions && profit > 0) {
+        await useSocialStore.getState().addPost({
+          authorId: userId,
+          type: 'session_result',
+          content: `Finished a profitable MTT session (${newSession.eventCount} events, ${newSession.cashesCount} ITM)!`,
+          sessionData: newSession,
+          isPublic: true,
+        }).catch(console.error);
+      }
     } catch (error) {
       console.error('Failed to add session:', error);
     }
@@ -66,23 +82,21 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
     } catch (error) {
       console.error('Failed to update session:', error);
     }
-    set((state) => ({
-      sessions: state.sessions.map((s) =>
-        s.id === id ? ({ ...s, ...updates, updatedAt: new Date().toISOString() } as Session) : s
-      ),
-    }));
-    await useGoalsStore.getState().evaluateActiveGoals().catch(console.error);
-    useGoalsStore.getState().checkAchievements(get().getStats());
+    const updatedSessions = get().sessions.map((s) =>
+      s.id === id ? ({ ...s, ...updates, updatedAt: new Date().toISOString() } as Session) : s
+    );
+    set({ sessions: updatedSessions });
+    await useGoalsStore.getState().evaluateActiveGoals(updatedSessions).catch(console.error);
+    useGoalsStore.getState().checkAchievements(get().getStats(updatedSessions));
   },
 
   deleteSession: async (id) => {
     try {
       await sessionService.deleteSession(id);
-      set((state) => ({
-        sessions: state.sessions.filter((s) => s.id !== id),
-      }));
-      await useGoalsStore.getState().evaluateActiveGoals().catch(console.error);
-      useGoalsStore.getState().checkAchievements(get().getStats());
+      const updatedSessions = get().sessions.filter((s) => s.id !== id);
+      set({ sessions: updatedSessions });
+      await useGoalsStore.getState().evaluateActiveGoals(updatedSessions).catch(console.error);
+      useGoalsStore.getState().checkAchievements(get().getStats(updatedSessions));
     } catch (error) {
       console.error('Failed to delete session:', error);
     }
@@ -131,16 +145,26 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
       };
     }
 
-    const profits = sessions.map(getSessionProfit);
-    const totalProfit = profits.reduce((a, b) => a + b, 0);
+    // Single-pass aggregation for high performance
+    let totalProfit = 0;
+    let totalBuyIns = 0;
+    let totalMinutes = 0;
+    let totalTournaments = 0;
+    let cashCount = 0;
+    let winCount = 0;
+    let biggestWin = 0;
 
-    const totalBuyIns = sessions.reduce((sum, s) => sum + s.totalBuyIns, 0);
-    const totalMinutes = sessions.reduce((sum, s) => sum + s.duration, 0);
-    const totalTournaments = sessions.reduce((sum, s) => sum + s.eventCount, 0);
-    const cashCount = sessions.reduce((sum, s) => sum + s.cashesCount, 0);
-
-    const winCount = sessions.filter((s) => getSessionProfit(s) > 0).length;
-    const biggestWin = Math.max(0, ...profits);
+    for (let i = 0; i < sessions.length; i++) {
+      const s = sessions[i];
+      const p = getSessionProfit(s);
+      totalProfit += p;
+      totalBuyIns += s.totalBuyIns;
+      totalMinutes += s.duration;
+      totalTournaments += s.eventCount;
+      cashCount += s.cashesCount;
+      if (p > 0) winCount++;
+      if (p > biggestWin) biggestWin = p;
+    }
 
     return {
       totalProfit,

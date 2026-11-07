@@ -54,6 +54,7 @@ export const socialService = {
         author_id: userId,
         type: post.type,
         content: post.content,
+        data: post.data || null,
         session_data: post.sessionData || null,
         is_public: post.isPublic,
       })
@@ -67,6 +68,7 @@ export const socialService = {
       authorId: data.author_id,
       type: data.type as PostType,
       content: data.content,
+      data: data.data || undefined,
       sessionData: data.session_data || undefined,
       isPublic: data.is_public,
       kudos: [],
@@ -146,6 +148,19 @@ export const socialService = {
 
     if (error || !data) return [];
     return data.map(d => d.following_id);
+  },
+
+  /**
+   * Retrieves the number of followers for a specific user.
+   */
+  async fetchFollowersCount(userId: string): Promise<number> {
+    const { count, error } = await supabase
+      .from('social_follows')
+      .select('*', { count: 'exact', head: true })
+      .eq('following_id', userId);
+
+    if (error || count === null) return 0;
+    return count;
   },
 
   /**

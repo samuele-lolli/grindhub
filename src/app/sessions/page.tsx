@@ -10,7 +10,7 @@ import { useSettingsStore } from '@/stores/settings-store';
 import { useI18n } from '@/i18n';
 import { format } from 'date-fns';
 import {
-  formatCurrency, formatDate, formatDuration, getSessionProfit, getSessionBuyIn,
+  formatCurrency, formatDate, formatDuration, getSessionProfit,
   getProfitClass, platformLabels, formatPercent, cn,
 } from '@/lib/utils';
 import type {
@@ -250,10 +250,7 @@ export default function SessionsPage() {
   );
 
   // ── Avg Buy-in ──
-  const avgBuyIn = useMemo(() => {
-    if (sessions.length === 0) return 0;
-    return sessions.reduce((sum, s) => sum + getSessionBuyIn(s), 0) / sessions.length;
-  }, [sessions]);
+  const avgBuyIn = stats.avgBuyIn;
 
   // ════════════════════════════════════════════════════════════════
   // Render

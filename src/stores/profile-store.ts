@@ -9,7 +9,7 @@ interface ProfileState {
 }
 
 interface ProfileActions {
-  setupProfile: (profile: PlayerProfile) => void;
+  setupProfile: (profile: PlayerProfile | null) => void;
   updateProfile: (userId: string, updates: Partial<PlayerProfile>) => Promise<void>;
   setLoggedIn: (status: boolean) => void;
   setPlayers: (players: PlayerProfile[]) => void;
@@ -25,10 +25,15 @@ export const useProfileStore = create<ProfileStore>()((set) => ({
   setupProfile: (profile) => set({ profile }),
 
   updateProfile: async (userId, updates) => {
-    await profileService.updateProfile(userId, updates);
-    set(state => ({
-      profile: state.profile ? { ...state.profile, ...updates } : null
-    }));
+    try {
+      await profileService.updateProfile(userId, updates);
+      set(state => ({
+        profile: state.profile ? { ...state.profile, ...updates } : null
+      }));
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+      throw error;
+    }
   },
 
   setLoggedIn: (status) => set({ isLoggedIn: status }),

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Target, CheckCircle2, Trophy, Plus, Flame, Zap, Star, Award, TrendingUp, Calendar, Shield, Crown, Gem, X, Lock } from 'lucide-react';
+import { Target, CheckCircle2, Trophy, Plus, Flame, Zap, Star, Award, TrendingUp, Calendar, Shield, Crown, Gem, X, Lock, Clock, Minus } from 'lucide-react';
 import { useGoalsStore, ACHIEVEMENT_DEFINITIONS } from '@/stores/goals-store';
 import { useSessionStore } from '@/stores/session-store';
 import { Tooltip as UITooltip } from '@/components/ui/Tooltip';
@@ -11,9 +11,10 @@ import type { GoalType } from '@/types';
 import styles from './page.module.css';
 
 const goalTypeOptions: { value: GoalType; label: string; icon: React.ReactNode }[] = [
-  { value: 'volume', label: 'Volume', icon: <Target size={20} /> },
-  { value: 'profit', label: 'Profit', icon: <TrendingUp size={20} /> },
-  { value: 'roi', label: 'ROI', icon: <Star size={20} /> },
+  { value: 'volume', label: 'Volume (MTTs)', icon: <Target size={20} /> },
+  { value: 'profit', label: 'Profit (€)', icon: <TrendingUp size={20} /> },
+  { value: 'roi', label: 'ROI (%)', icon: <Star size={20} /> },
+  { value: 'time', label: 'Playtime (Hours)', icon: <Clock size={20} /> },
   { value: 'custom', label: 'Custom', icon: <Zap size={20} /> },
 ];
 
@@ -24,6 +25,7 @@ const GOAL_TEMPLATES = [
   { id: 't4', title: 'Baller: €2k Profit', description: 'Hit the 2k profit milestone', type: 'profit' as GoalType, targetValue: 2000, icon: <Gem size={20} /> },
   { id: 't5', title: 'Solid ROI: 20%', description: 'Achieve a 20% ROI', type: 'roi' as GoalType, targetValue: 20, icon: <Star size={20} /> },
   { id: 't6', title: 'Crusher ROI: 50%', description: 'Sustain a 50% ROI', type: 'roi' as GoalType, targetValue: 50, icon: <Crown size={20} /> },
+  { id: 't7', title: 'Table Time: 50 Hours', description: 'Log 50 hours of poker sessions', type: 'time' as GoalType, targetValue: 50, icon: <Clock size={20} /> },
 ];
 
 export default function GoalsPage() {
@@ -32,6 +34,7 @@ export default function GoalsPage() {
   const achievements = useGoalsStore(s => s.achievements);
   const addGoal = useGoalsStore(s => s.addGoal);
   const deleteGoal = useGoalsStore(s => s.deleteGoal);
+  const updateProgress = useGoalsStore(s => s.updateProgress);
   const checkAchievements = useGoalsStore(s => s.checkAchievements);
   const sessions = useSessionStore(s => s.sessions);
   const getStats = useSessionStore(s => s.getStats);
@@ -111,6 +114,8 @@ export default function GoalsPage() {
   };
 
   const achievementIcons: Record<string, React.ReactNode> = {
+    Trophy: <Trophy size={24} />, Flame: <Flame size={24} />, Zap: <Zap size={24} />,
+    Target: <Target size={24} />, Award: <Award size={24} />,
     trophy: <Trophy size={24} />, flame: <Flame size={24} />, zap: <Zap size={24} />,
     banknote: <Star size={24} />, gem: <Gem size={24} />, crown: <Crown size={24} />,
     'trending-up': <TrendingUp size={24} />, target: <Target size={24} />, shield: <Shield size={24} />,
@@ -160,13 +165,39 @@ export default function GoalsPage() {
               
               <div className={styles.progressContainer}>
                 <div className={styles.progressHeader}>
-                  <span className={styles.goalProgress}>{Math.round(goal.currentValue)} / {goal.targetValue}</span>
+                  <span className={styles.goalProgress}>
+                    {goal.type === 'time'
+                      ? `${goal.currentValue.toFixed(1)} / ${goal.targetValue} hrs`
+                      : `${Math.round(goal.currentValue)} / ${goal.targetValue}${goal.type === 'roi' ? '%' : goal.type === 'profit' ? '€' : ''}`}
+                  </span>
                   <span className={styles.goalPercent}>{Math.round(progress)}%</span>
                 </div>
                 <div className={styles.progressBar}>
                   <div className={styles.progressFill} style={{ width: `${progress}%` }} />
                 </div>
               </div>
+
+              {goal.type === 'custom' && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Log Progress:</span>
+                  <button
+                    type="button"
+                    style={{ background: 'rgba(255,255,255,0.08)', border: 'none', color: '#fff', borderRadius: '4px', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                    onClick={() => updateProgress(goal.id, Math.max(0, goal.currentValue - 1))}
+                    title="Decrease by 1"
+                  >
+                    <Minus size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    style={{ background: 'rgba(255,255,255,0.08)', border: 'none', color: '#fff', borderRadius: '4px', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                    onClick={() => updateProgress(goal.id, goal.currentValue + 1)}
+                    title="Increase by 1"
+                  >
+                    <Plus size={14} />
+                  </button>
+                </div>
+              )}
               
               {daysLeft !== null && (
                 <div className={styles.goalFooter}>
@@ -274,7 +305,7 @@ export default function GoalsPage() {
 
               <div className={styles.formDivider}>Or Create Custom Goal</div>
 
-              <form onSubmit={handleAddGoal} className={styles.form}>
+              <form id="goalForm" onSubmit={handleAddGoal} className={styles.form}>
                 <div className={styles.formGroup}>
                   <label>{t.goals.goalTitle}</label>
                   <input value={form.title} onChange={e => setForm({...form, title: e.target.value})} required placeholder="e.g. Play 100 MTTs this month" />
@@ -304,7 +335,7 @@ export default function GoalsPage() {
             
             <div className={styles.formActions}>
               <button type="button" className={styles.cancelBtn} onClick={() => setShowModal(false)}>Cancel</button>
-              <button type="submit" className={styles.submitBtn}>{t.goals.createGoal}</button>
+              <button type="submit" form="goalForm" className={styles.submitBtn}>{t.goals.createGoal}</button>
             </div>
           </div>
         </div>

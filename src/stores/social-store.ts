@@ -6,6 +6,7 @@ import { useProfileStore } from './profile-store';
 interface SocialState {
   feed: SocialPost[];
   following: string[];
+  followersCount: number;
   hasMore: boolean;
   trendingDiscussions: { postId: string, authorName: string, content: string, score: number }[];
 }
@@ -23,6 +24,7 @@ interface SocialActions {
 
   setPosts: (posts: SocialPost[]) => void;
   setFollowing: (userIds: string[]) => void;
+  setFollowersCount: (count: number) => void;
   loadTrending: () => Promise<void>;
   loadMore: () => Promise<void>;
 }
@@ -32,6 +34,7 @@ type SocialStore = SocialState & SocialActions;
 export const useSocialStore = create<SocialStore>()((set, get) => ({
   feed: [],
   following: [],
+  followersCount: 0,
   hasMore: true,
   trendingDiscussions: [],
 
@@ -171,6 +174,7 @@ export const useSocialStore = create<SocialStore>()((set, get) => ({
 
   setPosts: (posts) => set({ feed: posts, hasMore: posts.length >= 20 }),
   setFollowing: (userIds) => set({ following: userIds }),
+  setFollowersCount: (count) => set({ followersCount: count }),
   
   loadTrending: async () => {
     const trends = await socialService.fetchTrendingDiscussions();

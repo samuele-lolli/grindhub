@@ -23,9 +23,10 @@ interface GoalsActions {
   updateGoal: (id: string, updates: Partial<Goal>) => Promise<void>;
   deleteGoal: (id: string) => Promise<void>;
   setGoals: (goals: Goal[]) => void;
+  setAchievements: (achievements: Achievement[]) => void;
   updateProgress: (id: string, value: number) => Promise<void>;
   checkAchievements: (stats: PlayerStats) => void;
-  evaluateActiveGoals: () => Promise<void>;
+  evaluateActiveGoals: (sessionsOverride?: import('@/types').Session[]) => Promise<void>;
 }
 
 type GoalsStore = GoalsState & GoalsActions;
@@ -73,6 +74,7 @@ export const useGoalsStore = create<GoalsStore>()(
   },
 
   setGoals: (goals) => set({ goals }),
+  setAchievements: (achievements) => set({ achievements }),
 
   updateProgress: async (id, value) => {
     const goal = get().goals.find(g => g.id === id);
@@ -122,15 +124,21 @@ export const useGoalsStore = create<GoalsStore>()(
     }
   },
 
-  evaluateActiveGoals: async () => {
+  evaluateActiveGoals: async (sessionsOverride?: import('@/types').Session[]) => {
     try {
       const { goals, updateProgress } = get();
       // Re-evaluate both active AND completed goals (in case sessions are deleted)
       const evaluableGoals = goals.filter(g => g.status === 'active' || g.status === 'completed');
+      if (evaluableGoals.length === 0) return;
       
-      // Dynamically import to avoid circular dependency
+      let allSessions = sessionsOverride;
+      let getStatsFn: ((sessions?: import('@/types').Session[]) => PlayerStats) | null = null;
+
       const { useSessionStore } = await import('./session-store');
-      const allSessions = useSessionStore.getState().sessions;
+      if (!allSessions) {
+        allSessions = useSessionStore.getState().sessions;
+      }
+      getStatsFn = useSessionStore.getState().getStats;
       
       for (const goal of evaluableGoals) {
         // Only count sessions that happened AFTER the goal was created (ignoring exact time)
@@ -146,7 +154,7 @@ export const useGoalsStore = create<GoalsStore>()(
           sessionDate.setHours(0,0,0,0);
           return sessionDate.getTime() >= goalStartTime;
         });
-        const goalStats = useSessionStore.getState().getStats(relevantSessions);
+        const goalStats = getStatsFn(relevantSessions);
         
         let newValue = goal.currentValue;
         
@@ -160,7 +168,14 @@ export const useGoalsStore = create<GoalsStore>()(
           case 'roi':
             newValue = goalStats.roi;
             break;
-          // time and custom logic could be added here
+          case 'time':
+            // Time is tracked in total hours played with 1 decimal precision
+            newValue = Math.round((goalStats.totalHoursPlayed || 0) * 10) / 10;
+            break;
+          case 'custom':
+            // Custom goals are updated manually by the player, preserve currentValue
+            newValue = goal.currentValue;
+            break;
         }
         
         if (typeof newValue !== 'number' || isNaN(newValue) || !isFinite(newValue)) {
@@ -210,8 +225,13 @@ export const useGoalsStore = create<GoalsStore>()(
     if (newlyUnlocked) {
       set({ achievements: newAchievements });
       
-      // Auto-share to social if privacy allows
       const profile = useProfileStore.getState().profile;
+      if (profile) {
+        const achievementIds = newAchievements.map(a => a.id);
+        useProfileStore.getState().updateProfile(profile.id, { achievements: achievementIds }).catch(console.error);
+      }
+
+      // Auto-share to social if privacy allows
       if (profile && profile.privacy?.autoShareGoals) {
         const newlyUnlockedDefs = newAchievements.filter(na => !achievements.find(oa => oa.id === na.id));
         newlyUnlockedDefs.forEach(na => {

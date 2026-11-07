@@ -33,6 +33,7 @@ export const profileService = {
       platforms: data.platforms || [],
       joinedAt: data.created_at,
       privacy: data.privacy,
+      achievements: data.achievements || [],
       isCurrentUser: true,
     };
   },
@@ -43,20 +44,22 @@ export const profileService = {
    * @param updates - Partial profile fields to update.
    */
   async updateProfile(id: string, updates: Partial<PlayerProfile>): Promise<void> {
+    const dbUpdates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    if (updates.username !== undefined) dbUpdates.username = updates.username;
+    if (updates.displayName !== undefined) dbUpdates.display_name = updates.displayName;
+    if (updates.avatar !== undefined) dbUpdates.avatar_url = updates.avatar;
+    if (updates.bio !== undefined) dbUpdates.bio = updates.bio;
+    if (updates.country !== undefined) dbUpdates.country = updates.country;
+    if (updates.yearsPlaying !== undefined) dbUpdates.years_playing = updates.yearsPlaying;
+    if (updates.primaryGameType !== undefined) dbUpdates.primary_game_type = updates.primaryGameType;
+    if (updates.preferredStakes !== undefined) dbUpdates.preferred_stakes = updates.preferredStakes;
+    if (updates.platforms !== undefined) dbUpdates.platforms = updates.platforms;
+    if (updates.privacy !== undefined) dbUpdates.privacy = updates.privacy;
+    if (updates.achievements !== undefined) dbUpdates.achievements = updates.achievements;
+
     const { error } = await supabase
       .from('profiles')
-      .update({
-        username: updates.username,
-        display_name: updates.displayName,
-        avatar_url: updates.avatar,
-        bio: updates.bio,
-        country: updates.country,
-        years_playing: updates.yearsPlaying,
-        primary_game_type: updates.primaryGameType,
-        preferred_stakes: updates.preferredStakes,
-        platforms: updates.platforms,
-        privacy: updates.privacy,
-      })
+      .update(dbUpdates)
       .eq('id', id);
 
     if (error) throw error;
@@ -89,6 +92,7 @@ export const profileService = {
       platforms: d.platforms || [],
       joinedAt: d.created_at,
       privacy: d.privacy,
+      achievements: d.achievements || [],
       isCurrentUser: false,
     }));
   },
@@ -123,18 +127,7 @@ export const profileService = {
         currentStreak: data.currentStreak,
       } : null;
 
-      let achievements: string[] = [];
-      try {
-        const { useProfileStore } = await import('@/stores/profile-store');
-        const { useGoalsStore } = await import('@/stores/goals-store');
-        const currentUser = useProfileStore.getState().profile;
-        if (currentUser && currentUser.id === id) {
-          achievements = useGoalsStore.getState().achievements.map((a: { id: string }) => a.id);
-        }
-      } catch {
-        // Ignore store errors in SSR or if unavailable
-      }
-
+      const achievements: string[] = profile.achievements || [];
       const profileWithAchievements = { ...profile, achievements };
       return { profile: profileWithAchievements, stats };
     } catch (err) {

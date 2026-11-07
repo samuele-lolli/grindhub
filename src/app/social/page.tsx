@@ -7,7 +7,7 @@ import { useProfileStore } from '@/stores/profile-store';
 import { useSessionStore } from '@/stores/session-store';
 import { Tooltip as UITooltip } from '@/components/ui/Tooltip';
 import { useI18n } from '@/i18n';
-import { formatRelativeTime, formatCurrency, getSessionProfit, formatDate, formatDuration, platformLabels, getAvatarColor } from '@/lib/utils';
+import { formatRelativeTime, formatCurrency, getSessionProfit, formatDate, formatDuration, platformLabels } from '@/lib/utils';
 import type { PostType, AggregatedMTTSession, PlayerProfile, PlayerStats } from '@/types';
 import { Avatar } from '@/components/ui/Avatar';
 import { PublicProfileModal } from '@/components/ui/PublicProfileModal';

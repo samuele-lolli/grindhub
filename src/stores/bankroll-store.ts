@@ -45,31 +45,41 @@ export const useBankrollStore = create<BankrollStore>()((set, get) => ({
     const userId = useProfileStore.getState().profile?.id;
     if (!userId) return;
 
-    const initialBalance = acc.balance;
-    const accountToCreate = { ...acc, balance: 0 };
-    const newAcc = await bankrollService.createAccount(userId, accountToCreate);
-    
-    set(state => ({
-      accounts: [...state.accounts, newAcc]
-    }));
+    try {
+      const initialBalance = acc.balance;
+      const accountToCreate = { ...acc, balance: 0 };
+      const newAcc = await bankrollService.createAccount(userId, accountToCreate);
+      
+      set(state => ({
+        accounts: [...state.accounts, newAcc]
+      }));
 
-    if (initialBalance > 0) {
-      await get().addTransaction({
-        accountId: newAcc.id,
-        type: 'deposit',
-        amount: initialBalance,
-        date: new Date().toISOString(),
-        notes: 'Initial Balance'
-      });
+      if (initialBalance > 0) {
+        await get().addTransaction({
+          accountId: newAcc.id,
+          type: 'deposit',
+          amount: initialBalance,
+          date: new Date().toISOString(),
+          notes: 'Initial Balance'
+        });
+      }
+    } catch (error) {
+      console.error('Failed to add bankroll account:', error);
+      throw error;
     }
   },
 
   deleteAccount: async (id) => {
-    await bankrollService.deleteAccount(id);
-    set(state => ({
-      accounts: state.accounts.filter(a => a.id !== id),
-      transactions: state.transactions.filter(t => t.accountId !== id)
-    }));
+    try {
+      await bankrollService.deleteAccount(id);
+      set(state => ({
+        accounts: state.accounts.filter(a => a.id !== id),
+        transactions: state.transactions.filter(t => t.accountId !== id)
+      }));
+    } catch (error) {
+      console.error('Failed to delete bankroll account:', error);
+      throw error;
+    }
   },
 
   /**
@@ -84,19 +94,24 @@ export const useBankrollStore = create<BankrollStore>()((set, get) => ({
     const userId = useProfileStore.getState().profile?.id;
     if (!userId) return;
 
-    const result = await bankrollService.createTransaction(userId, tx);
+    try {
+      const result = await bankrollService.createTransaction(userId, tx);
 
-    set(state => ({
-      // Add the new transaction to local state
-      transactions: [result.transaction, ...state.transactions]
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
-      // Sync the account balance with what the DB says
-      accounts: state.accounts.map(a =>
-        a.id === tx.accountId
-          ? { ...a, balance: result.newBalance, updatedAt: new Date().toISOString() }
-          : a
-      ),
-    }));
+      set(state => ({
+        // Add the new transaction to local state
+        transactions: [result.transaction, ...state.transactions]
+          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+        // Sync the account balance with what the DB says
+        accounts: state.accounts.map(a =>
+          a.id === tx.accountId
+            ? { ...a, balance: result.newBalance, updatedAt: new Date().toISOString() }
+            : a
+        ),
+      }));
+    } catch (error) {
+      console.error('Failed to add transaction:', error);
+      throw error;
+    }
   },
 
   /**
@@ -107,21 +122,26 @@ export const useBankrollStore = create<BankrollStore>()((set, get) => ({
     const tx = get().transactions.find(t => t.id === id);
     if (!tx) return;
 
-    const newBalance = await bankrollService.deleteTransaction({
-      id: tx.id,
-      accountId: tx.accountId,
-      type: tx.type,
-      amount: tx.amount,
-    });
+    try {
+      const newBalance = await bankrollService.deleteTransaction({
+        id: tx.id,
+        accountId: tx.accountId,
+        type: tx.type,
+        amount: tx.amount,
+      });
 
-    set(state => ({
-      transactions: state.transactions.filter(t => t.id !== id),
-      accounts: state.accounts.map(a =>
-        a.id === tx.accountId
-          ? { ...a, balance: newBalance, updatedAt: new Date().toISOString() }
-          : a
-      ),
-    }));
+      set(state => ({
+        transactions: state.transactions.filter(t => t.id !== id),
+        accounts: state.accounts.map(a =>
+          a.id === tx.accountId
+            ? { ...a, balance: newBalance, updatedAt: new Date().toISOString() }
+            : a
+        ),
+      }));
+    } catch (error) {
+      console.error('Failed to delete transaction:', error);
+      throw error;
+    }
   },
 
   /**
@@ -133,27 +153,32 @@ export const useBankrollStore = create<BankrollStore>()((set, get) => ({
     const userId = useProfileStore.getState().profile?.id;
     if (!userId) return;
 
-    const fromName = get().accounts.find(a => a.id === fromAccountId)?.name || 'Account';
-    const toName = get().accounts.find(a => a.id === toAccountId)?.name || 'Account';
-    const date = new Date().toISOString();
+    try {
+      const fromName = get().accounts.find(a => a.id === fromAccountId)?.name || 'Account';
+      const toName = get().accounts.find(a => a.id === toAccountId)?.name || 'Account';
+      const date = new Date().toISOString();
 
-    // Withdraw from source
-    await get().addTransaction({
-      accountId: fromAccountId,
-      type: 'withdrawal',
-      amount,
-      date,
-      notes: `${notes} → ${toName}`
-    });
+      // Withdraw from source
+      await get().addTransaction({
+        accountId: fromAccountId,
+        type: 'withdrawal',
+        amount,
+        date,
+        notes: `${notes} → ${toName}`
+      });
 
-    // Deposit to destination
-    await get().addTransaction({
-      accountId: toAccountId,
-      type: 'deposit',
-      amount,
-      date,
-      notes: `${notes} ← ${fromName}`
-    });
+      // Deposit to destination
+      await get().addTransaction({
+        accountId: toAccountId,
+        type: 'deposit',
+        amount,
+        date,
+        notes: `${notes} ← ${fromName}`
+      });
+    } catch (error) {
+      console.error('Failed to transfer funds:', error);
+      throw error;
+    }
   },
 
   getTotalBankroll: (excludeRealLife = true) => {

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { usePathname } from 'next/navigation';
-import { Bell, Globe } from 'lucide-react';
+import { Globe } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { useProfileStore } from '@/stores/profile-store';
 import { Avatar } from '@/components/ui/Avatar';
@@ -37,11 +37,6 @@ export function TopBar() {
         <h1 className={styles.pageTitle}>{pageTitle}</h1>
       </div>
       <div className={styles.right}>
-
-        <button className={styles.iconBtn} id="topbar-notifications" aria-label="Notifications">
-          <Bell size={18} />
-          <span className={styles.notifBadge}>3</span>
-        </button>
         <button
           className={styles.langBtn}
           onClick={toggleLocale}

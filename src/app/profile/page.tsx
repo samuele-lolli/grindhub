@@ -27,6 +27,7 @@ export default function ProfilePage() {
   const sessions = useSessionStore(s => s.sessions);
   const getStats = useSessionStore(s => s.getStats);
   const following = useSocialStore(s => s.following);
+  const followersCount = useSocialStore(s => s.followersCount);
   const follow = useSocialStore(s => s.followUser);
   const unfollow = useSocialStore(s => s.unfollowUser);
   const [searchQuery, setSearchQuery] = useState('');
@@ -127,7 +128,7 @@ export default function ProfilePage() {
             </div>
             <div className={styles.followDivider} />
             <div className={styles.followStat}>
-              <span className={styles.followCount}>{0}</span>
+              <span className={styles.followCount}>{followersCount}</span>
               <span className={styles.followLabel}>{t.profile.followers}</span>
             </div>
             <div className={styles.followDivider} />

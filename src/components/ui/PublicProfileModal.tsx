@@ -82,10 +82,10 @@ export function PublicProfileModal({ selectedProfile, onClose }: PublicProfileMo
         <h4 style={{ marginBottom: '12px', fontSize: '14px', color: 'var(--text-secondary)' }}>Public Statistics</h4>
         
         <div className={styles.publicStatsGrid}>
-          {selectedProfile.stats?.totalSessions != null && (
+          {selectedProfile.stats?.totalTournaments != null && (
             <div className={styles.publicStatCard}>
               <span className={styles.embedMetricLabel}>Volume</span>
-              <span className={styles.embedMetricValue}>{selectedProfile.stats.totalSessions} MTTs</span>
+              <span className={styles.embedMetricValue}>{selectedProfile.stats.totalTournaments} MTTs</span>
             </div>
           )}
           {selectedProfile.stats?.totalProfit != null && (
@@ -112,6 +112,14 @@ export function PublicProfileModal({ selectedProfile, onClose }: PublicProfileMo
             <div className={styles.publicStatCard}>
               <span className={styles.embedMetricLabel}>Avg Buy-in</span>
               <span className={styles.embedMetricValue}>{formatCurrency(selectedProfile.stats.avgBuyIn, 'EUR')}</span>
+            </div>
+          )}
+          {selectedProfile.stats?.hourlyRate != null && (
+            <div className={styles.publicStatCard}>
+              <span className={styles.embedMetricLabel}>Hourly Rate</span>
+              <span className={`${styles.embedMetricValue} ${selectedProfile.stats.hourlyRate >= 0 ? styles.profitPos : styles.profitNeg}`}>
+                {formatCurrency(selectedProfile.stats.hourlyRate, 'EUR', true)}/h
+              </span>
             </div>
           )}
           {selectedProfile.stats?.biggestWin != null && (
