@@ -33,14 +33,14 @@ function subscribeLocale(callback: () => void) {
 }
 
 function getClientLocale(): Locale {
-  if (typeof window === 'undefined') return 'it';
+  if (typeof window === 'undefined') return 'en';
   const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY);
   if (stored === 'en' || stored === 'it') return stored;
-  return window.navigator.language?.toLowerCase().startsWith('en') ? 'en' : 'it';
+  return 'en';
 }
 
 function getServerLocale(): Locale {
-  return 'it';
+  return 'en';
 }
 
 interface I18nContextType {

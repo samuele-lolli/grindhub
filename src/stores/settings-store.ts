@@ -10,7 +10,7 @@ import { useProfileStore } from './profile-store';
 
 const DEFAULT_SETTINGS: AppSettings = {
   currency: 'EUR',
-  locale: 'it',
+  locale: 'en',
   theme: 'dark',
   defaultGameType: 'mtt',
   defaultPlatform: 'pokerstars',
